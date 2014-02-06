@@ -23,6 +23,7 @@
                  [cheshire "5.3.0"]
 
                  ;; Jig
+                 [jig ~jig-version]
                  [jig/async ~jig-version]
                  [jig/cljs-builder ~jig-version]
                  [jig/bidi ~jig-version]
