@@ -27,7 +27,7 @@ Check the paths in Jig's ```project.clj``` and ```config/config.clj```, and modi
 
 ### Just azondi
 
-Symlink or create a config.{edn,clj} in `resources/`, where jig will find it as it's on the classpath. Then `lein repl` or otherwise start a REPL from the azondi directory.
+Symlink or create a config.{edn,clj} in `resources/`, where jig will find it. Then `lein repl` or otherwise start a REPL from the azondi directory.
 
 Ready-to-symlink configs are in `configs/`.
 
