@@ -32,4 +32,7 @@
                  [jig/netty-mqtt ~jig-version]
                  [jig/http-kit ~jig-version]]
 
+  :repl-options {:prompt (fn [ns] (str "Jig " ns "> "))
+                 :welcome (user/welcome)}
+
                 )
