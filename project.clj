@@ -23,6 +23,7 @@
                  [cheshire "5.3.0"]
 
                  ;; Jig
+                 [jig ~jig-version]
                  [jig/async ~jig-version]
                  [jig/cljs-builder ~jig-version]
                  [jig/bidi ~jig-version]
@@ -30,5 +31,8 @@
                  [jig/netty ~jig-version]
                  [jig/netty-mqtt ~jig-version]
                  [jig/http-kit ~jig-version]]
+
+  :repl-options {:prompt (fn [ns] (str "Jig " ns "> "))
+                 :welcome (user/welcome)}
 
                 )

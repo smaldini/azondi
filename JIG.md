@@ -1,10 +1,12 @@
 ## Development
 
+### Alongside other components
+
 First, clone Jig.
 
     git clone https://github.com/juxt/jig.git
 
-Now add a ```.jig/config.clj``` file and add the following content :-
+Now create a ```~/.jig/config.clj``` file and add the following content :-
 
     #=(eval
        (-> (clojure.core/read-string (slurp "../azondi/config.clj"))))
@@ -22,6 +24,14 @@ Check the paths in Jig's ```project.clj``` and ```config/config.clj```, and modi
     (reset)
 
 (Don't be too concerned about having to edit Jig's ```project.clj``` file. I have a version of Jig in the pipeline that allows external project references in the config, it's just not ready for service yet).
+
+### Just azondi
+
+Symlink or create a config.{edn,clj} in `resources/`, where jig will find it. Then `lein repl` or otherwise start a REPL from the azondi directory.
+
+Ready-to-symlink configs are in `configs/`.
+
+## Configuration
 
 The components involved are laid out in Jig's ```config/config.clj``` file.
 
@@ -65,6 +75,7 @@ Here's a (probably out-of-date) example.
 Each component has a lifecycle consisting of ```init```, ```start``` and ```stop``` phases. The order that components are started in is determined by Jig, see ```:jig/dependencies``` in the config.
 
 The first 2 components are provided by Jig, and they help get a website up and running using Pedestal routes. That much comes for free. The remaining components are provided by this project and are described here.
+
 ### mqtt-server
 
 This started the Netty mqtt server on port 1883
