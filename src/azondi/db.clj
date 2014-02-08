@@ -28,6 +28,7 @@
                                               :device_type :varchar
                                               :device_name :varchar
                                               :description :varchar
+                                              :measurement_units :varchar
                                               :open_data :boolean
                                               :latitude :varchar
                                               :longitude :varchar
