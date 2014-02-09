@@ -23,6 +23,8 @@
                                                          :primary-key [:email :time :topic]})
                 (if-not-exists))
 
+  (create-index "userSubscriptions" :topic (if-not-exists))
+
   (create-table "topics" (column-definitions {:topic_name :varchar
                                               :publisher :varchar
                                               :device_type :varchar
@@ -35,7 +37,7 @@
                                               :created_date :timestamp
                                               :primary-key [:topic_name]})
                 (if-not-exists))
-  (create-index "topics" "publisher"
+  (create-index "topics" :publisher
                 (if-not-exists)))
 
 (deftype Database [config]
