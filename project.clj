@@ -23,6 +23,9 @@
                  [clojurewerkz/triennium  "1.0.0-beta1"]
                  [cheshire "5.3.0"]
 
+                 ;; Logging
+                 [com.taoensso/timbre "3.0.1"]
+
                  ;; Jig
                  [jig ~jig-version]
                  [jig/async ~jig-version]
