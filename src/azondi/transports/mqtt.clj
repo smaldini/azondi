@@ -28,6 +28,7 @@
 
 (defn disconnect-client
   [^ChannelHandlerContext ctx]
+  (debugf "Client %s is disconnecting..." ctx)
   (doto ctx
     (.writeAndFlush {:type :disconnect})
     .close))
@@ -71,6 +72,7 @@
      (alter connections-by-ctx       assoc ctx conn)
      (alter connections-by-client-id assoc client-id conn))
     (.writeAndFlush ctx {:type :connack :return-code :accepted})
+    (debugf "Accepted connection: %s" ctx)
     conn))
 
 (defn reject-connection
@@ -126,12 +128,32 @@
       (reject-connection ctx :unacceptable-protocol-version))))
 
 (defn handle-subscribe
-  [^ChannelHandlerContext ctx msg subscriptions]
-  (.writeAndFlush ctx {:type :suback})
-  (dosync
-   (alter subscriptions (fn [subs]
-                          (reduce #(update-in %1 [%2] conj ctx)
-                                  subs (map first (:topics msg)))))))
+  [^ChannelHandlerContext ctx {:keys [topics message-id dup qos] :as msg} handler-state]
+  ;; example message:
+  ;; {:topics [["a/topic" 1]],
+  ;;  :message-id 1,
+  ;;  :type :subscribe,
+  ;;  :dup false,
+  ;;  :qos 1,
+  ;;  ;; not used per MQTT v3.1 spec (section 3.8)
+  ;;  :retain false}
+  (debugf "SUBSCRIBE to topics: %s" topics)
+  ;; TODO: register subscribers
+  ;; TODO: QoS > 0
+  (.writeAndFlush ctx {:type :suback :message-id message-id :granted-qos (repeat (count topics) 0)}))
+
+(defn handle-unsubscribe
+  [^ChannelHandlerContext ctx {:keys [topics message-id] :as msg} handler-state]
+  ;; example message;
+  ;; {:topics ["a/topic"],
+  ;;  :message-id 2,
+  ;;  :type :unsubscribe,
+  ;;  :dup false,
+  ;;  :qos 1,
+  ;;  :retain false}
+  (debugf "UNSUBSCRIBE from topics: %s" topics)
+  ;; TODO: unregister subscribers
+  (.writeAndFlush ctx {:type :unsuback :message-id message-id}))
 
 (defn handle-publish
   [^ChannelHandlerContext ctx msg {:keys [connections-by-ctx
@@ -168,11 +190,12 @@
   (proxy [ChannelHandlerAdapter] []
     (channelRead [^ChannelHandlerContext ctx msg]
       (case (:type msg)
-        :connect    (handle-connect    ctx msg handler-state)
-        :subscribe  (handle-subscribe  ctx msg handler-state)
-        :publish    (handle-publish    ctx msg handler-state)
-        :pingreq    (handle-pingreq    ctx handler-state)
-        :disconnect (handle-disconnect ctx handler-state)))
+        :connect     (handle-connect     ctx msg handler-state)
+        :subscribe   (handle-subscribe   ctx msg handler-state)
+        :unsubscribe (handle-unsubscribe ctx msg handler-state)
+        :publish     (handle-publish     ctx msg handler-state)
+        :pingreq     (handle-pingreq     ctx handler-state)
+        :disconnect  (handle-disconnect  ctx handler-state)))
     (exceptionCaught [^ChannelHandlerContext ctx cause]
       (try (throw cause)
            (finally (abort ctx))))))
