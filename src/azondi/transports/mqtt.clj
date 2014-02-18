@@ -3,7 +3,9 @@
   (:require jig
             [jig.util :refer [satisfying-dependency]]
             [clojure.core.async :refer [put!]]
-            [azondi.authentication :as auth])
+            [azondi.authentication :as auth]
+            [taoensso.timbre :refer [log  trace  debug  info  warn  error  fatal
+                                     logf tracef debugf infof warnf errorf fatalf]])
   (:import  [io.netty.channel ChannelHandlerAdapter ChannelHandlerContext]
             jig.Lifecycle))
 
