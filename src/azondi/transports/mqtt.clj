@@ -5,7 +5,8 @@
             [clojure.core.async :refer [put!]]
             [azondi.authentication :as auth]
             [taoensso.timbre :refer [log  trace  debug  info  warn  error  fatal
-                                     logf tracef debugf infof warnf errorf fatalf]])
+                                     logf tracef debugf infof warnf errorf fatalf]]
+            [clojurewerkz.triennium.mqtt :as tr])
   (:import  [io.netty.channel ChannelHandlerAdapter ChannelHandlerContext]
             jig.Lifecycle))
 
@@ -127,8 +128,17 @@
                        protocol-version))
       (reject-connection ctx :unacceptable-protocol-version))))
 
+(defn record-subscribers
+  [trie ctx topics]
+  (reduce (fn [acc [topic qos]]
+            (debug acc topic)
+            (tr/insert acc topic {:ctx ctx :qos qos}))
+          trie
+          topics))
+
 (defn handle-subscribe
-  [^ChannelHandlerContext ctx {:keys [topics message-id dup qos] :as msg} handler-state]
+  [^ChannelHandlerContext ctx {:keys [topics message-id dup qos] :as msg}
+   {:keys [subscriptions] :as handler-state}]
   ;; example message:
   ;; {:topics [["a/topic" 1]],
   ;;  :message-id 1,
@@ -138,7 +148,8 @@
   ;;  ;; not used per MQTT v3.1 spec (section 3.8)
   ;;  :retain false}
   (debugf "SUBSCRIBE to topics: %s" topics)
-  ;; TODO: register subscribers
+  (swap! subscriptions record-subscribers ctx topics)
+  (debugf "Subscribers: " @subscriptions)
   ;; TODO: QoS > 0
   (.writeAndFlush ctx {:type :suback :message-id message-id :granted-qos (repeat (count topics) 0)}))
 
@@ -207,7 +218,7 @@
     (let [ch (some (comp :channel system) (:jig/dependencies config))]
       (assoc-in system
                 [(:jig/id config) :jig.netty/handler-factory]
-                #(make-channel-handler {:subscriptions (ref {})
+                #(make-channel-handler {:subscriptions (atom (tr/make-trie))
                                         :connections-by-ctx (ref {})
                                         :connections-by-client-id (ref {})
                                         :channel ch}))))
