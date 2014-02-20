@@ -131,7 +131,6 @@
 (defn record-subscribers
   [trie ctx topics]
   (reduce (fn [acc [topic qos]]
-            (debug acc topic)
             (tr/insert acc topic {:ctx ctx :qos qos}))
           trie
           topics))
@@ -149,9 +148,10 @@
   ;;  :retain false}
   (debugf "SUBSCRIBE to topics: %s" topics)
   (swap! subscriptions record-subscribers ctx topics)
-  (debugf "Subscribers: " @subscriptions)
   ;; TODO: QoS > 0
-  (.writeAndFlush ctx {:type :suback :message-id message-id :granted-qos (repeat (count topics) 0)}))
+  (.writeAndFlush ctx {:type :suback
+                       :message-id message-id
+                       :granted-qos (repeat (count topics) 0)}))
 
 (defn handle-unsubscribe
   [^ChannelHandlerContext ctx {:keys [topics message-id] :as msg} handler-state]
