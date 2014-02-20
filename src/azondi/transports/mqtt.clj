@@ -84,7 +84,7 @@
 
 
 ;;
-;; Handlers
+;; CONNECT
 ;;
 
 (defn handle-connect
@@ -128,10 +128,19 @@
                        protocol-version))
       (reject-connection ctx :unacceptable-protocol-version))))
 
+;;
+;; SUBSCRIBE
+;;
+
+(defrecord Subscriber
+    [^ChannelHandlerContext ctx
+     ^String topic
+     ^long qos])
+
 (defn record-subscribers
   [trie ctx topics]
   (reduce (fn [acc [topic qos]]
-            (tr/insert acc topic {:ctx ctx :qos qos}))
+            (tr/insert acc topic (Subscriber. ctx topic qos)))
           trie
           topics))
 
@@ -147,7 +156,7 @@
   ;;  ;; not used per MQTT v3.1 spec (section 3.8)
   ;;  :retain false}
   (debugf "SUBSCRIBE to topics: %s" topics)
-  (swap! subscriptions record-subscribers ctx topics)
+  (swap! subscriptions record-subscribers ctx topics )
   ;; TODO: QoS > 0
   (.writeAndFlush ctx {:type :suback
                        :message-id message-id
@@ -166,10 +175,34 @@
   ;; TODO: unregister subscribers
   (.writeAndFlush ctx {:type :unsuback :message-id message-id}))
 
+;;
+;; PUBLISH
+;;
+
+(defn handle-publish-with-qos0
+  [^ChannelHandlerContext publisher-ctx
+   {:keys [topic qos payload] :as msg}
+   {:keys [subscriptions] :as handler-state}]
+  (let [subs (tr/matching-vals @subscriptions topic)]
+    (debugf "Have %d subscribers to notify..." (count subs))
+    ;; TODO: this can be done in parallel
+    (doseq [{:keys [^ChannelHandlerContext ctx topic qos]} subs]
+      (.writeAndFlush ctx {:type :publish :topic topic :payload payload :qos 0}))))
+
+(defn handle-publish-with-qos1
+  [^ChannelHandlerContext ctx
+   {:keys [topic qos payload] :as msg}
+   {:keys [subscriptions] :as handler-state}]
+  (comment "TODO"))
+
+(defn handle-publish-with-qos2
+  [^ChannelHandlerContext ctx
+   {:keys [topic qos payload] :as msg}
+   {:keys [subscriptions] :as handler-state}]
+  (comment "TODO"))
+
 (defn handle-publish
-  [^ChannelHandlerContext ctx msg {:keys [connections-by-ctx
-                                          subscriptions
-                                          channel] :as handler-state}]
+  [^ChannelHandlerContext ctx {:keys [qos] :as msg} handler-state]
   ;; example message:
   ;; {:payload #<byte[] [B@1503e6b>,
   ;;  :message-id 1,
@@ -178,11 +211,23 @@
   ;;  :dup false,
   ;;  :qos 1,
   ;;  :retain false}
-  )
+  (let [f (case qos
+            0 handle-publish-with-qos0
+            1 handle-publish-with-qos1
+            2 handle-publish-with-qos2)]
+    (f ctx msg handler-state)))
+
+;;
+;; PINGREQ
+;;
 
 (defn handle-pingreq
   [^ChannelHandlerContext ctx _]
   (.writeAndFlush ctx {:type :pingresp}))
+
+;;
+;; DISCONNECT
+;;
 
 (defn handle-disconnect
   [^ChannelHandlerContext ctx _]
