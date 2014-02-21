@@ -11,11 +11,6 @@
             jig.Lifecycle
             java.net.InetSocketAddress))
 
-(def registered-topics
-  {"/uk/gov/hackney/parking" #{"yodit" "paula"}
-   "/juxt/big-red-button/malcolm" #{"malcolm"}
-   "/juxt/big-red-button/yodit" #{"yodit"}})
-
 (def ^:const supported-mqtt-protocol "MQIsdp")
 (def ^:const supported-mqtt-version  3)
 
