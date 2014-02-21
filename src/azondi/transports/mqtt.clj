@@ -7,8 +7,9 @@
             [taoensso.timbre :refer [log  trace  debug  info  warn  error  fatal
                                      logf tracef debugf infof warnf errorf fatalf]]
             [clojurewerkz.triennium.mqtt :as tr])
-  (:import  [io.netty.channel ChannelHandlerAdapter ChannelHandlerContext]
-            jig.Lifecycle))
+  (:import  [io.netty.channel ChannelHandlerAdapter ChannelHandlerContext Channel]
+            jig.Lifecycle
+            java.net.InetSocketAddress))
 
 (def registered-topics
   {"/uk/gov/hackney/parking" #{"yodit" "paula"}
@@ -57,6 +58,11 @@
        (alter connections-by-ctx       dissoc ctx))
       ctx)))
 
+(defn ^InetSocketAddress peer-of
+  [^ChannelHandlerContext ctx]
+  (let [^Channel ch (.channel ctx)]
+    (cast InetSocketAddress (.remoteAddress ch))))
+
 (defn accept-connection
   [^ChannelHandlerContext ctx {:keys [username client-id has-will
                                       clean-session]
@@ -73,14 +79,18 @@
      (alter connections-by-ctx       assoc ctx conn)
      (alter connections-by-client-id assoc client-id conn))
     (.writeAndFlush ctx {:type :connack :return-code :accepted})
-    (debugf "Accepted connection: %s" ctx)
+    (let [^InetSocketAddress peer-host (peer-of ctx)]
+      (debugf "Accepted connection from %s" peer-host))
     conn))
 
 (defn reject-connection
   [^ChannelHandlerContext ctx code]
   (doto ctx
     (.writeAndFlush {:type :connack :return-code code})
-    .close))
+    .close)
+  (let [^InetSocketAddress peer-host (peer-of ctx)]
+      (debugf "Rejecting connection from %s (return code: %s)" peer-host code))
+  ctx)
 
 
 ;;
@@ -132,6 +142,8 @@
 ;; SUBSCRIBE
 ;;
 
+(def subscriptions (atom {}))
+
 (defrecord Subscriber
     [^ChannelHandlerContext ctx
      ^String topic
@@ -146,7 +158,7 @@
 
 (defn handle-subscribe
   [^ChannelHandlerContext ctx {:keys [topics message-id dup qos] :as msg}
-   {:keys [subscriptions] :as handler-state}]
+   handler-state]
   ;; example message:
   ;; {:topics [["a/topic" 1]],
   ;;  :message-id 1,
@@ -155,8 +167,7 @@
   ;;  :qos 1,
   ;;  ;; not used per MQTT v3.1 spec (section 3.8)
   ;;  :retain false}
-  (debugf "SUBSCRIBE to topics: %s" topics)
-  (swap! subscriptions record-subscribers ctx topics )
+  (swap! subscriptions record-subscribers ctx topics)
   ;; TODO: QoS > 0
   (.writeAndFlush ctx {:type :suback
                        :message-id message-id
@@ -182,9 +193,8 @@
 (defn handle-publish-with-qos0
   [^ChannelHandlerContext publisher-ctx
    {:keys [topic qos payload] :as msg}
-   {:keys [subscriptions] :as handler-state}]
+   handler-state]
   (let [subs (tr/matching-vals @subscriptions topic)]
-    (debugf "Have %d subscribers to notify..." (count subs))
     ;; TODO: this can be done in parallel
     (doseq [{:keys [^ChannelHandlerContext ctx topic qos]} subs]
       (.writeAndFlush ctx {:type :publish :topic topic :payload payload :qos 0}))))
@@ -192,13 +202,13 @@
 (defn handle-publish-with-qos1
   [^ChannelHandlerContext ctx
    {:keys [topic qos payload] :as msg}
-   {:keys [subscriptions] :as handler-state}]
+   handler-state]
   (comment "TODO"))
 
 (defn handle-publish-with-qos2
   [^ChannelHandlerContext ctx
    {:keys [topic qos payload] :as msg}
-   {:keys [subscriptions] :as handler-state}]
+   handler-state]
   (comment "TODO"))
 
 (defn handle-publish
@@ -240,8 +250,7 @@
 (defn make-channel-handler
   [{:keys [channel
            connections-by-ctx
-           connections-by-client-id
-           subscriptions]
+           connections-by-client-id]
     :as handler-state}]
   (proxy [ChannelHandlerAdapter] []
     (channelRead [^ChannelHandlerContext ctx msg]
@@ -263,8 +272,7 @@
     (let [ch (some (comp :channel system) (:jig/dependencies config))]
       (assoc-in system
                 [(:jig/id config) :jig.netty/handler-factory]
-                #(make-channel-handler {:subscriptions (atom (tr/make-trie))
-                                        :connections-by-ctx (ref {})
+                #(make-channel-handler {:connections-by-ctx (ref {})
                                         :connections-by-client-id (ref {})
                                         :channel ch}))))
   (stop [_ system] system))
