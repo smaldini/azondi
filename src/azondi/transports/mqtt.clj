@@ -137,6 +137,8 @@
 ;; SUBSCRIBE
 ;;
 
+;; TODO: these have to be scoped per Jig component
+;;       so they can be reset. MK.
 (def subscriptions (atom {}))
 
 (defrecord Subscriber
