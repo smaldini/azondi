@@ -17,7 +17,6 @@
 
 
                  ;; Back-end
-                 [clojurewerkz/machine_head "1.0.0-beta6"]
                  [clojurewerkz/cassaforte "1.3.0-beta10"]
                  [clojurewerkz/scrypt     "1.1.0"]
                  [clojurewerkz/triennium  "1.0.0-beta1"]
@@ -40,4 +39,8 @@
   :repl-options {:prompt (fn [ns] (str "Jig " ns "> "))
                  :welcome (user/welcome)}
 
-                )
+  :profiles {:1.6 {:dependencies [[org.clojure/clojure "1.6.0-beta1"]]}
+             :master {:dependencies [[org.clojure/clojure "1.6.0-master-SNAPSHOT"]]}
+             :dev {:resource-paths ["test/resources"]
+                   :dependencies   [[com.lmax/disruptor "3.2.0"]
+                                    [clojurewerkz/machine_head "1.0.0-beta6"]]}})
