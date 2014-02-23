@@ -2,7 +2,6 @@
 (ns azondi.transports.mqtt
   (:require jig
             [jig.util :refer [satisfying-dependency]]
-            [clojure.core.async :refer [put!]]
             [azondi.authentication :as auth]
             [taoensso.timbre :refer [log  trace  debug  info  warn  error  fatal
                                      logf tracef debugf infof warnf errorf fatalf]]
@@ -266,10 +265,9 @@
   Lifecycle
   (init [_ system] system)
   (start [_ system]
-    (let [ch (some (comp :channel system) (:jig/dependencies config))]
-      (assoc-in system
-                [(:jig/id config) :jig.netty/handler-factory]
-                #(make-channel-handler {:connections-by-ctx (ref {})
-                                        :connections-by-client-id (ref {})
-                                        :channel ch}))))
+    (assoc-in system
+              [(:jig/id config) :jig.netty/handler-factory]
+              #(make-channel-handler {:connections-by-ctx (ref {})
+                                      :connections-by-client-id (ref {})
+                                      :topics-by-ctx (ref {})})))
   (stop [_ system] system))
