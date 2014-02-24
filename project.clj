@@ -1,4 +1,4 @@
-(def jig-version "2.0.0-RC7")
+(def jig-version "2.0.0")
 
 (defproject azondi "0.1.0-SNAPSHOT"
   :description "Azondi helps you make sense of sensors data"
