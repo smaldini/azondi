@@ -19,7 +19,7 @@
                  ;; Back-end
                  [clojurewerkz/cassaforte "1.3.0-beta10"]
                  [clojurewerkz/scrypt     "1.1.0"]
-                 [clojurewerkz/triennium  "1.0.0-beta1"]
+                 [clojurewerkz/triennium  "1.0.0-beta2"]
                  [cheshire "5.3.0"]
                  [clojurewerkz/meltdown "1.0.0-beta4"]
 
