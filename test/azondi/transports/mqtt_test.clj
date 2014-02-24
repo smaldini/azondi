@@ -3,15 +3,27 @@
             [azondi.transports.mqtt :as mqtt]
             [clojurewerkz.triennium.mqtt :as tr]))
 
-(deftest test-records-subscribers
+(deftest test-record-subscribers
   (let [ctx :ctx ;; stub
         xs  [["a/topic" 0] ["b/topic" 0]]
-        m   (atom (tr/make-trie))]
-    (swap! m mqtt/record-subscribers ctx xs)
+        m   (ref (tr/make-trie))]
+    (dosync (alter m mqtt/record-subscribers ctx xs))
     (is (= {"b" {"topic" {:values #{#azondi.transports.mqtt.Subscriber{:ctx :ctx
                                                                        :topic "b/topic"
                                                                        :qos 0}}}}
             "a" {"topic" {:values #{#azondi.transports.mqtt.Subscriber{:ctx :ctx
+                                                                       :topic "a/topic"
+                                                                       :qos 0}}}}}
+           @m))))
+
+(deftest test-unrecord-subscribers
+  (let [ctx :ctx ;; stub
+        xs  [["a/topic" 0] ["b/topic" 0]]
+        m   (ref (tr/make-trie))]
+    (dosync
+     (alter m mqtt/record-subscribers ctx xs)
+     (alter m mqtt/unrecord-subscribers ctx ["b/topic"]))
+    (is (= {"a" {"topic" {:values #{#azondi.transports.mqtt.Subscriber{:ctx :ctx
                                                                        :topic "a/topic"
                                                                        :qos 0}}}}}
            @m))))

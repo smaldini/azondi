@@ -2,16 +2,25 @@
 (ns azondi.transports.mqtt
   (:require jig
             [jig.util :refer [satisfying-dependency]]
-            [azondi.authentication :as auth]
             [taoensso.timbre :refer [log  trace  debug  info  warn  error  fatal
                                      logf tracef debugf infof warnf errorf fatalf]]
-            [clojurewerkz.triennium.mqtt :as tr])
+            [clojurewerkz.triennium.mqtt :as tr]
+            [azondi.authentication :as auth]
+            [clojure.set :as cs])
   (:import  [io.netty.channel ChannelHandlerAdapter ChannelHandlerContext Channel]
             jig.Lifecycle
             java.net.InetSocketAddress))
 
+;;
+;; Implementation
+;;
+
 (def ^:const supported-mqtt-protocol "MQIsdp")
 (def ^:const supported-mqtt-version  3)
+
+(defn ^{:private true} assoc-with-union
+  [m k v]
+  (assoc m k (cs/union (get m k) v)))
 
 ;;
 ;; CONNECT
@@ -83,7 +92,7 @@
     (.writeAndFlush {:type :connack :return-code code})
     .close)
   (let [^InetSocketAddress peer-host (peer-of ctx)]
-      (debugf "Rejecting connection from %s (return code: %s)" peer-host code))
+    (debugf "Rejecting connection from %s (return code: %s)" peer-host code))
   ctx)
 
 
@@ -138,7 +147,7 @@
 
 ;; TODO: these have to be scoped per Jig component
 ;;       so they can be reset. MK.
-(def subscriptions (atom {}))
+(def subscriptions (ref {}))
 
 (defrecord Subscriber
     [^ChannelHandlerContext ctx
@@ -154,7 +163,7 @@
 
 (defn handle-subscribe
   [^ChannelHandlerContext ctx {:keys [topics message-id dup qos] :as msg}
-   handler-state]
+   {:keys [topics-by-ctx] :as handler-state}]
   ;; example message:
   ;; {:topics [["a/topic" 1]],
   ;;  :message-id 1,
@@ -163,14 +172,26 @@
   ;;  :qos 1,
   ;;  ;; not used per MQTT v3.1 spec (section 3.8)
   ;;  :retain false}
-  (swap! subscriptions record-subscribers ctx topics)
+  (dosync
+   (alter subscriptions record-subscribers ctx topics)
+   (alter topics-by-ctx assoc-with-union ctx (set (map first topics))))
   ;; TODO: QoS > 0
   (.writeAndFlush ctx {:type :suback
                        :message-id message-id
                        :granted-qos (repeat (count topics) 0)}))
 
+(defn unrecord-subscribers
+  [trie ctx topics]
+  (reduce (fn [acc ^String topic]
+            (tr/delete-matching acc topic (fn [^Subscriber sb]
+                                            (println sb (= (.ctx sb) ctx))
+                                            (= (.ctx sb) ctx))))
+          trie
+          topics))
+
 (defn handle-unsubscribe
-  [^ChannelHandlerContext ctx {:keys [topics message-id] :as msg} handler-state]
+  [^ChannelHandlerContext ctx {:keys [topics message-id] :as msg}
+   {:keys [topics-by-ctx] :as handler-state}]
   ;; example message;
   ;; {:topics ["a/topic"],
   ;;  :message-id 2,
@@ -179,7 +200,10 @@
   ;;  :qos 1,
   ;;  :retain false}
   (debugf "UNSUBSCRIBE from topics: %s" topics)
-  ;; TODO: unregister subscribers
+  (dosync
+   (alter topics-by-ctx dissoc ctx)
+   (alter subscriptions unrecord-subscribers ctx topics))
+  (debugf "Subscriptions: %s" @subscriptions)
   (.writeAndFlush ctx {:type :unsuback :message-id message-id}))
 
 ;;
@@ -244,10 +268,10 @@
 ;;
 
 (defn make-channel-handler
-  [{:keys [channel
-           connections-by-ctx
-           connections-by-client-id]
-    :as handler-state}]
+  [system {:keys [channel
+                  connections-by-ctx
+                  connections-by-client-id]
+           :as handler-state}]
   (proxy [ChannelHandlerAdapter] []
     (channelRead [^ChannelHandlerContext ctx msg]
       (case (:type msg)
@@ -267,7 +291,7 @@
   (start [_ system]
     (assoc-in system
               [(:jig/id config) :jig.netty/handler-factory]
-              #(make-channel-handler {:connections-by-ctx (ref {})
-                                      :connections-by-client-id (ref {})
-                                      :topics-by-ctx (ref {})})))
+              #(make-channel-handler system {:connections-by-ctx (ref {})
+                                             :connections-by-client-id (ref {})
+                                             :topics-by-ctx (ref {})})))
   (stop [_ system] system))
