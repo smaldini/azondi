@@ -33,7 +33,6 @@
 
 (defn disconnect-client
   [^ChannelHandlerContext ctx]
-  (debugf "Client %s is disconnecting..." ctx)
   (doto ctx
     (.writeAndFlush {:type :disconnect})
     .close))
@@ -92,7 +91,7 @@
     (.writeAndFlush {:type :connack :return-code code})
     .close)
   (let [^InetSocketAddress peer-host (peer-of ctx)]
-    (debugf "Rejecting connection from %s (return code: %s)" peer-host code))
+    (warnf "Rejecting connection from %s (return code: %s)" peer-host code))
   ctx)
 
 
@@ -199,11 +198,9 @@
   ;;  :dup false,
   ;;  :qos 1,
   ;;  :retain false}
-  (debugf "UNSUBSCRIBE from topics: %s" topics)
   (dosync
    (alter topics-by-ctx dissoc ctx)
    (alter subscriptions unrecord-subscribers ctx topics))
-  (debugf "Subscriptions: %s" @subscriptions)
   (.writeAndFlush ctx {:type :unsuback :message-id message-id}))
 
 ;;
