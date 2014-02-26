@@ -6,7 +6,8 @@
                                      logf tracef debugf infof warnf errorf fatalf]]
             [clojurewerkz.triennium.mqtt :as tr]
             [azondi.authentication :as auth]
-            [clojure.set :as cs])
+            [clojure.set :as cs]
+            [clojurewerkz.meltdown.reactor :as mr])
   (:import  [io.netty.channel ChannelHandlerAdapter ChannelHandlerContext Channel]
             jig.Lifecycle
             java.net.InetSocketAddress))
@@ -106,7 +107,8 @@
                                       has-password
                                       username
                                       password
-                                      client-id] :as msg} connections]
+                                      client-id] :as msg}
+   handler-state system]
   ;; example connect message:
   ;; {
   ;;  :type :connect,
@@ -130,14 +132,13 @@
     (if (and has-username has-password
              (auth/authenticates? username password))
       (if (valid-client-id? client-id)
-        (accept-connection ctx msg connections)
+        (accept-connection ctx msg handler-state)
         (reject-connection ctx :bad-username-or-password))
       (reject-connection ctx :bad-username-or-password))
     (do
-      ;; TODO: logging
-      (println (format "Unsupported protocol and/or version: %s v%d, disconnecting"
-                       protocol-name
-                       protocol-version))
+      (warnf "Unsupported protocol and/or version: %s v%d, disconnecting"
+             protocol-name
+             protocol-version)
       (reject-connection ctx :unacceptable-protocol-version))))
 
 ;;
@@ -162,7 +163,7 @@
 
 (defn handle-subscribe
   [^ChannelHandlerContext ctx {:keys [topics message-id dup qos] :as msg}
-   {:keys [topics-by-ctx] :as handler-state}]
+   {:keys [topics-by-ctx] :as handler-state} system]
   ;; example message:
   ;; {:topics [["a/topic" 1]],
   ;;  :message-id 1,
@@ -183,14 +184,13 @@
   [trie ctx topics]
   (reduce (fn [acc ^String topic]
             (tr/delete-matching acc topic (fn [^Subscriber sb]
-                                            (println sb (= (.ctx sb) ctx))
                                             (= (.ctx sb) ctx))))
           trie
           topics))
 
 (defn handle-unsubscribe
   [^ChannelHandlerContext ctx {:keys [topics message-id] :as msg}
-   {:keys [topics-by-ctx] :as handler-state}]
+   {:keys [topics-by-ctx] :as handler-state} system]
   ;; example message;
   ;; {:topics ["a/topic"],
   ;;  :message-id 2,
@@ -210,7 +210,7 @@
 (defn handle-publish-with-qos0
   [^ChannelHandlerContext publisher-ctx
    {:keys [topic qos payload] :as msg}
-   handler-state]
+   handler-state system]
   (let [subs (tr/matching-vals @subscriptions topic)]
     ;; TODO: this can be done in parallel
     (doseq [{:keys [^ChannelHandlerContext ctx topic qos]} subs]
@@ -219,17 +219,18 @@
 (defn handle-publish-with-qos1
   [^ChannelHandlerContext ctx
    {:keys [topic qos payload] :as msg}
-   handler-state]
+   handler-state system]
   (comment "TODO"))
 
 (defn handle-publish-with-qos2
   [^ChannelHandlerContext ctx
    {:keys [topic qos payload] :as msg}
-   handler-state]
+   handler-state system]
   (comment "TODO"))
 
 (defn handle-publish
-  [^ChannelHandlerContext ctx {:keys [qos] :as msg} handler-state]
+  [^ChannelHandlerContext ctx {:keys [qos] :as msg}
+   handler-state {:keys [reactor] :as system}]
   ;; example message:
   ;; {:payload #<byte[] [B@1503e6b>,
   ;;  :message-id 1,
@@ -242,14 +243,14 @@
             0 handle-publish-with-qos0
             1 handle-publish-with-qos1
             2 handle-publish-with-qos2)]
-    (f ctx msg handler-state)))
+    (f ctx msg handler-state system)))
 
 ;;
 ;; PINGREQ
 ;;
 
 (defn handle-pingreq
-  [^ChannelHandlerContext ctx _]
+  [^ChannelHandlerContext ctx _ _]
   (.writeAndFlush ctx {:type :pingresp}))
 
 ;;
@@ -257,7 +258,7 @@
 ;;
 
 (defn handle-disconnect
-  [^ChannelHandlerContext ctx _]
+  [^ChannelHandlerContext ctx _ _]
   (.close ctx))
 
 ;;
@@ -272,12 +273,12 @@
   (proxy [ChannelHandlerAdapter] []
     (channelRead [^ChannelHandlerContext ctx msg]
       (case (:type msg)
-        :connect     (handle-connect     ctx msg handler-state)
-        :subscribe   (handle-subscribe   ctx msg handler-state)
-        :unsubscribe (handle-unsubscribe ctx msg handler-state)
-        :publish     (handle-publish     ctx msg handler-state)
-        :pingreq     (handle-pingreq     ctx handler-state)
-        :disconnect  (handle-disconnect  ctx handler-state)))
+        :connect     (handle-connect     ctx msg handler-state system)
+        :subscribe   (handle-subscribe   ctx msg handler-state system)
+        :unsubscribe (handle-unsubscribe ctx msg handler-state system)
+        :publish     (handle-publish     ctx msg handler-state system)
+        :pingreq     (handle-pingreq     ctx handler-state system)
+        :disconnect  (handle-disconnect  ctx handler-state system)))
     (exceptionCaught [^ChannelHandlerContext ctx cause]
       (try (throw cause)
            (finally (abort ctx))))))
@@ -286,9 +287,11 @@
   Lifecycle
   (init [_ system] system)
   (start [_ system]
-    (assoc-in system
-              [(:jig/id config) :jig.netty/handler-factory]
-              #(make-channel-handler system {:connections-by-ctx (ref {})
-                                             :connections-by-client-id (ref {})
-                                             :topics-by-ctx (ref {})})))
+    (let [id            (:jig/id config)
+          handler-state {:connections-by-ctx (ref {})
+                         :connections-by-client-id (ref {})
+                         :topics-by-ctx (ref {})}]
+      (merge system
+             {id {:jig.netty/handler-factory #(make-channel-handler system handler-state)}}
+             {:reactor (mr/create)})))
   (stop [_ system] system))
