@@ -10,7 +10,8 @@
             [clojurewerkz.meltdown.reactor :as mr])
   (:import  [io.netty.channel ChannelHandlerAdapter ChannelHandlerContext Channel]
             jig.Lifecycle
-            java.net.InetSocketAddress))
+            java.net.InetSocketAddress
+            [java.util.concurrent ExecutorService Executors]))
 
 ;;
 ;; Implementation
@@ -207,14 +208,22 @@
 ;; PUBLISH
 ;;
 
+;; TODO: scope these by Jig component?
+(def ^:const dispatch-pool-size 32)
+(def ^ExecutorService dispatch-pool (Executors/newFixedThreadPool dispatch-pool-size))
+
 (defn handle-publish-with-qos0
   [^ChannelHandlerContext publisher-ctx
    {:keys [topic qos payload] :as msg}
    handler-state system]
   (let [subs (tr/matching-vals @subscriptions topic)]
-    ;; TODO: this can be done in parallel
     (doseq [{:keys [^ChannelHandlerContext ctx topic qos]} subs]
-      (.writeAndFlush ctx {:type :publish :topic topic :payload payload :qos 0}))))
+      (.submit dispatch-pool
+               (cast Runnable (fn []
+                                (.writeAndFlush ctx {:type :publish
+                                                     :topic topic
+                                                     :payload payload
+                                                     :qos 0})))))))
 
 (defn handle-publish-with-qos1
   [^ChannelHandlerContext ctx
@@ -288,10 +297,12 @@
   (init [_ system] system)
   (start [_ system]
     (let [id            (:jig/id config)
-          handler-state {:connections-by-ctx (ref {})
-                         :connections-by-client-id (ref {})
-                         :topics-by-ctx (ref {})}]
-      (merge system
-             {id {:jig.netty/handler-factory #(make-channel-handler system handler-state)}}
-             {:reactor (mr/create)})))
+          shared-state  {:reactor       (mr/create)}
+          handler-state (merge shared-state {:connections-by-ctx (ref {})
+                                             :connections-by-client-id (ref {})
+                                             :topics-by-ctx (ref {})})
+          system'       (merge system
+                               {id (merge {jig.netty.mqtt/handler-factory-key #(make-channel-handler system handler-state)}
+                                          shared-state)})]
+      system'))
   (stop [_ system] system))
