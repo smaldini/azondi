@@ -189,6 +189,12 @@
           trie
           topics))
 
+(defn dissoc-topics
+  [topics-by-ctx ctx topics]
+  (let [v  (get topics-by-ctx ctx #{})
+        v' (cs/difference v (set topics))]
+    (assoc topics-by-ctx ctx v')))
+
 (defn handle-unsubscribe
   [^ChannelHandlerContext ctx {:keys [topics message-id] :as msg}
    {:keys [topics-by-ctx] :as handler-state} system]
@@ -200,7 +206,7 @@
   ;;  :qos 1,
   ;;  :retain false}
   (dosync
-   (alter topics-by-ctx dissoc ctx)
+   (alter topics-by-ctx dissoc-topics ctx topics)
    (alter subscriptions unrecord-subscribers ctx topics))
   (.writeAndFlush ctx {:type :unsuback :message-id message-id}))
 
