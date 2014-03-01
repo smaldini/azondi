@@ -22,6 +22,12 @@
    :jig/project "../azondi/project.clj"
    :port 1883}
 
+  ;; Event stream
+
+  :opensensors/reactor
+  {:jig/component azondi.reactor/Reactor
+   :jig/project "../azondi/project.clj"}
+
   ;; TODO: this is duplicated with le-web. MK.
   :opensensors/database
   {:jig/component azondi.db/Database

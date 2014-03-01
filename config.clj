@@ -109,6 +109,11 @@
    :jig/dependencies [:mqtt-notification-channel]
    }
 
+  ;; Event stream
+
+  :opensensors/reactor
+  {:jig/component azondi.reactor/Reactor
+   :jig/project "../azondi/project.clj"}
 
   ;; ClojureScript
 
