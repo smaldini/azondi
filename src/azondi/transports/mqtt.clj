@@ -146,7 +146,7 @@
 ;; SUBSCRIBE
 ;;
 
-;; TODO: these have to be scoped per Jig component
+;; TODO: scope these per Jig component
 ;;       so they can be reset. MK.
 (def subscriptions (ref {}))
 
