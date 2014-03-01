@@ -274,7 +274,16 @@
 ;;
 
 (defn handle-disconnect
-  [^ChannelHandlerContext ctx _ _]
+  [^ChannelHandlerContext ctx {:keys [topics-by-ctx
+                                      connections-by-ctx
+                                      connections-by-client-id]} _]
+  (dosync
+   (let [topics              (get @topics-by-ctx ctx)
+         {:keys [client-id]} (get @connections-by-ctx ctx)]
+     (alter topics-by-ctx dissoc ctx)
+     (alter subscriptions unrecord-subscribers ctx topics)
+     (alter connections-by-ctx       dissoc ctx)
+     (alter connections-by-client-id dissoc client-id)))
   (.close ctx))
 
 ;;
