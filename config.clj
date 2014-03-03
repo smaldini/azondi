@@ -99,7 +99,7 @@
 
   :mqtt-server
   {:jig/component jig.netty/Server
-   :jig/dependencies [:mqtt-decoder :mqtt-encoder :mqtt-handler]
+   :jig/dependencies [:mqtt-decoder :mqtt-encoder :mqtt-handler :opensensors/reactor]
    :jig/project "../azondi/project.clj"
    :port 1883}
 
