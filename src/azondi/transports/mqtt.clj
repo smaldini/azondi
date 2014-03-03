@@ -7,7 +7,8 @@
             [clojurewerkz.triennium.mqtt :as tr]
             [azondi.authentication :as auth]
             [clojure.set :as cs]
-            [clojurewerkz.meltdown.reactor :as mr])
+            [clojurewerkz.meltdown.reactor :as mr]
+            [clojurewerkz.meltdown.selectors :as ms :refer [$]])
   (:import  [io.netty.channel ChannelHandlerAdapter ChannelHandlerContext Channel]
             jig.Lifecycle
             java.net.InetSocketAddress
@@ -245,8 +246,8 @@
   (comment "TODO"))
 
 (defn handle-publish
-  [^ChannelHandlerContext ctx {:keys [qos] :as msg}
-   handler-state {:keys [reactor] :as system}]
+  [^ChannelHandlerContext ctx {:keys [qos topic payload] :as msg}
+   {:keys [reactor] :as handler-state} system]
   ;; example message:
   ;; {:payload #<byte[] [B@1503e6b>,
   ;;  :message-id 1,
@@ -259,7 +260,8 @@
             0 handle-publish-with-qos0
             1 handle-publish-with-qos1
             2 handle-publish-with-qos2)]
-    (f ctx msg handler-state system)))
+    (f ctx msg handler-state system)
+    (mr/notify reactor topic payload)))
 
 ;;
 ;; PINGREQ
@@ -313,12 +315,12 @@
   (init [_ system] system)
   (start [_ system]
     (let [id            (:jig/id config)
-          shared-state  {:reactor       (mr/create)}
-          handler-state (merge shared-state {:connections-by-ctx (ref {})
-                                             :connections-by-client-id (ref {})
-                                             :topics-by-ctx (ref {})})
+          r             (get-in system [:opensensors/reactor :reactor])
+          handler-state {:connections-by-ctx (ref {})
+                         :connections-by-client-id (ref {})
+                         :topics-by-ctx (ref {})
+                         :reactor r}
           system'       (merge system
-                               {id (merge {jig.netty.mqtt/handler-factory-key #(make-channel-handler system handler-state)}
-                                          shared-state)})]
+                               {id {jig.netty.mqtt/handler-factory-key #(make-channel-handler system handler-state)}})]
       system'))
   (stop [_ system] system))

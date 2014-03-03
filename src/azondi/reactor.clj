@@ -6,9 +6,10 @@
 (deftype Reactor [config]
   Lifecycle
   (init [_ system]
-    system)
-  (start [_ system]
     (let [id (:jig/id config)]
-      (assoc-in system [id :reactor] (mr/create))))
+      (-> system
+          (assoc-in [id :reactor] (mr/create)))))
+  (start [_ system]
+    system)
   (stop [_ system]
     system))
