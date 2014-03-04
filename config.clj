@@ -8,21 +8,6 @@
    :jig/project "../azondi/project.clj"}
 
 
-  :opensensors/mosquitto-bridge
-  {:jig/component azondi.mqtt-bridge/MqttBridge
-   :jig/project "../azondi/project.clj"
-   :uri "tcp://test.mosquitto.org:1883"
-   :topics ["bbc/livetext/#"
-            "energy/generation/realtime/intned/#"]
-   }
-
-  #_:opensensors/opensensors-bridge
-  #_{:jig/component azondi.mqtt-bridge/MqttBridge
-     :jig/project "../azondi/project.clj"
-     :uri "tcp://mqtt.opensensors.io:1883"
-     :topics ["#"]
-     }
-
   :opensensors/scheduled-thread-pool
   {:jig/component azondi.core/ScheduledThreadPool
    :jig/project "../azondi/project.clj"
