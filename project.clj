@@ -19,6 +19,8 @@
                  [clojurewerkz/triennium  "1.0.0-beta2"]
                  [cheshire                "5.3.1"]
                  [clojurewerkz/meltdown   "1.0.0-beta4"]
+                 [compojure               "1.1.6"]
+                 [http-kit                "2.1.17"]
                  [com.taoensso/sente      "0.8.1"]
 
                  ;; Logging
