@@ -9,19 +9,17 @@
   :source-paths ["src" "src-cljs"]
 
   :dependencies [[org.clojure/clojure "1.5.1"]
-                 [org.clojure/core.async "0.1.256.0-1bf8cf-alpha"]
 
                  ;; Front end
                  [prismatic/dommy "0.1.1"]
-                 ;;[org.clojars.ideal-knee/dommy "0.1.3-SNAPSHOT"]
-
 
                  ;; Back-end
                  [clojurewerkz/cassaforte "1.3.0-beta10"]
                  [clojurewerkz/scrypt     "1.1.0"]
                  [clojurewerkz/triennium  "1.0.0-beta2"]
-                 [cheshire "5.3.1"]
-                 [clojurewerkz/meltdown "1.0.0-beta4"]
+                 [cheshire                "5.3.1"]
+                 [clojurewerkz/meltdown   "1.0.0-beta4"]
+                 [com.taoensso/sente      "0.8.1"]
 
                  ;; Logging
                  [com.taoensso/timbre "3.0.1"]
