@@ -28,6 +28,17 @@
   {:jig/component azondi.reactor/Reactor
    :jig/project "../azondi/project.clj"}
 
+
+  ;; WebSockets
+
+  :opensensors/ws
+  {:jig/component azondi.bridges.ws/WebSocketBridge
+   :jig/project "../azondi/project.clj"
+   :port 8083}
+
+
+  ;; Database
+
   ;; TODO: this is duplicated with le-web. MK.
   :opensensors/database
   {:jig/component azondi.db/Database
