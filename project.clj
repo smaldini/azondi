@@ -40,7 +40,7 @@
   :plugins [[lein-cljsbuild "1.0.2"]]
 
   :cljsbuild {:builds [{:source-paths ["src/cljs"]
-                        :compiler {:output-to "target/cljs/main.js"
+                        :compiler {:output-to "target/public/js/main.js"
                                    :optimizations :whitespace
                                    :pretty-print false}}]}
 
