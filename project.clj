@@ -36,6 +36,8 @@
   :repl-options {:prompt (fn [ns] (str "Jig " ns "> "))
                  :welcome (user/welcome)}
 
+  :plugins [[lein-cljsbuild "1.0.2"]]
+
   :profiles {:1.6 {:dependencies [[org.clojure/clojure "1.6.0-beta1"]]}
              :master {:dependencies [[org.clojure/clojure "1.6.0-master-SNAPSHOT"]]}
              :dev {:resource-paths ["test/resources"]
