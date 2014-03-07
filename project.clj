@@ -41,7 +41,7 @@
 
   :cljsbuild {:builds [{:source-paths ["src/cljs"]
                         :compiler {:output-to "target/public/js/main.js"
-                                   :optimizations :whitespace
+                                   :optimizations :none
                                    :pretty-print false}}]}
 
   :profiles {:1.6 {:dependencies [[org.clojure/clojure "1.6.0-beta1"]]}
