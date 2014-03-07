@@ -10,31 +10,28 @@
 
   :dependencies [[org.clojure/clojure "1.5.1"]
 
+                 ;; Jig
+                 [jig ~jig-version]
+
                  ;; Front end
                  [prismatic/dommy "0.1.1"]
+                 [jig/cljs-builder ~jig-version]
+                 [jig/stencil ~jig-version]
 
                  ;; Back-end
+                 [jig/netty ~jig-version]
+                 [jig/netty-mqtt ~jig-version]
                  [clojurewerkz/cassaforte "1.3.0-beta10"]
                  [clojurewerkz/scrypt     "1.1.0"]
                  [clojurewerkz/triennium  "1.0.0-beta2"]
                  [cheshire                "5.3.1"]
-                 [clojurewerkz/meltdown   "1.0.0-beta4"]
+                 [clojurewerkz/meltdown   "1.0.0-beta6"]
                  [compojure               "1.1.6"]
                  [http-kit                "2.1.17"]
                  [com.taoensso/sente      "0.8.1"]
 
                  ;; Logging
-                 [com.taoensso/timbre "3.0.1"]
-
-                 ;; Jig
-                 [jig ~jig-version]
-                 [jig/async ~jig-version]
-                 [jig/cljs-builder ~jig-version]
-                 [jig/bidi ~jig-version]
-                 [jig/stencil ~jig-version]
-                 [jig/netty ~jig-version]
-                 [jig/netty-mqtt ~jig-version]
-                 [jig/http-kit ~jig-version]]
+                 [com.taoensso/timbre "3.0.1"]]
 
   :repl-options {:prompt (fn [ns] (str "Jig " ns "> "))
                  :welcome (user/welcome)}
