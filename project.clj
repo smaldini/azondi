@@ -15,7 +15,8 @@
 
                  ;; Front end
                  [prismatic/dommy "0.1.1"]
-                 [jig/cljs-builder ~jig-version]
+                 [org.clojure/clojurescript "0.0-2138"
+                  :exclusions [org.apache.ant/ant]]
                  [jig/stencil ~jig-version]
 
                  ;; Back-end
@@ -37,6 +38,11 @@
                  :welcome (user/welcome)}
 
   :plugins [[lein-cljsbuild "1.0.2"]]
+
+  :cljsbuild {:builds [{:source-paths ["src/cljs"]
+                        :compiler {:output-to "target/cljs/main.js"
+                                   :optimizations :whitespace
+                                   :pretty-print false}}]}
 
   :profiles {:1.6 {:dependencies [[org.clojure/clojure "1.6.0-beta1"]]}
              :master {:dependencies [[org.clojure/clojure "1.6.0-master-SNAPSHOT"]]}
