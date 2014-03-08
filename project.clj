@@ -38,11 +38,14 @@
                  :welcome (user/welcome)}
 
   :plugins [[lein-cljsbuild "1.0.2"]]
+  :hooks [leiningen.cljsbuild]
 
-  :cljsbuild {:builds [{:source-paths ["src/cljs"]
-                        :compiler {:output-to "target/public/js/main.js"
-                                   :optimizations :none
-                                   :pretty-print false}}]}
+  :cljsbuild
+  {:builds {:main
+            {:source-paths ["src/cljs"]
+             :compiler {:output-to "resources/public/js/bridge.js"
+                        :optimizations :whitespace
+                        :pretty-print true}}}}
 
   :profiles {:1.6 {:dependencies [[org.clojure/clojure "1.6.0-beta1"]]}
              :master {:dependencies [[org.clojure/clojure "1.6.0-master-SNAPSHOT"]]}
