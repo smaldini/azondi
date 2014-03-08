@@ -2,11 +2,11 @@
 
 (enable-console-print!)
 
-(.log js/console "Hello, welcome to index!")
+(defn foo [greeting]
+  (if greeting
+    (str greeting "ClojureScript!")
+    (str "Hello, ClojureScript!")))
 
-(let [ws (js/WebSocket. "ws://localhost:8083/events/stream")]
-  (set! (.-onmessage ws)
-        (fn [ev]
-          (let [message (.-data ev)]
-            (println "A message arrived! " message)
-            ))))
+(.write js/document (foo "Welcome to "))
+
+(println "Console logging test")
