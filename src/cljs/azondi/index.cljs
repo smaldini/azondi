@@ -1,8 +1,10 @@
-(ns azondi.index)
+(ns azondi.index
+  (:require [azondi.events :as ev]))
 
 (enable-console-print!)
 
-(defn foo [greeting]
+(defn foo
+  [greeting]
   (if greeting
     (str greeting "ClojureScript!")
     (str "Hello, ClojureScript!")))
