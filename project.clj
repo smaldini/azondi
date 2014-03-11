@@ -14,10 +14,9 @@
                  [jig ~jig-version]
 
                  ;; Front end
-                 [prismatic/dommy "0.1.1"]
                  [org.clojure/clojurescript "0.0-2138"
                   :exclusions [org.apache.ant/ant]]
-                 [jig/stencil ~jig-version]
+                 [org.clojure/core.async    "0.1.267.0-0d7780-alpha"]
 
                  ;; Back-end
                  [jig/netty ~jig-version]
