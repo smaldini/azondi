@@ -34,6 +34,8 @@
                  ;; Logging
                  [com.taoensso/timbre "3.0.1"]]
 
+  :jvm-opts ["-Xss8m" "-Xmx1g"]
+
   :repl-options {:prompt (fn [ns] (str "Jig " ns "> "))
                  :welcome (user/welcome)}
 
