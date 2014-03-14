@@ -28,7 +28,7 @@
   (start [_ system]
     (let [port    (:port config)
           r       (get-in system [:opensensors/reactor :reactor])
-          clients (atom '())
+          clients (atom #{})
           ;; define routes here so that they have access to
           ;; clients, reactor, etc. MK.
           routes  (defroutes ws-routes
