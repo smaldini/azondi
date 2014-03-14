@@ -16,7 +16,6 @@
                  ;; Front end
                  [org.clojure/clojurescript "0.0-2138"
                   :exclusions [org.apache.ant/ant]]
-                 [org.clojure/core.async    "0.1.267.0-0d7780-alpha"]
 
                  ;; Back-end
                  [jig/netty ~jig-version]
