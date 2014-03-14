@@ -1,35 +1,40 @@
 (ns azondi.bridges.ws
-  (:require [taoensso.sente :as wsg]
-            [taoensso.timbre :as log]
-            [org.httpkit.server :refer [run-server]]
-            [compojure.core :refer [defroutes GET POST]])
+  (:require [taoensso.timbre :as log]
+            [org.httpkit.server :refer [run-server with-channel send! on-close]]
+            [compojure.core :refer [defroutes GET POST]]
+            [clojurewerkz.meltdown.reactor :as mr]
+            [clojurewerkz.meltdown.selectors :refer [$]])
   (:import jig.Lifecycle))
 
-(let [{:keys [ch-recv
-              send-fn
-              ajax-post-fn
-              ajax-get-or-ws-handshake-fn]} (wsg/make-channel-socket! {})]
-  (def ring-ajax-post                ajax-post-fn)
-  (def ring-ajax-get-or-ws-handshake ajax-get-or-ws-handshake-fn)
-  (def ch-chsk                       ch-recv)
-  (def chsk-send!                    send-fn))
 
-(defroutes sente-routes
-  (GET "/hello"         req "hello from http-kit!")
-  (GET "/events/stream" req (#'ring-ajax-get-or-ws-handshake req))
-  (GET "/events/stream" req (#'ring-ajax-post                req)))
+(defn ws-connection-handler
+  [req clients reactor]
+  (with-channel req ws
+    (log/infof "Accepted WebSocket bridge connection from %s" (:remote-addr req))
+    (swap! clients conj ws)
+    (let [sub (mr/on r ($ ))]
+      (on-close ws (fn [status]
+                     (swap! clients disj ws)
+                     (log/infof "WebSocket bridge connection from %s is closed, status: %s" (:remote-addr req) status))))
+    (send! ws "You are connected to WS bridge")))
 
 (deftype WebSocketBridge [config]
   Lifecycle
   (init [_ system]
     system)
   (start [_ system]
-    (let [port   (:port config)
-          server (run-server sente-routes {:port port})]
-      (log/infof "About to start HTTP server on port %d" port)
+    (let [port    (:port config)
+          r       (get-in system [:opensensors/reactor :reactor])
+          clients (atom '())
+          ;; define routes here so that they have access to
+          ;; clients, reactor, etc. MK.
+          routes  (defroutes ws-routes
+                    (GET  "/events/stream" req (event-stream-handler req clients r)))
+          server (run-server routes {:port port})]
+      (log/infof "About to start WebSocket/polling bridge server on port %d" port)
       (assoc-in system [(:jig/id config) :server] server)))
   (stop [_ system]
     (when-let [server (get-in system [(:jig/id config) :server])]
-      (log/info "About to stop HTTP server")
+      (log/info "About to stop WebSocket/polling bridge server")
       (server))
     (dissoc system (:jig/id config))))
