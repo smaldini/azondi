@@ -3,7 +3,8 @@
             [org.httpkit.server :refer [run-server with-channel send! on-close]]
             [compojure.core :refer [defroutes GET POST]]
             [clojurewerkz.meltdown.reactor :as mr]
-            [clojurewerkz.meltdown.selectors :refer [$]])
+            [clojurewerkz.meltdown.selectors :refer [match-all]]
+            [clojurewerkz.meltdown.consumers :as mc])
   (:import jig.Lifecycle))
 
 
@@ -12,9 +13,11 @@
   (with-channel req ws
     (log/infof "Accepted WebSocket bridge connection from %s" (:remote-addr req))
     (swap! clients conj ws)
-    (let [sub (mr/on r ($ ))]
+    (let [sub (mr/on reactor (match-all) (fn [evt]
+                                           (send! ws (:data evt))))]
       (on-close ws (fn [status]
                      (swap! clients disj ws)
+                     (mc/cancel sub)
                      (log/infof "WebSocket bridge connection from %s is closed, status: %s" (:remote-addr req) status))))
     (send! ws "You are connected to WS bridge")))
 
@@ -29,7 +32,7 @@
           ;; define routes here so that they have access to
           ;; clients, reactor, etc. MK.
           routes  (defroutes ws-routes
-                    (GET  "/events/stream" req (event-stream-handler req clients r)))
+                    (GET  "/events/stream" req (ws-connection-handler req clients r)))
           server (run-server routes {:port port})]
       (log/infof "About to start WebSocket/polling bridge server on port %d" port)
       (assoc-in system [(:jig/id config) :server] server)))
