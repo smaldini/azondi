@@ -24,7 +24,7 @@
                  [clojurewerkz/scrypt     "1.1.0"]
                  [clojurewerkz/triennium  "1.0.0-beta2"]
                  [cheshire                "5.3.1"]
-                 [clojurewerkz/meltdown   "1.0.0-beta7"]
+                 [clojurewerkz/meltdown   "1.0.0-beta8"]
                  [compojure               "1.1.6"]
                  [http-kit                "2.1.17"]
                  [com.taoensso/sente      "0.8.1"]
