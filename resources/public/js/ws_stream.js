@@ -5,6 +5,6 @@ window.onload = function() {
         console.log("Connected to " + url);
     };
     sock.onmessage = function (evt) {
-        console.log("Received " + evt.data + " over WebSocket!");
+        console.log("Received " + evt.data);
     };
 };
