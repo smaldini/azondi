@@ -4,7 +4,8 @@
             [clojurewerkz.triennium.mqtt :as tr]
             [clojurewerkz.machine-head.client :as mh]
             [clojurewerkz.machine-head.durability :as md]
-            [user :as u]))
+            [user :as u])
+  (:import java.util.concurrent.atomic.AtomicInteger))
 
 (deftest test-record-subscribers
   (let [ctx :ctx ;; stub
@@ -41,5 +42,23 @@
         c  (mh/connect "tcp://127.0.0.1:1883" id
                        (md/new-memory-persister)
                        connection-opts)]
-    (is (mh/connected? c)))
+    (is (mh/connected? c))
+    (mh/disconnect-and-close c))
+  (u/stop))
+
+(deftest test-basic-topic-subscription
+  (u/go)
+  (let [id (mh/generate-id)
+        c  (mh/connect "tcp://127.0.0.1:1883" id
+                       (md/new-memory-persister)
+                       connection-opts)
+        i  (AtomicInteger.)]
+    (is (mh/connected? c))
+    ;; (mh/subscribe c ["a/topic"] (fn [^String topic meta ^bytes payload]
+    ;;                                (.incrementAndGet i)))
+    ;; (dotimes [_ 100]
+    ;;   (mh/publish c "a/topic" "{}"))
+    ;; (Thread/sleep 100)
+    ;; (is (= 100 (.get i)))
+    (mh/disconnect-and-close c))
   (u/stop))
