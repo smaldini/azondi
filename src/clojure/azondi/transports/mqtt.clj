@@ -1,7 +1,7 @@
 ;; Copyright © 2014, OpenSensors.IO. All Rights Reserved.
 (ns azondi.transports.mqtt
   (:require jig
-            [jig.util :refer [satisfying-dependency]]
+            jig.netty.mqtt
             [taoensso.timbre :refer [log  trace  debug  info  warn  error  fatal
                                      logf tracef debugf infof warnf errorf fatalf]]
             [clojurewerkz.triennium.mqtt :as tr]
