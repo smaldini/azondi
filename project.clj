@@ -32,7 +32,7 @@
                  ;; Logging
                  [com.taoensso/timbre "3.0.1"]]
 
-  :jvm-opts ["-Xss8m" "-Xmx1g"]
+  :jvm-opts ["-Xss8m" "-Xmx1g" "-Duser.timezone=UTC"]
 
   :repl-options {:prompt (fn [ns] (str "Jig " ns "> "))
                  :welcome (user/welcome)}
