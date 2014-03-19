@@ -2,6 +2,7 @@
   (:require [taoensso.timbre :as log]
             [org.httpkit.server :refer [run-server with-channel send! on-close]]
             [compojure.core :refer [routes GET POST]]
+            [compojure.route :as route]
             [clojurewerkz.meltdown.reactor :as mr]
             [clojurewerkz.meltdown.selectors :refer [match-all]]
             [clojurewerkz.meltdown.consumers :as mc]
@@ -48,7 +49,8 @@
           ;; define routes here so that they have access to
           ;; clients, reactor, etc. MK.
           routes  (routes
-                    (GET  "/events/stream" req (ws-connection-handler req clients r)))
+                    (GET  "/events/stream" req (ws-connection-handler req clients r))
+                    (route/resources "/"))
           server (run-server routes {:port port})]
       (log/infof "About to start WebSocket/polling bridge server on port %d" port)
       (assoc-in system [(:jig/id config) :server] server)))
