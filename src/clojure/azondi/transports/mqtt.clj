@@ -261,6 +261,7 @@
             1 handle-publish-with-qos1
             2 handle-publish-with-qos2)]
     (f ctx msg handler-state system)
+    (debugf "Handled a message on topic %s, notifying reactor..." topic)
     (mr/notify reactor topic payload)))
 
 ;;
