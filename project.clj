@@ -8,7 +8,7 @@
 
   :source-paths ["src/clojure" "src/cljs"]
 
-  :dependencies [[org.clojure/clojure "1.5.1"]
+  :dependencies [[org.clojure/clojure "1.6.0"]
 
                  ;; Jig
                  [jig ~jig-version]
@@ -46,8 +46,7 @@
                         :optimizations :whitespace
                         :pretty-print true}}}}
 
-  :profiles {:1.6 {:dependencies [[org.clojure/clojure "1.6.0-beta1"]]}
-             :master {:dependencies [[org.clojure/clojure "1.6.0-master-SNAPSHOT"]]}
+  :profiles {:master {:dependencies [[org.clojure/clojure "1.7.0-master-SNAPSHOT"]]}
              :dev {:resource-paths ["test/resources"]
                    :dependencies   [[com.lmax/disruptor "3.2.0"]
                                     [clojurewerkz/machine_head "1.0.0-beta6"]]}})
