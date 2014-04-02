@@ -27,7 +27,6 @@
                  [clojurewerkz/meltdown   "1.0.0-beta9"]
                  [compojure               "1.1.6"]
                  [http-kit                "2.1.17"]
-                 [com.taoensso/sente      "0.8.1"]
 
                  ;; Logging
                  [com.taoensso/timbre "3.0.1"]]
