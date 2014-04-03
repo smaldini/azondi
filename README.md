@@ -1,24 +1,22 @@
 # azondi
 
-Uses the [Communicating Sequential Processes](http://en.wikipedia.org/wiki/Communicating_sequential_processes) also known as asyncronous programming to process real time sensor data in clojure for [opensensors.io](http://opensensors.io).  We rely on clojure's core.async library heavily.
+A tool to process high volumes of Internet of Things data. Azondi
+receives messages from the individual devices and serves them to the
+browser via a websocket on port 8083.
 
-azondi takes a continous stream of messages from the test Mosquitto MQTT broker and creates an [MQTT bridge](https://github.com/OpenSensorsIO/azondi/blob/master/src/azondi/mqtt.clj). Using Server Side Events the data is pushed to the [browser](https://github.com/OpenSensorsIO/azondi/blob/master/src/azondi/core.clj).
+## Messaging Broker 
+Azondi has it's own built in scalable [MQTT](http://mqtt.org/) broker which
+relies on
+[Netty](https://github.com/OpenSensorsIO/azondi/blob/master/src/clojure/azondi/transports/mqtt.clj). Currently
+the mqtt broker supports only QOS 0 level of services.
 
-Clojurescript builds the dataflow model on which processes the data in the browser.
+## Dispatcher
 
-## Incubated with Jig
-
-Writing 'quick and dirty' Clojure back-ends is fun, simple and easy. When Clojure systems get larger, separation of concerns becomes a harder problem. We know we should do it (that's progress at least) but it's easier [said](http://www.infoq.com/presentations/Simple-Made-Easy) than done.
-
-Therefore, this project is incubated with [Jig](https://github.com/juxt/jig). Jig pushes a separation of concerns into configurable components, while retaining the rapid development environment Clojure developers are used to. Jig is designed to be optional at deployment time.
-
-Further documentation on the azondi development workflow using JIG can be found [here](JIG.md)
+The Reactor based non-blocking dispatcher is used for event driven programming based on the Reactor Pattern. This dispatcher acts as a kind of sorting office between devices and their listeners. It receives all messages and ‘delivers’ messages to interested listeners.
 
 ## Usage
-
-This is still an early version not quite read for production use.
-
-We are using azondi to process sensor data on extremely large volumes and in a distributed manner.  It is still in development but we welcome any feedback.
+For convenience, it would be easiest to run azondi contained within a
+Vagrant environment and there is a chef cookbook supplied for this. Instructions for this can be found [here](https://github.com/OpenSensorsIO/vagrant) 
 
 ## License
 
