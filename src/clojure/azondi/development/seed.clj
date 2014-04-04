@@ -54,7 +54,9 @@
   (init [_ system]
     system)
   (start [_ system]
-    (seed system)
+    (let [ks (get-in system [:opensensors/database :keyspace])]
+      (use-keyspace ks)
+      (seed system))
     system)
   (stop [_ system]
     system))
