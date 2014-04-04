@@ -43,11 +43,19 @@
 (deftype Database [config]
   Lifecycle
   (init [_ system]
-    system)
+    (let [id (:jig/id config)]
+      (-> system
+          (assoc-in [id :keyspace] (:keyspace config)))))
   (start [_ system]
     (let [host    (:hosts config)
           ks      (:keyspace config)
           session (cc/connect! host)]
+      (create-keyspace ks
+                       (with {:replication
+                              {:class              "SimpleStrategy"
+                               ;; TODO: this needs to be dynamically configured
+                               :replication_factor 1}})
+                       (if-not-exists))
       (use-keyspace ks)
       (converge-schema session)
       system))
