@@ -1,25 +1,21 @@
-(def jig-version "2.0.0")
-
 (defproject azondi "0.1.0-SNAPSHOT"
   :description "Azondi helps you make sense of sensors data"
   :url "http://github.com/opensensorsio/azondi"
   :license {:name "Eclipse Public License"
             :url "http://www.eclipse.org/legal/epl-v10.html"}
 
-  :source-paths ["src/clojure" "src/cljs"]
+  :source-paths ["src/clojure"]
 
   :dependencies [[org.clojure/clojure "1.6.0"]
 
-                 ;; Jig
-                 [jig ~jig-version]
+                 ;; Assembly
+                 [com.stuartsierra/component "0.2.1"]
 
                  ;; Front end
                  [org.clojure/clojurescript "0.0-2138"
                   :exclusions [org.apache.ant/ant]]
 
                  ;; Back-end
-                 [jig/netty ~jig-version]
-                 [jig/netty-mqtt ~jig-version]
                  [clojurewerkz/cassaforte "1.3.0-beta11"]
                  [clojurewerkz/scrypt     "1.1.0"]
                  [clojurewerkz/triennium  "1.0.0-beta2"]
@@ -31,22 +27,4 @@
                  ;; Logging
                  [com.taoensso/timbre "3.0.1"]]
 
-  :jvm-opts ["-Xss8m" "-Xmx1g" "-Duser.timezone=UTC"]
-
-  :repl-options {:prompt (fn [ns] (str "Jig " ns "> "))
-                 :welcome (user/welcome)}
-
-  :plugins [[lein-cljsbuild "1.0.2"]]
-  :hooks [leiningen.cljsbuild]
-
-  :cljsbuild
-  {:builds {:main
-            {:source-paths ["src/cljs"]
-             :compiler {:output-to "resources/public/js/bridge.js"
-                        :optimizations :whitespace
-                        :pretty-print true}}}}
-
-  :profiles {:master {:dependencies [[org.clojure/clojure "1.7.0-master-SNAPSHOT"]]}
-             :dev {:resource-paths ["test/resources"]
-                   :dependencies   [[com.lmax/disruptor "3.2.0"]
-                                    [clojurewerkz/machine_head "1.0.0-beta6"]]}})
+  :jvm-opts ["-Xss8m" "-Xmx1g" "-Duser.timezone=UTC"])
