@@ -8,6 +8,6 @@
 (defn new-dev-system []
   "Create a development system"
   ;; Right now it's the same as the production system
-  (component/system-map
+  (component/system-using
              (assoc (configurable-system-map (config)) :database-seed (new-database-seed))
              (merge (new-dependency-map) {:database-seed [:database]})))
