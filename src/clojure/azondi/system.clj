@@ -4,8 +4,10 @@
    [com.stuartsierra.component :as component :refer (system-map system-using)]
    [clojure.java.io :as io]
    [clojure.tools.reader :refer (read)]
-   [clojure.tools.reader.reader-types :refer (indexing-push-back-reader)]))
-
+   [clojure.tools.reader.reader-types :refer (indexing-push-back-reader)]
+   [modular.netty.mqtt :refer (new-mqtt-decoder new-mqtt-encoder)]
+   [modular.netty :refer (new-netty-server)]
+   [azondi.transports.mqtt :refer (new-netty-mqtt-handler)]))
 
 (defn config
   "Return a map of the static configuration used in the component
@@ -31,14 +33,15 @@
    :mqtt-decoder (new-mqtt-decoder)
    :mqtt-encoder (new-mqtt-encoder)
    :mqtt-handler (new-netty-mqtt-handler)
-   :mqtt-server  (new-netty-server)
+   :server (new-netty-server)
    :reactor (new-reactor)
    :ws (new-websocket-bridge)
    :database (new-database)
    :database-seed (new-database-seed)))
 
 (defn new-dependency-map []
-  {:mqtt-server [:mqtt-decoder :mqtt-encoder :mqtt-handler :reactor]
+  {:mqtt-handler [:mqtt-decoder :mqtt-encoder :reactor]
+   :server [:mqtt-handler]
    :database-seed [:database]})
 
 (defn new-system []

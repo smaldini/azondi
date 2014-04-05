@@ -4,7 +4,7 @@
   :license {:name "Eclipse Public License"
             :url "http://www.eclipse.org/legal/epl-v10.html"}
 
-  :source-paths ["src/clojure"]
+  :source-paths ["src/clojure" "ext/clojure"]
 
   :dependencies [[org.clojure/clojure "1.6.0"]
 
@@ -23,6 +23,10 @@
                  [clojurewerkz/meltdown   "1.0.0-beta9"]
                  [compojure               "1.1.6"]
                  [http-kit                "2.1.17"]
+
+                 ;; Ext dependencies for incubated components
+                 [juxt/clj-mqtt "0.4.1-alpha"]
+                 [io.netty/netty-all "5.0.0.Alpha1"]
 
                  ;; Logging
                  [com.taoensso/timbre "3.0.1"]]

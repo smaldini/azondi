@@ -1,7 +1,8 @@
 ;; Copyright © 2014, OpenSensors.IO. All Rights Reserved.
 (ns azondi.transports.mqtt
-  (:require jig
-            jig.netty.mqtt
+  (:require
+            [com.stuartsierra.component :as component]
+            [modular.netty :refer (NettyHandlerProvider)]
             [taoensso.timbre :refer [log  trace  debug  info  warn  error  fatal
                                      logf tracef debugf infof warnf errorf fatalf]]
             [clojurewerkz.triennium.mqtt :as tr]
@@ -10,7 +11,6 @@
             [clojurewerkz.meltdown.reactor :as mr]
             [clojurewerkz.meltdown.selectors :as ms :refer [$]])
   (:import  [io.netty.channel ChannelHandlerAdapter ChannelHandlerContext Channel]
-            jig.Lifecycle
             java.net.InetSocketAddress
             [java.util.concurrent ExecutorService Executors]))
 
@@ -294,34 +294,34 @@
 ;;
 
 (defn make-channel-handler
-  [system {:keys [channel
-                  connections-by-ctx
-                  connections-by-client-id]
-           :as handler-state}]
+  [handler-state]
   (proxy [ChannelHandlerAdapter] []
     (channelRead [^ChannelHandlerContext ctx msg]
       (case (:type msg)
-        :connect     (handle-connect     ctx msg handler-state system)
-        :subscribe   (handle-subscribe   ctx msg handler-state system)
-        :unsubscribe (handle-unsubscribe ctx msg handler-state system)
-        :publish     (handle-publish     ctx msg handler-state system)
-        :pingreq     (handle-pingreq     ctx handler-state system)
-        :disconnect  (handle-disconnect  ctx handler-state system)))
+        :connect     (handle-connect     ctx msg handler-state)
+        :subscribe   (handle-subscribe   ctx msg handler-state)
+        :unsubscribe (handle-unsubscribe ctx msg handler-state)
+        :publish     (handle-publish     ctx msg handler-state)
+        :pingreq     (handle-pingreq     ctx handler-state)
+        :disconnect  (handle-disconnect  ctx handler-state)))
     (exceptionCaught [^ChannelHandlerContext ctx cause]
       (try (throw cause)
            (finally (abort ctx))))))
 
-(deftype NettyMqttHandler [config]
-  Lifecycle
-  (init [_ system] system)
-  (start [_ system]
-    (let [id            (:jig/id config)
-          r             (get-in system [:opensensors/reactor :reactor])
-          handler-state {:connections-by-ctx (ref {})
-                         :connections-by-client-id (ref {})
-                         :topics-by-ctx (ref {})
-                         :reactor r}
-          system'       (merge system
-                               {id {jig.netty.mqtt/handler-factory-key #(make-channel-handler system handler-state)}})]
-      system'))
-  (stop [_ system] system))
+(defrecord NettyMqttHandler [connections-by-ctx connections-by-client-id topics-by-ctx]
+  component/Lifecycle
+  (start [this]
+    (assoc this
+      :handler-provider
+      #(make-channel-handler
+        (assoc this :reactor (get-in this [:reactor :reactor])))))
+  (stop [this] this)
+
+  NettyHandlerProvider
+  (netty-handler [this] (:handler-provider this)))
+
+(defn new-netty-mqtt-handler []
+  (-> (map->NettyMqttHandler {:connections-by-ctx (ref {})
+                              :connections-by-client-id (ref {})
+                              :topics-by-ctx (ref {})})
+      (component/using [:reactor])))
