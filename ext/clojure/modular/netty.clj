@@ -46,6 +46,6 @@
     (.shutdownGracefully (:boss-group this))
     this))
 
-(defn new-netty-server [& {:as opts}]
-  (println "Starting new netty server: opts are " opts)
+(defn new-netty-server [& {:keys [port] :as opts}]
+  (assert port)
   (map->NettyServer opts))
