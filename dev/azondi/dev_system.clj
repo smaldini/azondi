@@ -5,9 +5,19 @@
    [azondi.seed :refer (new-database-seed)]
 ))
 
-(defn new-dev-system []
+(defn new-dev-system-minus-database
+  "Create a development system without a database"
+  []
+  (component/system-using
+             (dissoc (configurable-system-map (config)) :database)
+             (new-dependency-map)))
+
+(defn new-dev-system-with-database
   "Create a development system"
-  ;; Right now it's the same as the production system
+  []
   (component/system-using
              (assoc (configurable-system-map (config)) :database-seed (new-database-seed))
              (merge (new-dependency-map) {:database-seed [:database]})))
+
+(defn new-dev-system []
+  (new-dev-system-minus-database))

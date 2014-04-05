@@ -6,7 +6,7 @@
 (defrecord Reactor []
   component/Lifecycle
   (start [this]
-    (assoc-in this :reactor (mr/create)))
+    (assoc this :reactor (mr/create)))
   (stop [this] this))
 
 (defn new-reactor []

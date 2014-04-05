@@ -43,8 +43,7 @@
    ))
 
 (defn new-dependency-map []
-  {:mqtt-handler [:mqtt-decoder :mqtt-encoder :reactor]
-   :server [:mqtt-handler]
+  {:server [:mqtt-handler :mqtt-decoder :mqtt-encoder]
    :ws [:reactor]})
 
 (defn new-system []

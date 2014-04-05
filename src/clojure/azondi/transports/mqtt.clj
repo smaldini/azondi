@@ -110,7 +110,7 @@
                                       username
                                       password
                                       client-id] :as msg}
-   handler-state system]
+   handler-state]
   ;; example connect message:
   ;; {
   ;;  :type :connect,
@@ -165,7 +165,7 @@
 
 (defn handle-subscribe
   [^ChannelHandlerContext ctx {:keys [topics message-id dup qos] :as msg}
-   {:keys [topics-by-ctx] :as handler-state} system]
+   {:keys [topics-by-ctx] :as handler-state}]
   ;; example message:
   ;; {:topics [["a/topic" 1]],
   ;;  :message-id 1,
@@ -198,7 +198,7 @@
 
 (defn handle-unsubscribe
   [^ChannelHandlerContext ctx {:keys [topics message-id] :as msg}
-   {:keys [topics-by-ctx] :as handler-state} system]
+   {:keys [topics-by-ctx] :as handler-state}]
   ;; example message;
   ;; {:topics ["a/topic"],
   ;;  :message-id 2,
@@ -223,7 +223,7 @@
 (defn handle-publish-with-qos0
   [^ChannelHandlerContext publisher-ctx
    {:keys [topic qos payload] :as msg}
-   handler-state system]
+   handler-state]
   (let [subs (tr/matching-vals @subscriptions topic)]
     (doseq [{:keys [^ChannelHandlerContext ctx topic qos]} subs]
       (.submit dispatch-pool
@@ -236,18 +236,18 @@
 (defn handle-publish-with-qos1
   [^ChannelHandlerContext ctx
    {:keys [topic qos payload] :as msg}
-   handler-state system]
+   handler-state]
   (comment "TODO"))
 
 (defn handle-publish-with-qos2
   [^ChannelHandlerContext ctx
    {:keys [topic qos payload] :as msg}
-   handler-state system]
+   handler-state]
   (comment "TODO"))
 
 (defn handle-publish
   [^ChannelHandlerContext ctx {:keys [qos topic payload] :as msg}
-   {:keys [reactor] :as handler-state} system]
+   {:keys [reactor] :as handler-state}]
   ;; example message:
   ;; {:payload #<byte[] [B@1503e6b>,
   ;;  :message-id 1,
@@ -260,7 +260,7 @@
             0 handle-publish-with-qos0
             1 handle-publish-with-qos1
             2 handle-publish-with-qos2)]
-    (f ctx msg handler-state system)
+    (f ctx msg handler-state)
     (debugf "Handled a message on topic %s, notifying reactor..." topic)
     (mr/notify reactor topic payload)))
 
@@ -318,7 +318,8 @@
   (stop [this] this)
 
   NettyHandlerProvider
-  (netty-handler [this] (:handler-provider this)))
+  (netty-handler [this] (:handler-provider this))
+  (priority [this] 20))
 
 (defn new-netty-mqtt-handler []
   (-> (map->NettyMqttHandler {:connections-by-ctx (ref {})
