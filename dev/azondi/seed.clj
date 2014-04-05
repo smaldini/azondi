@@ -1,12 +1,11 @@
-(ns azondi.development.seed
+(ns azondi.seed
   "Seeds the database with data useful for development"
   (:require [clojurewerkz.cassaforte.client :as cc]
             [clojurewerkz.cassaforte.cql :refer :all]
-            [clojurewerkz.cassaforte.query :refer :all])
-  (:import jig.Lifecycle))
+            [clojurewerkz.cassaforte.query :refer :all]
+            [com.stuartsierra.component :as component]))
 
-(defn seed-users
-  [_]
+(defn seed-users []
   (let [t "users"]
     (insert t {:fname "Yodit"
                :sname "S"
@@ -45,18 +44,17 @@
                :publisher false}
             (if-not-exists))))
 
-(defn seed
-  [system]
-  (seed-users system))
+(defn seed []
+  (seed-users))
 
-(deftype Database [config]
-  Lifecycle
-  (init [_ system]
-    system)
-  (start [_ system]
-    (let [ks (get-in system [:opensensors/database :keyspace])]
+(defrecord DatabaseSeed []
+  component/Lifecycle
+  (start [this]
+    (let [ks (get-in this [:database :keyspace])]
       (use-keyspace ks)
-      (seed system))
-    system)
-  (stop [_ system]
-    system))
+      (seed this))
+    this)
+  (stop [this] this))
+
+(defn new-database-seed []
+  (->DatabaseSeed))

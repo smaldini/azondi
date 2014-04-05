@@ -7,7 +7,10 @@
    [clojure.tools.reader.reader-types :refer (indexing-push-back-reader)]
    [modular.netty.mqtt :refer (new-mqtt-decoder new-mqtt-encoder)]
    [modular.netty :refer (new-netty-server)]
-   [azondi.transports.mqtt :refer (new-netty-mqtt-handler)]))
+   [azondi.transports.mqtt :refer (new-netty-mqtt-handler)]
+   [azondi.reactor :refer (new-reactor)]
+   [azondi.bridges.ws :refer (new-websocket-bridge)]
+   [azondi.db :refer (new-database)]))
 
 (defn config
   "Return a map of the static configuration used in the component
@@ -33,16 +36,16 @@
    :mqtt-decoder (new-mqtt-decoder)
    :mqtt-encoder (new-mqtt-encoder)
    :mqtt-handler (new-netty-mqtt-handler)
-   :server (new-netty-server)
+   :server (new-netty-server :port 1883)
    :reactor (new-reactor)
-   :ws (new-websocket-bridge)
-   :database (new-database)
-   :database-seed (new-database-seed)))
+   :ws (new-websocket-bridge :port 8083)
+   :database (new-database :hosts ["127.0.0.1"] :keyspace "opensensors")
+   ))
 
 (defn new-dependency-map []
   {:mqtt-handler [:mqtt-decoder :mqtt-encoder :reactor]
    :server [:mqtt-handler]
-   :database-seed [:database]})
+   :ws [:reactor]})
 
 (defn new-system []
   (system-using

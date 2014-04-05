@@ -36,7 +36,6 @@
    :jig/project "../azondi/project.clj"
    :port 8083}
 
-
   ;; Database
 
   ;; TODO: this is duplicated with le-web. MK.
