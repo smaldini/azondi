@@ -49,11 +49,11 @@
                     (GET  "/events/stream" req (ws-connection-handler req clients r))
                     (route/resources "/"))
           server (run-server routes {:port port})]
-      (log/infof "About to start WebSocket/polling bridge server on port %d" port)
+      (log/debugf "About to start WebSocket/polling bridge server on port %d" port)
       (assoc this :server server)))
   (stop [this]
     (when-let [server (:server this)]
-      (log/info "About to stop WebSocket/polling bridge server")
+      (log/debugf "About to stop WebSocket/polling bridge server")
       (server))
     this))
 

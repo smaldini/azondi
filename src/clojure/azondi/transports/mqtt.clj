@@ -6,10 +6,10 @@
             [taoensso.timbre :refer [log  trace  debug  info  warn  error  fatal
                                      logf tracef debugf infof warnf errorf fatalf]]
             [clojurewerkz.triennium.mqtt :as tr]
-            [azondi.authentication :as auth]
             [clojure.set :as cs]
             [clojurewerkz.meltdown.reactor :as mr]
-            [clojurewerkz.meltdown.selectors :as ms :refer [$]])
+            [clojurewerkz.meltdown.selectors :as ms :refer [$]]
+            [cylon.core :refer (allowed-user?)])
   (:import  [io.netty.channel ChannelHandlerAdapter ChannelHandlerContext Channel]
             java.net.InetSocketAddress
             [java.util.concurrent ExecutorService Executors]))
@@ -130,18 +130,30 @@
   ;;  :protocol-version 3,
   ;;  :dup false
   ;;  }
-  (if (supported-protocol? protocol-name protocol-version)
-    (if (and has-username has-password
-             (auth/authenticates? username password))
-      (if (valid-client-id? client-id)
-        (accept-connection ctx msg handler-state)
-        (reject-connection ctx :bad-username-or-password))
-      (reject-connection ctx :bad-username-or-password))
-    (do
-      (warnf "Unsupported protocol and/or version: %s v%d, disconnecting"
-             protocol-name
-             protocol-version)
-      (reject-connection ctx :unacceptable-protocol-version))))
+
+  (let [ps (:protection-system handler-state)]
+
+    (infof "Protection system? %s" ps)
+
+    (cond
+     (not (supported-protocol? protocol-name protocol-version))
+     (do
+       (warnf "Unsupported protocol and/or version: %s v%d, disconnecting"
+              protocol-name
+              protocol-version)
+       (reject-connection ctx :unacceptable-protocol-version))
+
+     (and ps (not (and has-username has-password)))
+     (reject-connection ctx :bad-username-or-password)
+
+     (and ps (not (allowed-user? ps username password)))
+     (reject-connection ctx :bad-username-or-password)
+
+     (not (valid-client-id? client-id))
+     (reject-connection ctx :identifier-rejected)
+
+     :otherwise
+     (accept-connection ctx msg handler-state))))
 
 ;;
 ;; SUBSCRIBE
@@ -269,7 +281,7 @@
 ;;
 
 (defn handle-pingreq
-  [^ChannelHandlerContext ctx _ _]
+  [^ChannelHandlerContext ctx _]
   (.writeAndFlush ctx {:type :pingresp}))
 
 ;;
@@ -279,7 +291,7 @@
 (defn handle-disconnect
   [^ChannelHandlerContext ctx {:keys [topics-by-ctx
                                       connections-by-ctx
-                                      connections-by-client-id]} _]
+                                      connections-by-client-id]}]
   (dosync
    (let [topics              (get @topics-by-ctx ctx)
          {:keys [client-id]} (get @connections-by-ctx ctx)]
@@ -311,6 +323,7 @@
 (defrecord NettyMqttHandler [connections-by-ctx connections-by-client-id topics-by-ctx]
   component/Lifecycle
   (start [this]
+    (infof "netty mqtt handler starting... %s" (keys this))
     (assoc this
       :handler-provider
       #(make-channel-handler

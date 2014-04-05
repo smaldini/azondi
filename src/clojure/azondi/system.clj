@@ -10,7 +10,9 @@
    [azondi.transports.mqtt :refer (new-netty-mqtt-handler)]
    [azondi.reactor :refer (new-reactor)]
    [azondi.bridges.ws :refer (new-websocket-bridge)]
-   [azondi.db :refer (new-database)]))
+   [azondi.db :refer (new-database)]
+   [azondi.authentication :as auth]
+   ))
 
 (defn config
   "Return a map of the static configuration used in the component
@@ -40,11 +42,14 @@
    :reactor (new-reactor)
    :ws (new-websocket-bridge :port 8083)
    :database (new-database :hosts ["127.0.0.1"] :keyspace "opensensors")
+   :protection-system (auth/new-cassandra-protection-system)
    ))
 
 (defn new-dependency-map []
   {:server [:mqtt-handler :mqtt-decoder :mqtt-encoder]
-   :ws [:reactor]})
+   :ws [:reactor]
+   :mqtt-handler [:protection-system]
+   })
 
 (defn new-system []
   (system-using
