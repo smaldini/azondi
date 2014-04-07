@@ -23,7 +23,7 @@
                  [clojurewerkz/meltdown   "1.0.0-beta9"]
                  [compojure               "1.1.6"]
                  [http-kit                "2.1.17"]
-                 [cylon                   "0.1.2-SNAPSHOT"]
+                 [cylon                   "0.1.2"]
 
                  ;; Ext dependencies for incubated components
                  [juxt/clj-mqtt "0.4.1-alpha"]
