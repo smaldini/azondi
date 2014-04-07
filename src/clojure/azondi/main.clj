@@ -8,5 +8,6 @@
   (eval '(do (require 'azondi.system)
              (require 'com.stuartsierra.component)
              (com.stuartsierra.component/start (abracadabra.system/new-system))
+             (println "Azondi - high-performance MQTT broker")
              (println "Copyright © 2014 OpenSensors.IO Ltd.")
              (println "Ready..."))))
