@@ -8,5 +8,5 @@
   (eval '(do (require 'azondi.system)
              (require 'com.stuartsierra.component)
              (com.stuartsierra.component/start (abracadabra.system/new-system))
-             (println "Copyright © 2014 OpenSensor.IO Ltd.")
+             (println "Copyright © 2014 OpenSensors.IO Ltd.")
              (println "Ready..."))))
