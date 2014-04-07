@@ -23,7 +23,15 @@
 
   UserAuthenticator
   (allowed-user? [this user password]
-    (allowed-user? (:user-authenticator this) user password)))
+    (allowed-user? (:user-authenticator this) user password))
+
+  NewUserCreator
+  (add-user! [this uid pw]
+    (if (satisfies? NewUserCreator (:user-authenticator this))
+      (add-user! (:user-authenticator this) uid pw)
+      (throw (ex-info "This protection system implementation does not support the creation of new users"
+                      {:user-authenticator (:user-authenticator this)})))))
+
 
 ;; We can create 2 different types of protection system. One uses a
 ;; local password store, the other uses Cassandra.
@@ -46,6 +54,7 @@
                                     (limit 1))))]
       (sc/verify password (:pword user))
       false))
+
   ;; TODO Satisfy NewUserCreator to add users to Cassandra
   )
 
