@@ -2,7 +2,7 @@
   (:require
    [clojure.java.io :as io]
    [com.stuartsierra.component :as component]
-   [azondi.system :refer (new-system config configurable-system-map new-dependency-map)]
+   [azondi.system :refer (config configurable-system-map new-dependency-map)]
    [azondi.seed :refer (new-database-seed)]
    [azondi.authentication :as auth]))
 
