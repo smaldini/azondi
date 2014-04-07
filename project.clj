@@ -36,6 +36,10 @@
 
   :profiles {:dev {:dependencies [[org.clojure/tools.namespace "0.2.4"]
                                   [clojurewerkz/machine_head "1.0.0-beta7"]]
-                   :source-paths ["dev"]}
+                   :source-paths ["dev"]
+                   :main user}
              :uberjar {:main azondi.main
-                       :aot [azondi.main]}})
+                       :aot [azondi.main]}}
+
+  :main azondi.main
+  )
