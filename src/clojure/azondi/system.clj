@@ -51,7 +51,17 @@
    :mqtt-handler [:protection-system]
    })
 
-(defn new-system []
+(defn new-test-system
+  "Create a development system without a database"
+  []
+  (component/system-using
+             (-> (configurable-system-map (config))
+                 ;; If we don't have a database, we use a protection system that doesn't depend on it.
+                 (assoc :protection-system (auth/new-local-protection-system
+                                                 :password-file (io/file (System/getProperty "user.home") ".azondi-passwords.edn"))))
+             (new-dependency-map)))
+
+(defn new-prod-system []
   (system-using
    (configurable-system-map (config))
    (new-dependency-map)))
