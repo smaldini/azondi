@@ -9,6 +9,6 @@
              (require 'com.stuartsierra.component)
              ;; TODO: Get from arguments
              (com.stuartsierra.component/start (azondi.system/new-test-system))
-             (println "Azondi - high-performance MQTT broker")
+             (println "Azondi: sensor information ingestion system")
              (println "Copyright © 2014 OpenSensors.IO Ltd.")
              (println "Ready..."))))
