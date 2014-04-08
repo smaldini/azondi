@@ -84,7 +84,7 @@
   UserAuthenticator
   (allowed-user? [this email password]
     (if-let [user (first (j/query (:db this)
-                            ["select * from users where email = ?" email]
+                            ["select * from users where email = ? limit 1" email]
                             :email))]
       (sc/verify password (:password user))
       false)))
