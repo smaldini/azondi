@@ -1,25 +1,21 @@
-(def jig-version "2.0.0")
-
 (defproject azondi "0.1.0-SNAPSHOT"
   :description "Azondi helps you make sense of sensors data"
   :url "http://github.com/opensensorsio/azondi"
   :license {:name "Eclipse Public License"
             :url "http://www.eclipse.org/legal/epl-v10.html"}
 
-  :source-paths ["src/clojure" "src/cljs"]
+  :source-paths ["src/clojure" "ext/clojure"]
 
   :dependencies [[org.clojure/clojure "1.6.0"]
 
-                 ;; Jig
-                 [jig ~jig-version]
+                 ;; Assembly
+                 [com.stuartsierra/component "0.2.1"]
 
                  ;; Front end
                  [org.clojure/clojurescript "0.0-2138"
                   :exclusions [org.apache.ant/ant]]
 
                  ;; Back-end
-                 [jig/netty ~jig-version]
-                 [jig/netty-mqtt ~jig-version]
                  [clojurewerkz/cassaforte "1.3.0-beta11"]
                  [clojurewerkz/scrypt     "1.1.0"]
                  [clojurewerkz/triennium  "1.0.0-beta2"]
@@ -27,26 +23,27 @@
                  [clojurewerkz/meltdown   "1.0.0-beta9"]
                  [compojure               "1.1.6"]
                  [http-kit                "2.1.17"]
+                 [cylon                   "0.1.2"]
+
+                 ;; Ext dependencies for incubated components
+                 [juxt/clj-mqtt "0.4.1-alpha"]
+                 [io.netty/netty-all "5.0.0.Alpha1"]
 
                  ;; Logging
-                 [com.taoensso/timbre "3.0.1"]]
+                 [com.taoensso/timbre "3.0.1"]
+
+                 ;; SQL access (postgres)
+                 [org.clojure/java.jdbc "0.3.3"]
+                 [postgresql/postgresql "8.4-702.jdbc4"]]
 
   :jvm-opts ["-Xss8m" "-Xmx1g" "-Duser.timezone=UTC"]
+  :main azondi.main
 
-  :repl-options {:prompt (fn [ns] (str "Jig " ns "> "))
-                 :welcome (user/welcome)}
+  :profiles {:dev {:dependencies [[org.clojure/tools.namespace "0.2.4"]
+                                  [clojurewerkz/machine_head "1.0.0-beta7"]]
+                   :source-paths ["dev"]}
 
-  :plugins [[lein-cljsbuild "1.0.2"]]
-  :hooks [leiningen.cljsbuild]
+             :uberjar {:main azondi.main
+                       :aot [azondi.main]}}
 
-  :cljsbuild
-  {:builds {:main
-            {:source-paths ["src/cljs"]
-             :compiler {:output-to "resources/public/js/bridge.js"
-                        :optimizations :whitespace
-                        :pretty-print true}}}}
-
-  :profiles {:master {:dependencies [[org.clojure/clojure "1.7.0-master-SNAPSHOT"]]}
-             :dev {:resource-paths ["test/resources"]
-                   :dependencies   [[com.lmax/disruptor "3.2.0"]
-                                    [clojurewerkz/machine_head "1.0.0-beta6"]]}})
+  )

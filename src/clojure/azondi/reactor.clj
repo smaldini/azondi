@@ -1,15 +1,13 @@
 (ns azondi.reactor
-  (:require [clojurewerkz.meltdown.reactor :as mr])
-  (:import jig.Lifecycle))
+  (:require
+   [com.stuartsierra.component :as component]
+   [clojurewerkz.meltdown.reactor :as mr]))
 
+(defrecord Reactor []
+  component/Lifecycle
+  (start [this]
+    (assoc this :reactor (mr/create)))
+  (stop [this] this))
 
-(deftype Reactor [config]
-  Lifecycle
-  (init [_ system]
-    (let [id (:jig/id config)]
-      (-> system
-          (assoc-in [id :reactor] (mr/create)))))
-  (start [_ system]
-    system)
-  (stop [_ system]
-    system))
+(defn new-reactor []
+  (->Reactor))

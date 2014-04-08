@@ -1,16 +1,16 @@
 ;; Copyright © 2014, OpenSensors.IO. All Rights Reserved.
 (ns azondi.transports.mqtt
-  (:require jig
-            jig.netty.mqtt
+  (:require
+            [com.stuartsierra.component :as component]
+            [modular.netty :refer (NettyHandlerProvider)]
             [taoensso.timbre :refer [log  trace  debug  info  warn  error  fatal
                                      logf tracef debugf infof warnf errorf fatalf]]
             [clojurewerkz.triennium.mqtt :as tr]
-            [azondi.authentication :as auth]
             [clojure.set :as cs]
             [clojurewerkz.meltdown.reactor :as mr]
-            [clojurewerkz.meltdown.selectors :as ms :refer [$]])
+            [clojurewerkz.meltdown.selectors :as ms :refer [$]]
+            [cylon.core :refer (allowed-user?)])
   (:import  [io.netty.channel ChannelHandlerAdapter ChannelHandlerContext Channel]
-            jig.Lifecycle
             java.net.InetSocketAddress
             [java.util.concurrent ExecutorService Executors]))
 
@@ -110,7 +110,7 @@
                                       username
                                       password
                                       client-id] :as msg}
-   handler-state system]
+   handler-state]
   ;; example connect message:
   ;; {
   ;;  :type :connect,
@@ -130,18 +130,30 @@
   ;;  :protocol-version 3,
   ;;  :dup false
   ;;  }
-  (if (supported-protocol? protocol-name protocol-version)
-    (if (and has-username has-password
-             (auth/authenticates? username password))
-      (if (valid-client-id? client-id)
-        (accept-connection ctx msg handler-state)
-        (reject-connection ctx :bad-username-or-password))
-      (reject-connection ctx :bad-username-or-password))
-    (do
-      (warnf "Unsupported protocol and/or version: %s v%d, disconnecting"
-             protocol-name
-             protocol-version)
-      (reject-connection ctx :unacceptable-protocol-version))))
+
+  (let [ps (:protection-system handler-state)]
+
+    (infof "Protection system? %s" ps)
+
+    (cond
+     (not (supported-protocol? protocol-name protocol-version))
+     (do
+       (warnf "Unsupported protocol and/or version: %s v%d, disconnecting"
+              protocol-name
+              protocol-version)
+       (reject-connection ctx :unacceptable-protocol-version))
+
+     (and ps (not (and has-username has-password)))
+     (reject-connection ctx :bad-username-or-password)
+
+     (and ps (not (allowed-user? ps username password)))
+     (reject-connection ctx :bad-username-or-password)
+
+     (not (valid-client-id? client-id))
+     (reject-connection ctx :identifier-rejected)
+
+     :otherwise
+     (accept-connection ctx msg handler-state))))
 
 ;;
 ;; SUBSCRIBE
@@ -165,7 +177,7 @@
 
 (defn handle-subscribe
   [^ChannelHandlerContext ctx {:keys [topics message-id dup qos] :as msg}
-   {:keys [topics-by-ctx] :as handler-state} system]
+   {:keys [topics-by-ctx] :as handler-state}]
   ;; example message:
   ;; {:topics [["a/topic" 1]],
   ;;  :message-id 1,
@@ -198,7 +210,7 @@
 
 (defn handle-unsubscribe
   [^ChannelHandlerContext ctx {:keys [topics message-id] :as msg}
-   {:keys [topics-by-ctx] :as handler-state} system]
+   {:keys [topics-by-ctx] :as handler-state}]
   ;; example message;
   ;; {:topics ["a/topic"],
   ;;  :message-id 2,
@@ -223,7 +235,7 @@
 (defn handle-publish-with-qos0
   [^ChannelHandlerContext publisher-ctx
    {:keys [topic qos payload] :as msg}
-   handler-state system]
+   handler-state]
   (let [subs (tr/matching-vals @subscriptions topic)]
     (doseq [{:keys [^ChannelHandlerContext ctx topic qos]} subs]
       (.submit dispatch-pool
@@ -236,18 +248,18 @@
 (defn handle-publish-with-qos1
   [^ChannelHandlerContext ctx
    {:keys [topic qos payload] :as msg}
-   handler-state system]
+   handler-state]
   (comment "TODO"))
 
 (defn handle-publish-with-qos2
   [^ChannelHandlerContext ctx
    {:keys [topic qos payload] :as msg}
-   handler-state system]
+   handler-state]
   (comment "TODO"))
 
 (defn handle-publish
   [^ChannelHandlerContext ctx {:keys [qos topic payload] :as msg}
-   {:keys [reactor] :as handler-state} system]
+   {:keys [reactor] :as handler-state}]
   ;; example message:
   ;; {:payload #<byte[] [B@1503e6b>,
   ;;  :message-id 1,
@@ -260,7 +272,7 @@
             0 handle-publish-with-qos0
             1 handle-publish-with-qos1
             2 handle-publish-with-qos2)]
-    (f ctx msg handler-state system)
+    (f ctx msg handler-state)
     (debugf "Handled a message on topic %s, notifying reactor..." topic)
     (mr/notify reactor topic payload)))
 
@@ -269,7 +281,7 @@
 ;;
 
 (defn handle-pingreq
-  [^ChannelHandlerContext ctx _ _]
+  [^ChannelHandlerContext ctx _]
   (.writeAndFlush ctx {:type :pingresp}))
 
 ;;
@@ -279,7 +291,7 @@
 (defn handle-disconnect
   [^ChannelHandlerContext ctx {:keys [topics-by-ctx
                                       connections-by-ctx
-                                      connections-by-client-id]} _]
+                                      connections-by-client-id]}]
   (dosync
    (let [topics              (get @topics-by-ctx ctx)
          {:keys [client-id]} (get @connections-by-ctx ctx)]
@@ -294,34 +306,36 @@
 ;;
 
 (defn make-channel-handler
-  [system {:keys [channel
-                  connections-by-ctx
-                  connections-by-client-id]
-           :as handler-state}]
+  [handler-state]
   (proxy [ChannelHandlerAdapter] []
     (channelRead [^ChannelHandlerContext ctx msg]
       (case (:type msg)
-        :connect     (handle-connect     ctx msg handler-state system)
-        :subscribe   (handle-subscribe   ctx msg handler-state system)
-        :unsubscribe (handle-unsubscribe ctx msg handler-state system)
-        :publish     (handle-publish     ctx msg handler-state system)
-        :pingreq     (handle-pingreq     ctx handler-state system)
-        :disconnect  (handle-disconnect  ctx handler-state system)))
+        :connect     (handle-connect     ctx msg handler-state)
+        :subscribe   (handle-subscribe   ctx msg handler-state)
+        :unsubscribe (handle-unsubscribe ctx msg handler-state)
+        :publish     (handle-publish     ctx msg handler-state)
+        :pingreq     (handle-pingreq     ctx handler-state)
+        :disconnect  (handle-disconnect  ctx handler-state)))
     (exceptionCaught [^ChannelHandlerContext ctx cause]
       (try (throw cause)
            (finally (abort ctx))))))
 
-(deftype NettyMqttHandler [config]
-  Lifecycle
-  (init [_ system] system)
-  (start [_ system]
-    (let [id            (:jig/id config)
-          r             (get-in system [:opensensors/reactor :reactor])
-          handler-state {:connections-by-ctx (ref {})
-                         :connections-by-client-id (ref {})
-                         :topics-by-ctx (ref {})
-                         :reactor r}
-          system'       (merge system
-                               {id {jig.netty.mqtt/handler-factory-key #(make-channel-handler system handler-state)}})]
-      system'))
-  (stop [_ system] system))
+(defrecord NettyMqttHandler [connections-by-ctx connections-by-client-id topics-by-ctx]
+  component/Lifecycle
+  (start [this]
+    (infof "netty mqtt handler starting... %s" (keys this))
+    (assoc this
+      :handler-provider
+      #(make-channel-handler
+        (assoc this :reactor (get-in this [:reactor :reactor])))))
+  (stop [this] this)
+
+  NettyHandlerProvider
+  (netty-handler [this] (:handler-provider this))
+  (priority [this] 20))
+
+(defn new-netty-mqtt-handler []
+  (-> (map->NettyMqttHandler {:connections-by-ctx (ref {})
+                              :connections-by-client-id (ref {})
+                              :topics-by-ctx (ref {})})
+      (component/using [:reactor])))

@@ -1,13 +1,13 @@
 (ns azondi.bridges.ws
   (:require [taoensso.timbre :as log]
+            [com.stuartsierra.component :as component]
             [org.httpkit.server :refer [run-server with-channel send! on-close]]
             [compojure.core :refer [routes GET POST]]
             [compojure.route :as route]
             [clojurewerkz.meltdown.reactor :as mr]
             [clojurewerkz.meltdown.selectors :refer [match-all]]
             [clojurewerkz.meltdown.consumers :as mc]
-            [cheshire.core :as json])
-  (:import jig.Lifecycle))
+            [cheshire.core :as json]))
 
 (defn welcome-message
   []
@@ -38,13 +38,10 @@
                      (log/infof "WebSocket bridge connection from %s is closed, status: %s" (:remote-addr req) status))))
     (send-welcome-message ws)))
 
-(deftype WebSocketBridge [config]
-  Lifecycle
-  (init [_ system]
-    system)
-  (start [_ system]
-    (let [port    (:port config)
-          r       (get-in system [:opensensors/reactor :reactor])
+(defrecord WebsocketBridge [port]
+  component/Lifecycle
+  (start [this]
+    (let [r       (get-in this [:reactor :reactor])
           clients (atom #{})
           ;; define routes here so that they have access to
           ;; clients, reactor, etc. MK.
@@ -52,10 +49,14 @@
                     (GET  "/events/stream" req (ws-connection-handler req clients r))
                     (route/resources "/"))
           server (run-server routes {:port port})]
-      (log/infof "About to start WebSocket/polling bridge server on port %d" port)
-      (assoc-in system [(:jig/id config) :server] server)))
-  (stop [_ system]
-    (when-let [server (get-in system [(:jig/id config) :server])]
-      (log/info "About to stop WebSocket/polling bridge server")
+      (log/debugf "About to start WebSocket/polling bridge server on port %d" port)
+      (assoc this :server server)))
+  (stop [this]
+    (when-let [server (:server this)]
+      (log/debugf "About to stop WebSocket/polling bridge server")
       (server))
-    (dissoc system (:jig/id config))))
+    this))
+
+(defn new-websocket-bridge [& {:as opts}]
+  (-> (map->WebsocketBridge opts)
+      (component/using [:reactor])))

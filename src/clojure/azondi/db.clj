@@ -2,8 +2,8 @@
   "Database connectivity."
   (:require [clojurewerkz.cassaforte.client :as cc]
             [clojurewerkz.cassaforte.cql :refer :all]
-            [clojurewerkz.cassaforte.query :refer :all])
-  (:import jig.Lifecycle))
+            [clojurewerkz.cassaforte.query :refer :all]
+            [com.stuartsierra.component :as component]))
 
 (defn converge-schema
   [_]
@@ -40,24 +40,22 @@
   (create-index "topics" :publisher
                 (if-not-exists)))
 
-(deftype Database [config]
-  Lifecycle
-  (init [_ system]
-    (let [id (:jig/id config)]
-      (-> system
-          (assoc-in [id :keyspace] (:keyspace config)))))
-  (start [_ system]
-    (let [host    (:hosts config)
-          ks      (:keyspace config)
-          session (cc/connect! host)]
-      (create-keyspace ks
+(defrecord Database [hosts keyspace]
+  component/Lifecycle
+  (start [this]
+    (let [session (cc/connect! hosts)]
+      (create-keyspace keyspace
                        (with {:replication
                               {:class              "SimpleStrategy"
                                ;; TODO: this needs to be dynamically configured
                                :replication_factor 1}})
                        (if-not-exists))
-      (use-keyspace ks)
+      (use-keyspace keyspace)
       (converge-schema session)
-      system))
-  (stop [_ system]
-    system))
+      this))
+  (stop [this] this))
+
+(defn new-database [& {:keys [hosts keyspace] :as opts}]
+  (assert hosts)
+  (assert keyspace)
+  (map->Database opts))
