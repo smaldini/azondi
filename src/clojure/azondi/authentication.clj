@@ -8,7 +8,8 @@
             [cylon.core :refer (new-user-domain
                                 new-password-file
                                 NewUserCreator add-user!
-                                UserAuthenticator allowed-user?)]))
+                                UserAuthenticator allowed-user?)]
+            [clojure.java.jdbc :as j]))
 
 (defrecord ProtectionSystem []
   component/Lifecycle
@@ -45,6 +46,8 @@
    {:user-authenticator (component/using (new-user-domain) [:password-store])
     :password-store (new-password-file (:password-file opts))}))
 
+;; Cassandra
+
 (defrecord CassandraAuthenticator []
   UserAuthenticator
   (allowed-user? [this email password]
@@ -64,3 +67,39 @@
 (defn new-cassandra-protection-system [& {:as opts}]
   (map->ProtectionSystem
    {:user-authenticator (new-cassandra-authenticator)}))
+
+;; Postgres
+
+(defrecord PostgresAuthenticator [host port dbname user password]
+  component/Lifecycle
+  (start [this]
+    (assoc this :db
+           {:subprotocol "postgresql"
+            :classname "org.postgresql.Driver"
+            :subname (format "//%s:%d/%s")
+            :user user
+            :password password}))
+  (stop [this] this)
+
+  UserAuthenticator
+  (allowed-user? [this email password]
+    (if-let [user (first (j/query (:db this)
+                            ["select * from users where email = ?" email]
+                            :email))]
+      (sc/verify password (:password user))
+      false)))
+
+(defn new-postgres-authenticator [& {:as opts}]
+  (->> opts
+        (merge {:host "localhost"
+                :port 5432})
+        (s/validate {:host s/Str
+                     :port s/Int
+                     :dbname s/Str
+                     :user s/Str
+                     :password s/Str})
+        map->PostgresAuthenticator))
+
+(defn new-postgres-protection-system [& {:as opts}]
+  (map->ProtectionSystem
+   {:user-authenticator (new-postgres-authenticator)}))

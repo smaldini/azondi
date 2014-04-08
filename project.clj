@@ -30,7 +30,11 @@
                  [io.netty/netty-all "5.0.0.Alpha1"]
 
                  ;; Logging
-                 [com.taoensso/timbre "3.0.1"]]
+                 [com.taoensso/timbre "3.0.1"]
+
+                 ;; SQL access (postgres)
+                 [org.clojure/java.jdbc "0.3.3"]
+                 [postgresql/postgresql "8.4-702.jdbc4"]]
 
   :jvm-opts ["-Xss8m" "-Xmx1g" "-Duser.timezone=UTC"]
 
