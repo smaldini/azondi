@@ -138,7 +138,7 @@
     (cond
      (not (supported-protocol? protocol-name protocol-version))
      (do
-       (warnf "Unsupported protocol and/or version: %s v%d, disconnecting"
+       (warnf "Unsupported protocol and/or version: %s v%d, rejecting connection"
               protocol-name
               protocol-version)
        (reject-connection ctx :unacceptable-protocol-version))
