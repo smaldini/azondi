@@ -102,4 +102,4 @@
 
 (defn new-postgres-protection-system [& {:as opts}]
   (map->ProtectionSystem
-   {:user-authenticator (new-postgres-authenticator)}))
+   {:user-authenticator (apply new-postgres-authenticator (apply concat (seq opts)))}))

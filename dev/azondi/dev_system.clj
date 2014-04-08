@@ -25,4 +25,4 @@
              (merge (new-dependency-map) {:database-seed [:database]})))
 
 (defn new-dev-system []
-  (new-dev-system-minus-database))
+  (new-dev-system-with-database))

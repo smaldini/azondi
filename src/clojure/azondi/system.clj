@@ -42,7 +42,11 @@
    :reactor (new-reactor)
    :ws (new-websocket-bridge :port 8083)
    :database (new-database :hosts ["127.0.0.1"] :keyspace "opensensors")
-   :protection-system (auth/new-postgres-protection-system)
+   :protection-system (auth/new-postgres-protection-system
+                            :host (-> config :postgres :host)
+                            :dbname (-> config :postgres :dbname)
+                            :user (-> config :postgres :user)
+                            :password (-> config :postgres :password))
    ))
 
 (defn new-dependency-map []
