@@ -227,7 +227,7 @@
 ;; PUBLISH
 ;;
 
-;; TODO: scope these by Jig component?
+;; TODO: scope these by component?
 ;; TODO: calculate this dynamically using Runtime#availableProcessors
 (def ^:const dispatch-pool-size 32)
 (def ^ExecutorService dispatch-pool (Executors/newFixedThreadPool dispatch-pool-size))
