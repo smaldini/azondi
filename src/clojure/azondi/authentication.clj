@@ -18,7 +18,7 @@
     (assoc this :db
            {:subprotocol "postgresql"
             :classname "org.postgresql.Driver"
-            :subname (format "//%s:%d/%s")
+            :subname (format "//%s:%d/%s" host port dbname)
             :user user
             :password password}))
   (stop [this] this)
