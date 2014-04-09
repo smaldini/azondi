@@ -4,6 +4,7 @@
             [clojurewerkz.cassaforte.query :refer :all]
             [clojurewerkz.scrypt.core :as sc]
             [com.stuartsierra.component :as component]
+            [taoensso.timbre :as log]
             [schema.core :as s]
             [cylon.core :refer (new-user-domain
                                 new-password-file
@@ -11,20 +12,17 @@
                                 UserAuthenticator allowed-user?)]
             [clojure.java.jdbc :as j]))
 
+(defprotocol DeviceAuthenticator
+  (allowed-device? [_ client-id owner password]))
+
 (defrecord ProtectionSystem []
   component/Lifecycle
   (start [this] (component/start-system this (keys this)))
   (stop [this] (component/stop-system this (keys this)))
 
-  NewUserCreator
-  (add-user! [this uid pw]
-    (if (satisfies? NewUserCreator (:user-authenticator this))
-      (add-user! (:user-authenticator this) uid pw)
-      (throw (ex-info "This protection system implementation does not support the creation of new users" {}))))
-
-  UserAuthenticator
-  (allowed-user? [this user password]
-    (allowed-user? (:user-authenticator this) user password))
+  DeviceAuthenticator
+  (allowed-device? [this client-id owner password]
+    (allowed-device? (:device-authenticator this) client-id owner password))
 
   NewUserCreator
   (add-user! [this uid pw]
@@ -81,12 +79,14 @@
             :password password}))
   (stop [this] this)
 
-  UserAuthenticator
-  (allowed-user? [this email password]
-    (if-let [user (first (j/query (:db this)
-                            ["select * from users where email = ? limit 1" email]
-                            :email))]
-      (sc/verify password (:password user))
+  DeviceAuthenticator
+  (allowed-device? [this client-id owner password]
+    (log/infof "allowed device? %s %s" client-id owner password)
+
+    (log/infof (keys (j/query (:db this)
+                        ["select * from devices where client_id = ? limit 1" client-id]
+                        )))
+
       false)))
 
 (defn new-postgres-authenticator [& {:as opts}]
@@ -102,4 +102,4 @@
 
 (defn new-postgres-protection-system [& {:as opts}]
   (map->ProtectionSystem
-   {:user-authenticator (apply new-postgres-authenticator (apply concat (seq opts)))}))
+   {:device-authenticator (apply new-postgres-authenticator (apply concat (seq opts)))}))
