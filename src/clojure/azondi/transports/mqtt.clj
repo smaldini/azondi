@@ -6,10 +6,12 @@
             [taoensso.timbre :refer [log  trace  debug  info  warn  error  fatal
                                      logf tracef debugf infof warnf errorf fatalf]]
             [clojurewerkz.triennium.mqtt :as tr]
+
             [clojure.set :as cs]
             [clojurewerkz.meltdown.reactor :as mr]
-            [clojurewerkz.meltdown.selectors :as ms :refer [$]]
-            [cylon.core :refer (allowed-user?)])
+            [azondi.authentication :refer (allowed-device?)]
+            [clojurewerkz.meltdown.selectors :as ms :refer [$]])
+
   (:import  [io.netty.channel ChannelHandlerAdapter ChannelHandlerContext Channel]
             java.net.InetSocketAddress
             [java.util.concurrent ExecutorService Executors]))
@@ -131,9 +133,7 @@
   ;;  :dup false
   ;;  }
 
-  (let [ps (:protection-system handler-state)]
-
-    (infof "Protection system? %s" ps)
+  (let [authenticator (:device-authenticator handler-state)]
 
     (cond
      (not (supported-protocol? protocol-name protocol-version))
@@ -143,10 +143,10 @@
               protocol-version)
        (reject-connection ctx :unacceptable-protocol-version))
 
-     (and ps (not (and has-username has-password)))
+     (not (and has-username has-password))
      (reject-connection ctx :bad-username-or-password)
 
-     (and ps (not (allowed-user? ps username password)))
+     (not (allowed-device? authenticator client-id username password))
      (reject-connection ctx :bad-username-or-password)
 
      (not (valid-client-id? client-id))

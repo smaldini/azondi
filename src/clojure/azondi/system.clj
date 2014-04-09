@@ -42,28 +42,16 @@
    :reactor (new-reactor)
    :ws (new-websocket-bridge :port 8083)
    :database (new-database :hosts ["127.0.0.1"] :keyspace "opensensors")
-   :protection-system (auth/new-postgres-protection-system
+   :device-authenticator (auth/new-postgres-authenticator
                             :host (-> config :postgres :host)
                             :dbname (-> config :postgres :dbname)
                             :user (-> config :postgres :user)
-                            :password (-> config :postgres :password))
-   ))
+                            :password (-> config :postgres :password))))
 
 (defn new-dependency-map []
   {:server [:mqtt-handler :mqtt-decoder :mqtt-encoder]
    :ws [:reactor]
-   :mqtt-handler [:protection-system]
-   })
-
-(defn new-test-system
-  "Create a development system without a database"
-  []
-  (component/system-using
-             (-> (configurable-system-map (config))
-                 ;; If we don't have a database, we use a protection system that doesn't depend on it.
-                 (assoc :protection-system (auth/new-local-protection-system
-                                                 :password-file (io/file (System/getProperty "user.home") ".azondi-passwords.edn"))))
-             (new-dependency-map)))
+   :mqtt-handler [:device-authenticator]})
 
 (defn new-prod-system []
   (system-using

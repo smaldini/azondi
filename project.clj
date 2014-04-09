@@ -39,6 +39,8 @@
   :jvm-opts ["-Xss8m" "-Xmx1g" "-Duser.timezone=UTC"]
   :main azondi.main
 
+  :repl-options {:init-ns user}
+
   :profiles {:dev {:dependencies [[org.clojure/tools.namespace "0.2.4"]
                                   [clojurewerkz/machine_head "1.0.0-beta7"]]
                    :source-paths ["dev"]}
