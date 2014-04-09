@@ -26,7 +26,7 @@
                  [cylon                   "0.1.2"]
 
                  ;; Ext dependencies for incubated components
-                 [juxt/clj-mqtt "0.4.1-alpha"]
+                 [juxt/clj-mqtt "0.4.6-alpha"]
                  [io.netty/netty-all "5.0.0.Alpha1"]
 
                  ;; Logging
