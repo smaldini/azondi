@@ -30,7 +30,7 @@
                 ;; TODO We shouldn't have to parse this to a long...
                 ["select * from devices where client_id = ? limit 1" (Long/parseLong client-id)]
                 )]
-      (infof "Device is" device))))
+      (infof "Device is %s" device))))
 
 (defn new-postgres-authenticator [& {:as opts}]
   (->> opts
