@@ -26,10 +26,10 @@
   DeviceAuthenticator
   (allowed-device? [this client-id owner password]
     (when-let [device
-             (j/query (:db this)
-                ;; TODO We shouldn't have to parse this to a long...
-                ["select * from devices where client_id = ? limit 1" (Long/parseLong client-id)]
-                )]
+               (first (j/query (:db this)
+                         ;; TODO We shouldn't have to parse this to a long...
+                         ["select * from devices where client_id = ? limit 1" (Long/parseLong client-id)]
+                         ))]
       (infof "Args: %s %s %s" client-id owner password)
       (infof "Device: %s" device)
       (let [res
