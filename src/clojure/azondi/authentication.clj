@@ -27,17 +27,18 @@
   (allowed-device? [this client-id owner password]
     (when-let [device
              (j/query (:db this)
-                ["select * from devices where client_id = ? limit 1" client-id]
+                ;; TODO We shouldn't have to parse this to a long...
+                ["select * from devices where client_id = ? limit 1" (Long/parseLong client-id)]
                 )]
       (infof "Device is" device))))
 
 (defn new-postgres-authenticator [& {:as opts}]
   (->> opts
-        (merge {:host "localhost"
-                :port 5432})
-        (s/validate {:host s/Str
-                     :port s/Int
-                     :dbname s/Str
-                     :user s/Str
-                     :password s/Str})
-        map->PostgresAuthenticator))
+       (merge {:host "localhost"
+               :port 5432})
+       (s/validate {:host s/Str
+                    :port s/Int
+                    :dbname s/Str
+                    :user s/Str
+                    :password s/Str})
+       map->PostgresAuthenticator))
