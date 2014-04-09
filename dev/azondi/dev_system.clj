@@ -13,5 +13,12 @@
              (assoc (configurable-system-map (config)) :database-seed (new-database-seed))
              (merge (new-dependency-map) {:database-seed [:database]})))
 
+(defn new-dev-system-as-prod
+  "Create a development system"
+  []
+  (component/system-using
+             (configurable-system-map (config))
+             (new-dependency-map)))
+
 (defn new-dev-system []
-  (new-dev-system-with-database))
+  (new-dev-system-as-prod))
