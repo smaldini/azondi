@@ -9,7 +9,8 @@
             [clojure.set :as cs]
             [clojurewerkz.meltdown.reactor :as mr]
             [clojurewerkz.meltdown.selectors :as ms :refer [$]]
-            [cylon.core :refer (allowed-user?)])
+            [azondi.authentication :refer (allowed-device?)]
+            )
   (:import  [io.netty.channel ChannelHandlerAdapter ChannelHandlerContext Channel]
             java.net.InetSocketAddress
             [java.util.concurrent ExecutorService Executors]))
@@ -133,8 +134,6 @@
 
   (let [ps (:protection-system handler-state)]
 
-    (infof "Protection system? %s" ps)
-
     (cond
      (not (supported-protocol? protocol-name protocol-version))
      (do
@@ -146,7 +145,7 @@
      (and ps (not (and has-username has-password)))
      (reject-connection ctx :bad-username-or-password)
 
-     (and ps (not (allowed-user? ps username password)))
+     (and ps (not (allowed-device? ps client-id username password)))
      (reject-connection ctx :bad-username-or-password)
 
      (not (valid-client-id? client-id))
