@@ -86,7 +86,6 @@
     (log/infof (keys (j/query (:db this)
                         ["select * from devices where client_id = ? limit 1" client-id]
                         )))
-
       false)))
 
 (defn new-postgres-authenticator [& {:as opts}]
