@@ -30,12 +30,7 @@
                          ;; TODO We shouldn't have to parse this to a long...
                          ["select * from devices where client_id = ? limit 1" (Long/parseLong client-id)]
                          ))]
-      (infof "Args: %s %s %s" client-id owner password)
-      (infof "Device: %s" device)
-      (let [res
-            (and (= (:owner device) owner) (= (:device_password device) password))]
-        (infof "Result is: %s" res)
-        res))))
+      (and (= (:owner device) owner) (= (:device_password device) password)))))
 
 (defn new-postgres-authenticator [& {:as opts}]
   (->> opts
