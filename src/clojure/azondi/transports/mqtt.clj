@@ -150,7 +150,9 @@
 
      ;; TODO: check known devices table, too
      (not (valid-client-id? client-id))
-     (reject-connection ctx :identifier-rejected)
+     (do
+       (warnf "Invalid client id: %s, rejecting connection" client-id)
+       (reject-connection ctx :identifier-rejected))
 
      :otherwise
      (accept-connection ctx msg handler-state))))
