@@ -86,7 +86,7 @@
      (alter connections-by-client-id assoc client-id conn))
     (.writeAndFlush ctx {:type :connack :return-code :accepted})
     (let [^InetSocketAddress peer-host (peer-of ctx)]
-      (debugf "Accepted connection from %s" peer-host))
+      (debugf "Accepted connection from %s (client id: %s)" peer-host client-id))
     conn))
 
 (defn reject-connection
