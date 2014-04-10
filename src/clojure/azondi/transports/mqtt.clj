@@ -57,7 +57,7 @@
   [^String client-id {:keys [connections-by-ctx connections-by-client-id]}]
   (if-let [state (get @connections-by-client-id client-id)]
     (let [ctx (:ctx state)]
-      (println (format "Disconnecting existing connection with client id %s" client-id))
+      (warnf "Disconnecting existing connection with client id %s" client-id)
       (disconnect-client ctx)
       (dosync
        (alter connections-by-client-id dissoc client-id)
