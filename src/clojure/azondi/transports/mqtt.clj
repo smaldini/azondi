@@ -148,6 +148,7 @@
      (not (allowed-device? authenticator client-id username password))
      (reject-connection ctx :bad-username-or-password)
 
+     ;; TODO: check known devices table, too
      (not (valid-client-id? client-id))
      (reject-connection ctx :identifier-rejected)
 
