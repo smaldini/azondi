@@ -328,7 +328,7 @@
 (defrecord NettyMqttHandler [connections-by-ctx connections-by-client-id topics-by-ctx]
   component/Lifecycle
   (start [this]
-    (infof "netty mqtt handler starting... %s" (keys this))
+    (info "MQTT transport starting...")
     (assoc this
       :handler-provider
       #(make-channel-handler
