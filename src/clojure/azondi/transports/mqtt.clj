@@ -20,8 +20,8 @@
 ;; Implementation
 ;;
 
-(def ^:const supported-mqtt-protocol "MQIsdp")
-(def ^:const supported-mqtt-version  3)
+(def ^:const supported-protocol-names #{["MQIsdp" 3]
+                                        ["MQTT"   4]})
 
 (defn ^{:private true} assoc-with-union
   [m k v]
@@ -33,8 +33,7 @@
 
 (defn supported-protocol?
   [^String protocol-name ^long protocol-version]
-  (and (= protocol-name    supported-mqtt-protocol)
-       (= protocol-version supported-mqtt-version)))
+  (supported-protocol-names [protocol-name protocol-version]))
 
 (defn disconnect-client
   [^ChannelHandlerContext ctx]
