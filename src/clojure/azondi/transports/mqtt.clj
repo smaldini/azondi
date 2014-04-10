@@ -133,7 +133,6 @@
   ;;  }
 
   (let [authenticator (:device-authenticator handler-state)]
-
     (cond
      (not (supported-protocol? protocol-name protocol-version))
      (do
@@ -143,7 +142,9 @@
        (reject-connection ctx :unacceptable-protocol-version))
 
      (not (and has-username has-password))
-     (reject-connection ctx :bad-username-or-password)
+     (do
+       (warnf "Client has no username or password, rejecting connection")
+       (reject-connection ctx :bad-username-or-password))
 
      (not (allowed-device? authenticator client-id username password))
      (reject-connection ctx :bad-username-or-password)
