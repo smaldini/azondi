@@ -23,8 +23,7 @@
   (allowed-device? [this client-id owner password]
     (when-let [device
                (first (j/query (:db this)
-                         ;; TODO We shouldn't have to parse this to a long...
-                         ["select * from devices where client_id = ? limit 1" (Long/parseLong client-id)]))]
+                               ["select * from devices where client_id = ? limit 1" client-id]))]
       (and (= (:owner device) owner) (= (:device_password device) password)))))
 
 (defn new-postgres-authenticator
