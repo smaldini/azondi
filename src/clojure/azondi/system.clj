@@ -11,8 +11,7 @@
    [azondi.reactor :refer (new-reactor)]
    [azondi.bridges.ws :refer (new-websocket-bridge)]
    [azondi.db :refer (new-database)]
-   [azondi.authentication :as auth]
-   ))
+   [azondi.authentication :as auth]))
 
 (defn config
   "Return a map of the static configuration used in the component
@@ -31,7 +30,8 @@
       ;; If the file isn't there, we assume defaults.
       {})))
 
-(defn configurable-system-map [config]
+(defn configurable-system-map
+  [config]
   (system-map
    ;; We create the system map by calling a constructor for each
    ;; component.
@@ -48,12 +48,14 @@
                             :user (-> config :postgres :user)
                             :password (-> config :postgres :password))))
 
-(defn new-dependency-map []
+(defn new-dependency-map
+  []
   {:server [:mqtt-handler :mqtt-decoder :mqtt-encoder]
    :ws [:reactor]
    :mqtt-handler [:device-authenticator]})
 
-(defn new-prod-system []
+(defn new-prod-system
+  []
   (system-using
    (configurable-system-map (config))
    (new-dependency-map)))
