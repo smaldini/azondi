@@ -1,7 +1,6 @@
 ;; Copyright © 2014, OpenSensors.IO. All Rights Reserved.
 (ns azondi.transports.mqtt
-  (:require
-            [com.stuartsierra.component :as component]
+  (:require [com.stuartsierra.component :as component]
             [modular.netty :refer (NettyHandlerProvider)]
             [taoensso.timbre :refer [log  trace  debug  info  warn  error  fatal
                                      logf tracef debugf infof warnf errorf fatalf]]
@@ -11,7 +10,6 @@
             [clojurewerkz.meltdown.reactor :as mr]
             [azondi.authentication :refer (allowed-device?)]
             [clojurewerkz.meltdown.selectors :as ms :refer [$]])
-
   (:import  [io.netty.channel ChannelHandlerAdapter ChannelHandlerContext Channel]
             java.net.InetSocketAddress
             [java.util.concurrent ExecutorService Executors]))
