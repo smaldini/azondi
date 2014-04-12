@@ -5,6 +5,7 @@
             :url "http://www.eclipse.org/legal/epl-v10.html"}
 
   :source-paths ["src/clojure" "ext/clojure"]
+  :resource-paths ["resources"]
 
   :dependencies [[org.clojure/clojure "1.6.0"]
 
@@ -43,7 +44,8 @@
 
   :profiles {:dev {:dependencies [[org.clojure/tools.namespace "0.2.4"]
                                   [clojurewerkz/machine_head "1.0.0-beta7"]]
-                   :source-paths ["dev"]}
+                   :source-paths ["dev"]
+                   :resource-paths ["test/resources"]}
 
              :uberjar {:main azondi.main
                        :aot [azondi.main]}}
