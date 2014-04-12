@@ -55,7 +55,8 @@
       this))
   (stop [this] this))
 
-(defn new-database [& {:keys [hosts keyspace] :as opts}]
-  (assert hosts)
-  (assert keyspace)
+(defn new-database
+  [& {:keys [hosts keyspace] :as opts}]
+  (assert hosts "Database hosts are not configured!")
+  (assert keyspace "Database keyspace is not configured!")
   (map->Database opts))
