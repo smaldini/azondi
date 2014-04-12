@@ -57,6 +57,7 @@
       (server))
     this))
 
-(defn new-websocket-bridge [& {:as opts}]
+(defn new-websocket-bridge
+  [opts]
   (-> (map->WebsocketBridge opts)
       (component/using [:reactor])))

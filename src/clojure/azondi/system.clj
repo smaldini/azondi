@@ -61,16 +61,11 @@
    :mqtt-decoder (new-mqtt-decoder)
    :mqtt-encoder (new-mqtt-encoder)
    :mqtt-handler (new-netty-mqtt-handler)
-   :server (new-netty-server :port 1883)
+   :server (new-netty-server {:port 1883})
    :reactor (new-reactor)
-   :ws (new-websocket-bridge :port 8083)
-   :database (new-database :hosts    (get-in config [:cassandra :hosts])
-                           :keyspace (get-in config [:cassandra :keyspace] "opensensors"))
-   :device-authenticator (auth/new-postgres-authenticator
-                          :host     (get-in config [:postgres :host])
-                          :dbname   (get-in config [:postgres :dbname])
-                          :user     (get-in config [:postgres :user])
-                          :password (get-in config [:postgres :password]))))
+   :ws (new-websocket-bridge {:port 8083})
+   :database (new-database (get config :cassandra {:keyspace "opensensors" :hosts ["127.0.0.1"]}))
+   :device-authenticator (auth/new-postgres-authenticator (get config :postgres))))
 
 (defn new-dependency-map
   []

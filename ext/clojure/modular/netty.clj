@@ -56,6 +56,7 @@
      (.shutdownGracefully (:boss-group this))
      this))
 
-(defn new-netty-server [& {:keys [port] :as opts}]
+(defn new-netty-server
+  [{:keys [port] :as opts}]
   (assert port)
   (map->NettyServer opts))

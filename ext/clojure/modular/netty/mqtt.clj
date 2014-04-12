@@ -14,7 +14,8 @@
   (netty-handler [this] (:provider this))
   (priority [this] 10))
 
-(defn new-mqtt-decoder []
+(defn new-mqtt-decoder
+  []
   (->MqttDecoder))
 
 (defrecord MqttEncoder []
@@ -26,5 +27,6 @@
   (netty-handler [this] (:provider this))
   (priority [this] 10))
 
-(defn new-mqtt-encoder []
+(defn new-mqtt-encoder
+  []
   (->MqttEncoder))

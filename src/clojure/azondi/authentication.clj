@@ -32,7 +32,8 @@
                          ))]
       (and (= (:owner device) owner) (= (:device_password device) password)))))
 
-(defn new-postgres-authenticator [& {:as opts}]
+(defn new-postgres-authenticator
+  [opts]
   (->> opts
        (merge {:host "localhost"
                :port 5432})

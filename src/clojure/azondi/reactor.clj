@@ -9,5 +9,6 @@
     (assoc this :reactor (mr/create)))
   (stop [this] this))
 
-(defn new-reactor []
+(defn new-reactor
+  []
   (->Reactor))
