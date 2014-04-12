@@ -5,8 +5,7 @@
             [clojurewerkz.scrypt.core :as sc]
             [com.stuartsierra.component :as component]
             [schema.core :as s]
-            [taoensso.timbre :refer [log  trace  debug  info  warn  error  fatal
-                                     logf tracef debugf infof warnf errorf fatalf]]
+            [taoensso.timbre :refer [debugf infof warnf errorf]]
             [clojure.java.jdbc :as j]))
 
 (defprotocol DeviceAuthenticator
@@ -28,8 +27,7 @@
     (when-let [device
                (first (j/query (:db this)
                          ;; TODO We shouldn't have to parse this to a long...
-                         ["select * from devices where client_id = ? limit 1" (Long/parseLong client-id)]
-                         ))]
+                         ["select * from devices where client_id = ? limit 1" (Long/parseLong client-id)]))]
       (and (= (:owner device) owner) (= (:device_password device) password)))))
 
 (defn new-postgres-authenticator
