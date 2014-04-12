@@ -339,7 +339,8 @@
   (netty-handler [this] (:handler-provider this))
   (priority [this] 20))
 
-(defn new-netty-mqtt-handler []
+(defn new-netty-mqtt-handler
+  []
   (-> (map->NettyMqttHandler {:connections-by-ctx (ref {})
                               :connections-by-client-id (ref {})
                               :topics-by-ctx (ref {})})
