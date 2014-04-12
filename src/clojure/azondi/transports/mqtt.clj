@@ -25,6 +25,12 @@
   [m k v]
   (assoc m k (cs/union (get m k) v)))
 
+(defn ^InetSocketAddress peer-of
+  [^ChannelHandlerContext ctx]
+  (let [^Channel ch (.channel ctx)]
+    (cast InetSocketAddress (.remoteAddress ch))))
+
+
 ;;
 ;; CONNECT
 ;;
@@ -34,10 +40,12 @@
   (supported-protocol-names [protocol-name protocol-version]))
 
 (defn disconnect-client
-  [^ChannelHandlerContext ctx]
-  (doto ctx
-    (.writeAndFlush {:type :disconnect})
-    .close))
+  ([^ChannelHandlerContext ctx]
+     (.close ctx))
+  ([^ChannelHandlerContext ctx message]
+     (doto ctx
+       (.writeAndFlush message)
+       .close)))
 
 (defn abort
   [^ChannelHandlerContext ctx]
@@ -48,28 +56,23 @@
   ;; Section 3.1: valid client ids are between 1 and 23 characters
   (<= 1 (.length client-id) 23))
 
-(defn ^:private maybe-disconnect
+(defn ^:private maybe-disconnect-existing
   "Disconnects existing client with the given client id, if any.
 
-   See section 3.1."
+   See section 3.1 of MQTT specification.."
   [^String client-id {:keys [connections-by-ctx connections-by-client-id]}]
   (if-let [state (get @connections-by-client-id client-id)]
-    (let [ctx (:ctx state)]
-      (warnf "Disconnecting existing connection with client id %s" client-id)
-      (disconnect-client ctx)
+    (let [other-ctx (:ctx state)
+          peer      (peer-of other-ctx)]
+      (warnf "Dropping connection %s (client id: %s) due to duplicate client id" peer client-id)
+      (disconnect-client other-ctx)
       (dosync
        (alter connections-by-client-id dissoc client-id)
-       (alter connections-by-ctx       dissoc ctx))
-      ctx)))
-
-(defn ^InetSocketAddress peer-of
-  [^ChannelHandlerContext ctx]
-  (let [^Channel ch (.channel ctx)]
-    (cast InetSocketAddress (.remoteAddress ch))))
+       (alter connections-by-ctx       dissoc other-ctx))
+      other-ctx)))
 
 (defn accept-connection
-  [^ChannelHandlerContext ctx {:keys [username client-id has-will
-                                      clean-session]
+  [^ChannelHandlerContext ctx {:keys [username client-id has-will clean-session]
                                :as   msg}
    {:keys [connections-by-ctx connections-by-client-id] :as handler-state}]
   (let [conn {:username  username
@@ -78,13 +81,13 @@
               :has-will  has-will
               :will-qos  (when has-will
                            (:will-qos msg))}]
-    (maybe-disconnect client-id handler-state)
+    (maybe-disconnect-existing client-id handler-state)
     (dosync
      (alter connections-by-ctx       assoc ctx conn)
      (alter connections-by-client-id assoc client-id conn))
     (.writeAndFlush ctx {:type :connack :return-code :accepted})
-    (let [^InetSocketAddress peer-host (peer-of ctx)]
-      (infof "Accepted connection from %s (client id: %s)" peer-host client-id))
+    (let [^InetSocketAddress peer (peer-of ctx)]
+      (infof "Accepted connection from %s (client id: %s)" peer client-id))
     conn))
 
 (defn reject-connection
