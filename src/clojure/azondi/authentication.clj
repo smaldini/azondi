@@ -1,8 +1,5 @@
 (ns azondi.authentication
-  (:require [clojurewerkz.cassaforte.client :as c]
-            [clojurewerkz.cassaforte.cql :refer :all]
-            [clojurewerkz.cassaforte.query :refer :all]
-            [clojurewerkz.scrypt.core :as sc]
+  (:require [clojurewerkz.scrypt.core :as sc]
             [com.stuartsierra.component :as component]
             [schema.core :as s]
             [taoensso.timbre :refer [debugf infof warnf errorf]]
