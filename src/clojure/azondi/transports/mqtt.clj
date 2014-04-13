@@ -87,7 +87,7 @@
      (alter connections-by-client-id assoc client-id conn))
     (.writeAndFlush ctx {:type :connack :return-code :accepted})
     (let [^InetSocketAddress peer (peer-of ctx)]
-      (infof "Accepted connection from %s (client id: %s)" peer client-id))
+      (infof "Accepted connection from %s (client id: %s, owner: %s)" peer client-id username))
     conn))
 
 (defn reject-connection
@@ -279,7 +279,7 @@
             1 handle-publish-with-qos1
             2 handle-publish-with-qos2)]
     (f ctx msg handler-state)
-    (debugf "Handled a message on topic %s, notifying reactor..." topic)
+    #_ (debugf "Handled a message on topic %s, notifying reactor..." topic)
     (mr/notify reactor topic payload)))
 
 ;;

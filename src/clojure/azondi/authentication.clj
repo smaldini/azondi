@@ -23,7 +23,7 @@
   (allowed-device? [this client-id owner password]
     (if-let [device (first (j/query (:db this)
                                     ["SELECT * FROM devices WHERE client_id = ? AND owner = ? LIMIT 1" client-id owner]))]
-      (sc/verify password (:device_password device))
+      (sc/verify password (:device_password_hash device))
       false)))
 
 (defn new-postgres-authenticator
