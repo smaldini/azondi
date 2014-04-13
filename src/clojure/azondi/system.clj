@@ -10,7 +10,7 @@
             [azondi.transports.mqtt :refer (new-netty-mqtt-handler)]
             [azondi.reactor :refer (new-reactor)]
             [azondi.bridges.ws :refer (new-websocket-bridge)]
-            [azondi.db :refer (new-database)]
+            [azondi.data.cassandra :refer (new-database)]
             [azondi.authentication :as auth]))
 
 ;;

@@ -44,7 +44,7 @@
 
   :profiles {:dev {:dependencies [[org.clojure/tools.namespace "0.2.4"]
                                   [clojurewerkz/machine_head "1.0.0-beta7"]]
-                   :source-paths ["dev"]
+                   :source-paths ["dev/src/clojure"]
                    :resource-paths ["test/resources"]}
 
              :uberjar {:main azondi.main
