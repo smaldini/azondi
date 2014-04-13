@@ -2,15 +2,17 @@
 -- Users
 --
 
-INSERT INTO users (id, fname, sname, email, password, publisher, role)
+DELETE FROM users;
+
+INSERT INTO users (id, fname, sname, email, password_hash, publisher, role)
            -- password: yods-pwd
            VALUES ('yods', 'Yodit', 'Stanton', 'yodit@opensensors.io',
            '$s0$e0801$dfKRFZiEStuBQm+DKQr5NQ==$9qd8nBxPSsCqcSFxMPGaqofJfeQwgMkiQAIhO7gzm34=', true, 'user');
-INSERT INTO users (id, fname, sname, email, password, publisher, role)
+INSERT INTO users (id, fname, sname, email, password_hash, publisher, role)
            -- password: malcolmsparks-pwd
            VALUES ('malcolmsparks', 'Malcolm', 'Sparks', 'malcolm@opensensors.io',
            '$s0$e0801$/eFWoMrBH8qvbOV6Sha5oA==$1XCf1mQvBdIWqY0rtcZax426itISxCq/J/LMMqUuHqM=', true, 'user');
-INSERT INTO users (id, fname, sname, email, password, publisher, role)
+INSERT INTO users (id, fname, sname, email, password_hash, publisher, role)
            -- password: michael-pwd
            VALUES ('michaelklishin', 'Michael', 'Klishin', 'michael@opensensors.io',
            '$s0$e0801$1/DTkx1MtXX511KH9TRjqg==$Skpfo5t6IyBY465bKXaTcOdMCL/jJEUF/kqM/swzGwc=', true, 'user');
@@ -18,6 +20,8 @@ INSERT INTO users (id, fname, sname, email, password, publisher, role)
 --
 -- Devices
 --
+
+DELETE FROM devices;
 
 INSERT INTO devices (client_id, name, device_id, description, latitude, longitude, owner, device_password_hash)
             -- password: device-1-pwd
