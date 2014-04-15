@@ -37,3 +37,18 @@ INSERT INTO devices (client_id, name, device_id, description, latitude, longitud
             -- password: device-3-pwd
              VALUES ('e4ih3bn0uqr89ehbodeas', 'device 3', 'd6acc822-f46a-4c45-88c0-4c29284fd4af', '',
              51.50722, -0.12750, 'yods', '$s0$e0801$EGG/OmC7ZEIUOkU9t/m5XQ==$oyI8bQInV1jeaMYaV4tHxleK3Hzarr4IrLGb6dA+Vtc=');
+
+--
+-- Topics
+--
+
+DELETE FROM topics;
+
+INSERT INTO topics (device_id, unit, type, topic_id, public)
+            VALUES ('79f4572a-5493-486e-9abe-7337ea06ba4b', 'PM10', 'PM', 'yods/dusty/pm10', true);
+
+
+--
+-- Subscriptions
+--
+
