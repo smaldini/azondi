@@ -99,7 +99,6 @@
     (warnf "Rejecting connection from %s (return code: %s)" peer-host code))
   ctx)
 
-
 ;;
 ;; CONNECT
 ;;
@@ -263,9 +262,16 @@
    handler-state]
   (comment "TODO"))
 
+;; 50 MB
+(def ^{:private true :const true} max-allowed-payload-size 52428800)
+
+(defn ^{:private true} valid-payload?
+  [payload]
+  (<= 0 (alength payload) max-allowed-payload-size))
+
 (defn handle-publish
   [^ChannelHandlerContext ctx {:keys [qos topic payload] :as msg}
-   {:keys [reactor] :as handler-state}]
+   {:keys [reactor connections-by-ctx] :as handler-state}]
   ;; example message:
   ;; {:payload #<byte[] [B@1503e6b>,
   ;;  :message-id 1,
@@ -278,9 +284,13 @@
             0 handle-publish-with-qos0
             1 handle-publish-with-qos1
             2 handle-publish-with-qos2)]
-    (f ctx msg handler-state)
-    #_ (debugf "Handled a message on topic %s, notifying reactor..." topic)
-    (mr/notify reactor topic payload)))
+    (if (valid-payload? payload)
+      (do
+        (f ctx msg handler-state)
+        (mr/notify reactor topic payload))
+      (let [{:keys [client-id]} (get @connections-by-ctx ctx)]
+        (warnf "Rejecting client %s for publishing a message %d in size to topic %s" client-id (alength payload) topic)
+        (abort ctx)))))
 
 ;;
 ;; PINGREQ
