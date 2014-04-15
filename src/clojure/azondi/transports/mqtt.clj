@@ -75,12 +75,13 @@
   [^ChannelHandlerContext ctx {:keys [username client-id has-will clean-session]
                                :as   msg}
    {:keys [connections-by-ctx connections-by-client-id] :as handler-state}]
-  (let [conn {:username  username
-              :client-id client-id
-              :ctx       ctx
-              :has-will  has-will
-              :will-qos  (when has-will
-                           (:will-qos msg))}]
+  (let [pg-conn (get-in handler-state [:postgres :connection])
+        conn    {:username  username
+                 :client-id client-id
+                 :ctx       ctx
+                 :has-will  has-will
+                 :will-qos  (when has-will
+                              (:will-qos msg))}]
     (maybe-disconnect-existing client-id handler-state)
     (dosync
      (alter connections-by-ctx       assoc ctx conn)
@@ -131,7 +132,6 @@
   ;;  :protocol-version 3,
   ;;  :dup false
   ;;  }
-
   (let [authenticator (:device-authenticator handler-state)]
     (cond
      (not (supported-protocol? protocol-name protocol-version))
