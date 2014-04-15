@@ -10,7 +10,8 @@
             [azondi.transports.mqtt :refer (new-netty-mqtt-handler)]
             [azondi.reactor :refer (new-reactor)]
             [azondi.bridges.ws :refer (new-websocket-bridge)]
-            [azondi.data.cassandra :refer (new-database)]
+            [azondi.data.cassandra :as cass]
+            [azondi.data.postgres  :as pg]
             [azondi.authentication :as auth]))
 
 ;;
@@ -64,14 +65,16 @@
    :server (new-netty-server {:port 1883})
    :reactor (new-reactor)
    :ws (new-websocket-bridge {:port 8083})
-   :database (new-database (get config :cassandra {:keyspace "opensensors" :hosts ["127.0.0.1"]}))
+   :cassandra (cass/new-database (get config :cassandra {:keyspace "opensensors" :hosts ["127.0.0.1"]}))
+   :postgres (pg/new-database (get config :postgres))
    :device-authenticator (auth/new-postgres-authenticator (get config :postgres))))
 
 (defn new-dependency-map
   []
-  {:server       [:mqtt-handler :mqtt-decoder :mqtt-encoder]
-   :ws           [:reactor]
-   :mqtt-handler [:device-authenticator]})
+  {:device-authenticator [:postgres]
+   :server               [:mqtt-handler :mqtt-decoder :mqtt-encoder :postgres :cassandra]
+   :ws                   [:reactor]
+   :mqtt-handler         [:device-authenticator]})
 
 (defn new-prod-system
   []

@@ -26,6 +26,6 @@
 
 (defn new-database
   [{:keys [hosts keyspace] :as opts}]
-  (assert hosts "Database hosts are not configured!")
-  (assert keyspace "Database keyspace is not configured!")
+  (assert hosts "Cassandra hosts are not configured!")
+  (assert keyspace "Cassandra keyspace is not configured!")
   (map->Database opts))

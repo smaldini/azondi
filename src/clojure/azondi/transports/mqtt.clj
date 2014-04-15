@@ -355,4 +355,4 @@
   (-> (map->NettyMqttHandler {:connections-by-ctx (ref {})
                               :connections-by-client-id (ref {})
                               :topics-by-ctx (ref {})})
-      (component/using [:reactor])))
+      (component/using [:reactor :postgres])))
