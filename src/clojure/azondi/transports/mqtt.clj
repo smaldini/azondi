@@ -9,6 +9,7 @@
             [clojure.set :as cs]
             [clojurewerkz.meltdown.reactor :as mr]
             [azondi.authentication :refer (allowed-device?)]
+            [azondi.devices :refer (device-names)]
             [clojurewerkz.meltdown.selectors :as ms :refer [$]])
   (:import  [io.netty.channel ChannelHandlerAdapter ChannelHandlerContext Channel]
             java.net.InetSocketAddress
@@ -56,6 +57,17 @@
   ;; Section 3.1: valid client ids are between 1 and 23 characters
   (<= 1 (.length client-id) 23))
 
+(defn ^:private authorized-topic-trie
+  [^String username devices]
+  (let [xs (set (map (fn [^String s]
+                       (format "%s/%s/#" username s))
+                     devices))
+        t  (tr/make-trie)]
+    (reduce (fn [trie ^String pattern]
+              (tr/insert trie pattern true))
+            t
+            xs)))
+
 (defn ^:private maybe-disconnect-existing
   "Disconnects existing client with the given client id, if any.
 
@@ -76,12 +88,14 @@
                                :as   msg}
    {:keys [connections-by-ctx connections-by-client-id] :as handler-state}]
   (let [pg-conn (get-in handler-state [:postgres :connection])
+        devices (device-names pg-conn username)
         conn    {:username  username
                  :client-id client-id
                  :ctx       ctx
                  :has-will  has-will
                  :will-qos  (when has-will
-                              (:will-qos msg))}]
+                              (:will-qos msg))
+                 :authorized-topic-trie (authorized-topic-trie username devices)}]
     (maybe-disconnect-existing client-id handler-state)
     (dosync
      (alter connections-by-ctx       assoc ctx conn)
