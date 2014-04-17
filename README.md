@@ -1,8 +1,14 @@
 # azondi
 
-A tool to process high volumes of Internet of Things data. Azondi
-receives messages from the individual devices and serves them to the
-browser via a websocket on port 8083.
+[An Azondi](resources/public/imgs/azondi1.jpg)
+
+A stand alone and scalable service to process data from Internet of Things devices. Azondi receives messages from the
+individual devices and routes messages to relevant subscribers.  It also
+serves data to the browser via a websocket on port 8083.
+
+The aim of Azondi is to provide an easy to use end to end service for connected
+devices. More information on the architectural model can be found in
+our [blog](http://blog.opensensors.io/blog/2014/03/12/iot-in-the-city/)
 
 ## Messaging Broker 
 Azondi has it's own built in scalable [MQTT](http://mqtt.org/) broker which
@@ -13,6 +19,12 @@ the mqtt broker supports only QOS 0 level of services.
 ## Dispatcher
 
 The Reactor based non-blocking dispatcher is used for event driven programming based on the Reactor Pattern. This dispatcher acts as a kind of sorting office between devices and their listeners. It receives all messages and ‘delivers’ messages to interested listeners.
+
+## Databases
+
+Azondi uses [Cassandra](http://cassandra.apache.org/) to record
+message payloads and [Postgres](http://www.postgresql.org/) to hand
+user and device authentication.
 
 ## Usage
 For convenience, it would be easiest to run azondi contained within a
