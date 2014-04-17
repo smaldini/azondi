@@ -57,16 +57,11 @@
   ;; Section 3.1: valid client ids are between 1 and 23 characters
   (<= 1 (.length client-id) 23))
 
-(defn ^:private authorized-topic-trie
+(defn ^:private authorized-topic-prefixes
   [^String username devices]
-  (let [xs (set (map (fn [^String s]
-                       (format "%s/%s/#" username s))
-                     devices))
-        t  (tr/make-trie)]
-    (reduce (fn [trie ^String pattern]
-              (tr/insert trie pattern true))
-            t
-            xs)))
+  (set (map (fn [^String s]
+              (str username "/" s))
+            devices)))
 
 (defn ^:private maybe-disconnect-existing
   "Disconnects existing client with the given client id, if any.
@@ -95,7 +90,7 @@
                  :has-will  has-will
                  :will-qos  (when has-will
                               (:will-qos msg))
-                 :authorized-topic-trie (authorized-topic-trie username devices)}]
+                 :authorized-topic-prefixes (authorized-topic-prefixes username devices)}]
     (maybe-disconnect-existing client-id handler-state)
     (dosync
      (alter connections-by-ctx       assoc ctx conn)
@@ -283,6 +278,13 @@
   [payload]
   (<= 0 (alength payload) max-allowed-payload-size))
 
+(defn ^{:private true} authorized-to-publish?
+  [authorized-prefixes topic]
+  ;; TODO: use a trie
+  (not (nil? (some (fn [^String s]
+                     (.startsWith topic s))
+                   authorized-prefixes))))
+
 (defn handle-publish
   [^ChannelHandlerContext ctx {:keys [qos topic payload] :as msg}
    {:keys [reactor connections-by-ctx] :as handler-state}]
@@ -294,17 +296,23 @@
   ;;  :dup false,
   ;;  :qos 1,
   ;;  :retain false}
-  (let [f (case qos
-            0 handle-publish-with-qos0
-            1 handle-publish-with-qos1
-            2 handle-publish-with-qos2)]
-    (if (valid-payload? payload)
-      (do
-        (f ctx msg handler-state)
-        (mr/notify reactor topic payload))
-      (let [{:keys [client-id]} (get @connections-by-ctx ctx)]
-        (warnf "Rejecting client %s for publishing a message %d in size to topic %s" client-id (alength payload) topic)
-        (abort ctx)))))
+  (let [{:keys [authorized-topic-prefixes]} (get @connections-by-ctx ctx)]
+    (if (authorized-to-publish? authorized-topic-prefixes topic)
+      (let [f (case qos
+                0 handle-publish-with-qos0
+                1 handle-publish-with-qos1
+                2 handle-publish-with-qos2)]
+        (if (valid-payload? payload)
+          (do
+            (f ctx msg handler-state)
+            (mr/notify reactor topic payload))
+          (let [{:keys [client-id]} (get @connections-by-ctx ctx)]
+            (warnf "Rejecting client %s for publishing a message %d in size to topic %s" client-id (alength payload) topic)
+            (abort ctx))))
+      (let [state (get @connections-by-ctx ctx)
+            peer  (peer-of ctx)]
+        (warnf "Dropping connection %s (client id: %s), unauthorised to publish to %s" peer (:client-id state) topic)
+        (disconnect-client ctx)))))
 
 ;;
 ;; PINGREQ
