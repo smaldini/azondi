@@ -1,6 +1,6 @@
 # azondi
 
-[An Azondi](resources/public/imgs/azondi1.jpg)
+![An Azondi](resources/public/imgs/azondi1.jpg)
 
 A stand alone and scalable service to process data from Internet of Things devices. Azondi receives messages from the
 individual devices and routes messages to relevant subscribers.  It also
