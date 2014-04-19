@@ -28,7 +28,9 @@ user and device authentication.
 
 ## Usage
 For convenience, it would be easiest to run azondi contained within a
-Vagrant environment and there is a chef cookbook supplied for this. Instructions for this can be found [here](https://github.com/OpenSensorsIO/vagrant) 
+Vagrant environment and there is a chef cookbook supplied for this. Instructions for this can be found [here](https://github.com/OpenSensorsIO/vagrant).
+
+Once set up with vagrant, run lein repl and type (go).
 
 ## License
 
