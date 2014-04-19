@@ -10,6 +10,7 @@
             [clojurewerkz.meltdown.reactor :as mr]
             [azondi.authentication :refer (allowed-device?)]
             [azondi.devices :refer (device-names)]
+            [azondi.topics :as tp]
             [clojurewerkz.meltdown.selectors :as ms :refer [$]])
   (:import  [io.netty.channel ChannelHandlerAdapter ChannelHandlerContext Channel]
             java.net.InetSocketAddress
@@ -30,7 +31,6 @@
   [^ChannelHandlerContext ctx]
   (let [^Channel ch (.channel ctx)]
     (cast InetSocketAddress (.remoteAddress ch))))
-
 
 ;;
 ;; CONNECT
@@ -56,17 +56,6 @@
   [^String client-id]
   ;; Section 3.1: valid client ids are between 1 and 23 characters
   (<= 1 (.length client-id) 23))
-
-(defn ^:private authorized-topic-trie
-  [^String username devices]
-  (let [xs (set (map (fn [^String s]
-                       (format "%s/%s/#" username s))
-                     devices))
-        t  (tr/make-trie)]
-    (reduce (fn [trie ^String pattern]
-              (tr/insert trie pattern true))
-            t
-            xs)))
 
 (defn ^:private maybe-disconnect-existing
   "Disconnects existing client with the given client id, if any.
@@ -95,7 +84,7 @@
                  :has-will  has-will
                  :will-qos  (when has-will
                               (:will-qos msg))
-                 :authorized-topic-trie (authorized-topic-trie username devices)}]
+                 :authorized-topic-prefixes (tp/authorized-prefixes-for username devices)}]
     (maybe-disconnect-existing client-id handler-state)
     (dosync
      (alter connections-by-ctx       assoc ctx conn)
@@ -196,7 +185,7 @@
 
 (defn handle-subscribe
   [^ChannelHandlerContext ctx {:keys [topics message-id dup qos] :as msg}
-   {:keys [topics-by-ctx] :as handler-state}]
+   {:keys [topics-by-ctx connections-by-ctx] :as handler-state}]
   ;; example message:
   ;; {:topics [["a/topic" 1]],
   ;;  :message-id 1,
@@ -205,13 +194,22 @@
   ;;  :qos 1,
   ;;  ;; not used per MQTT v3.1 spec (section 3.8)
   ;;  :retain false}
-  (dosync
-   (alter subscriptions record-subscribers ctx topics)
-   (alter topics-by-ctx assoc-with-union ctx (set (map first topics))))
-  ;; TODO: QoS > 0
-  (.writeAndFlush ctx {:type :suback
-                       :message-id message-id
-                       :granted-qos (repeat (count topics) 0)}))
+  (let [{:keys [authorized-topic-prefixes]} (get @connections-by-ctx ctx)]
+    (if (every? (fn [^String topic]
+                  (tp/authorized? authorized-topic-prefixes topic))
+                (map first topics))
+      (do
+        (dosync
+         (alter subscriptions record-subscribers ctx topics)
+         (alter topics-by-ctx assoc-with-union ctx (set (map first topics))))
+        ;; TODO: QoS > 0
+        (.writeAndFlush ctx {:type :suback
+                             :message-id message-id
+                             :granted-qos (repeat (count topics) 0)}))
+      (let [state (get @connections-by-ctx ctx)
+            peer  (peer-of ctx)]
+        (warnf "Dropping connection %s (client id: %s), unauthorized to subscribe to %s" peer (:client-id state) topics)
+        (disconnect-client ctx)))))
 
 (defn unrecord-subscribers
   [trie ctx topics]
@@ -294,17 +292,23 @@
   ;;  :dup false,
   ;;  :qos 1,
   ;;  :retain false}
-  (let [f (case qos
-            0 handle-publish-with-qos0
-            1 handle-publish-with-qos1
-            2 handle-publish-with-qos2)]
-    (if (valid-payload? payload)
-      (do
-        (f ctx msg handler-state)
-        (mr/notify reactor topic payload))
-      (let [{:keys [client-id]} (get @connections-by-ctx ctx)]
-        (warnf "Rejecting client %s for publishing a message %d in size to topic %s" client-id (alength payload) topic)
-        (abort ctx)))))
+  (let [{:keys [authorized-topic-prefixes]} (get @connections-by-ctx ctx)]
+    (if (tp/authorized? authorized-topic-prefixes topic)
+      (let [f (case qos
+                0 handle-publish-with-qos0
+                1 handle-publish-with-qos1
+                2 handle-publish-with-qos2)]
+        (if (valid-payload? payload)
+          (do
+            (f ctx msg handler-state)
+            (mr/notify reactor topic payload))
+          (let [{:keys [client-id]} (get @connections-by-ctx ctx)]
+            (warnf "Rejecting client %s for publishing a message %d in size to topic %s" client-id (alength payload) topic)
+            (abort ctx))))
+      (let [state (get @connections-by-ctx ctx)
+            peer  (peer-of ctx)]
+        (warnf "Dropping connection %s (client id: %s), unauthorized to publish to %s" peer (:client-id state) topic)
+        (disconnect-client ctx)))))
 
 ;;
 ;; PINGREQ

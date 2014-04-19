@@ -1,36 +1,58 @@
-# azondi
+# Azondi
 
 ![An Azondi](resources/public/imgs/azondi1.jpg)
 
-A stand alone and scalable service to process data from Internet of Things devices. Azondi receives messages from the
-individual devices and routes messages to relevant subscribers.  It also
-serves data to the browser via a websocket on port 8083.
+Azondi is a data digestion service. Azondi receives messages from the
+individual devices and routes messages to relevant subscribers.  It
+also serves data to UI clients over a WebSocket on port 8083.
 
-The aim of Azondi is to provide an easy to use end to end service for connected
-devices. More information on the architectural model can be found in
-our [blog](http://blog.opensensors.io/blog/2014/03/12/iot-in-the-city/)
+The aim of Azondi is to provide an easy to use end to end service for
+connected devices. More information on the architectural model can be
+found in our
+[blog](http://blog.opensensors.io/blog/2014/03/12/iot-in-the-city/).
 
-## Messaging Broker 
-Azondi has it's own built in scalable [MQTT](http://mqtt.org/) broker which
-relies on
+
+## Project Maturity
+
+Azondi is a **very young** project. Major changes in functionality
+and implementation details should be expected.
+
+
+## Components
+
+### Messaging Broker 
+
+Azondi has it's own built in [MQTT](http://mqtt.org/) broker on top of
 [Netty](https://github.com/OpenSensorsIO/azondi/blob/master/src/clojure/azondi/transports/mqtt.clj). Currently
-the mqtt broker supports only QOS 0 level of services.
+the MQTT broker supports only QOS 0 level of service.
 
-## Dispatcher
+### Event Dispatcher
 
-The Reactor based non-blocking dispatcher is used for event driven programming based on the Reactor Pattern. This dispatcher acts as a kind of sorting office between devices and their listeners. It receives all messages and ‘delivers’ messages to interested listeners.
+Azondi includes a non-blocking dispatcher of events. This dispatcher acts as a
+kind of sorting office between devices and components that process them.
 
-## Databases
+The dispatcher is [Reactor](http://reactor.github.io/reactor/) based.
 
-Azondi uses [Cassandra](http://cassandra.apache.org/) to record
-message payloads and [Postgres](http://www.postgresql.org/) to hand
+### Databases
+
+Azondi uses [Cassandra](http://cassandra.apache.org/) to store events
+and time series and [PostgreSQL](http://www.postgresql.org/) to hand
 user and device authentication.
 
+<<<<<<< HEAD
 ## Usage
 For convenience, it would be easiest to run azondi contained within a
 Vagrant environment and there is a chef cookbook supplied for this. Instructions for this can be found [here](https://github.com/OpenSensorsIO/vagrant).
 
 Once set up with vagrant, run lein repl and type (go).
+=======
+## Getting Started
+
+For convenience, it would be easiest to run azondi contained
+within a Vagrant environment and there is a chef cookbook supplied for
+this. Instructions for this can be found
+[here](https://github.com/OpenSensorsIO/vagrant)
+>>>>>>> d15083a2ebec0506d0170e627fc9ec494ac69e3b
 
 ## License
 
