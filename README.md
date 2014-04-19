@@ -39,7 +39,6 @@ Azondi uses [Cassandra](http://cassandra.apache.org/) to store events
 and time series and [PostgreSQL](http://www.postgresql.org/) to hand
 user and device authentication.
 
-<<<<<<< HEAD
 ## Usage
 For convenience, it would be easiest to run azondi contained within a
 Vagrant environment and there is a chef cookbook supplied for this. Instructions for this can be found [here](https://github.com/OpenSensorsIO/vagrant).
@@ -52,7 +51,9 @@ For convenience, it would be easiest to run azondi contained
 within a Vagrant environment and there is a chef cookbook supplied for
 this. Instructions for this can be found
 [here](https://github.com/OpenSensorsIO/vagrant)
->>>>>>> d15083a2ebec0506d0170e627fc9ec494ac69e3b
+
+Once set up and running with the vagrant environment run lein repl,
+and type (go).
 
 ## License
 
