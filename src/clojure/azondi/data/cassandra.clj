@@ -17,7 +17,7 @@
                        (with {:replication
                               {:class              "SimpleStrategy"
                                ;; TODO: this needs to be dynamically configured
-                               :replication_factor 1}})
+                               :replication_factor 3}})
                        (if-not-exists))
       (use-keyspace keyspace)
       (converge-schema session)
