@@ -9,7 +9,7 @@ CREATE TABLE IF NOT EXISTS messages (
        device_id text,
        date_and_hour text,
        created_at timestamp,
-       payload text,
+       payload blob,
        content_type text,
        PRIMARY KEY ((device_id, date_and_hour), created_at)
 );
