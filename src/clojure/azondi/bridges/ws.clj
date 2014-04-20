@@ -22,8 +22,8 @@
   (json/generate-string {:type "event" :topic topic :payload (String. payload "UTF-8")}))
 
 (defn send-event-message
-  [ws ^String topic payload]
-  (send! ws (event-message topic payload)))
+  [ws ^String topic data]
+  (send! ws (event-message topic (:payload data))))
 
 (defn ws-connection-handler
   [req clients reactor]

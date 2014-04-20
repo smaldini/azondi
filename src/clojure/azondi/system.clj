@@ -10,6 +10,7 @@
             [azondi.transports.mqtt :refer (new-netty-mqtt-handler)]
             [azondi.reactor :refer (new-reactor)]
             [azondi.bridges.ws :refer (new-websocket-bridge)]
+            [azondi.data.messages :refer (new-message-archiver)]
             [azondi.data.cassandra :as cass]
             [azondi.data.postgres  :as pg]
             [azondi.authentication :as auth]))
@@ -66,6 +67,7 @@
    :reactor (new-reactor)
    :ws (new-websocket-bridge {:port 8083})
    :cassandra (cass/new-database (get config :cassandra {:keyspace "opensensors" :hosts ["127.0.0.1"]}))
+   :message-archiver (new-message-archiver)
    :postgres (pg/new-database (get config :postgres))
    :device-authenticator (auth/new-postgres-authenticator (get config :postgres))))
 

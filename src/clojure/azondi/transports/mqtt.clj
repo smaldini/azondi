@@ -294,15 +294,18 @@
   ;;  :retain false}
   (let [{:keys [authorized-topic-prefixes]} (get @connections-by-ctx ctx)]
     (if (tp/authorized? authorized-topic-prefixes topic)
-      (let [f (case qos
+      (let [{:keys [client-id]} (get @connections-by-ctx ctx)
+            f (case qos
                 0 handle-publish-with-qos0
                 1 handle-publish-with-qos1
                 2 handle-publish-with-qos2)]
         (if (valid-payload? payload)
           (do
             (f ctx msg handler-state)
-            (mr/notify reactor topic payload))
-          (let [{:keys [client-id]} (get @connections-by-ctx ctx)]
+            (mr/notify reactor topic {:device_id client-id
+                                      :payload   payload
+                                      :content_type  "application/json"}))
+          (do
             (warnf "Rejecting client %s for publishing a message %d in size to topic %s" client-id (alength payload) topic)
             (abort ctx))))
       (let [state (get @connections-by-ctx ctx)
