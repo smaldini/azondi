@@ -1,13 +1,15 @@
 (ns azondi.bridges.ws
   (:require [taoensso.timbre :as log]
             [com.stuartsierra.component :as component]
-            [org.httpkit.server :refer [run-server with-channel send! on-close]]
+            [org.httpkit.server :refer [run-server with-channel send! on-close close]]
             [compojure.core :refer [routes GET POST]]
             [compojure.route :as route]
+            [compojure.handler :refer [api]]
             [clojurewerkz.meltdown.reactor :as mr]
             [clojurewerkz.meltdown.selectors :refer [match-all]]
             [clojurewerkz.meltdown.consumers :as mc]
-            [cheshire.core :as json]))
+            [cheshire.core :as json]
+            [clojure.java.jdbc :as j]))
 
 (defn welcome-message
   []
@@ -25,30 +27,47 @@
   [ws ^String topic data]
   (send! ws (event-message topic (:payload data))))
 
+(defn authenticated?
+  [pg-conn ^String username ^String token]
+  (let [row (first (j/query pg-conn
+                            ["SELECT * FROM ws_session_tokens WHERE user_id = ?
+                                                              AND token = ? AND expires_at > now()
+                                                              LIMIT 1" username token]))]
+    (not (nil? row))))
+
 (defn ws-connection-handler
-  [req clients reactor]
-  (with-channel req ws
-    (log/infof "Accepted WebSocket bridge connection from %s" (:remote-addr req))
-    (swap! clients conj ws)
-    (let [sub (mr/on reactor (match-all) (fn [evt]
-                                           (send-event-message ws (:key evt) (:data evt))))]
-      (on-close ws (fn [status]
-                     (swap! clients disj ws)
-                     (mc/cancel sub)
-                     (log/infof "WebSocket bridge connection from %s is closed, status: %s" (:remote-addr req) status))))
-    (send-welcome-message ws)))
+  [req clients reactor pg-conn]
+  (let [query-params (:query-params req)
+        username     (get-in req [:params :username])
+        token        (get query-params "token")]
+    (with-channel req ws
+      (if (authenticated? pg-conn username token)
+        (do
+          (log/infof "Accepted WebSocket bridge connection from %s (username: %s)" (:remote-addr req) username)
+          (swap! clients conj ws)
+          (let [sub (mr/on reactor (match-all) (fn [evt]
+                                                 (send-event-message ws (:key evt) (:data evt))))]
+            (on-close ws (fn [status]
+                           (swap! clients disj ws)
+                           (mc/cancel sub)
+                           (log/infof "WebSocket bridge connection from %s is closed, status: %s" (:remote-addr req) status))))
+          (send-welcome-message ws))
+        (do
+          (log/warnf "WebSocket authentication failure. Username: %s, token: %s" username token)
+          (close ws))))))
 
 (defrecord WebsocketBridge [port]
   component/Lifecycle
   (start [this]
     (let [r       (get-in this [:reactor :reactor])
+          pg-conn (get-in this [:postgres :connection])
           clients (atom #{})
           ;; define routes here so that they have access to
           ;; clients, reactor, etc. MK.
           routes  (routes
-                    (GET  "/events/stream" req (ws-connection-handler req clients r))
-                    (route/resources "/"))
-          server (run-server routes {:port port})]
+                   (GET  "/events/stream/users/:username" req (ws-connection-handler req clients r pg-conn))
+                   (route/resources "/"))
+          server (run-server (api routes) {:port port})]
       (log/infof "About to start WebSocket/polling bridge server on port %d" port)
       (assoc this :server server)))
   (stop [this]
@@ -60,4 +79,4 @@
 (defn new-websocket-bridge
   [opts]
   (-> (map->WebsocketBridge opts)
-      (component/using [:reactor])))
+      (component/using [:reactor :postgres])))
