@@ -3,10 +3,10 @@
 --
 
 CREATE TABLE IF NOT EXISTS users (id text PRIMARY KEY,
-                    fname text,
-                    sname text,
-                    email text,
-                    password_hash text,
+                    fname text NOT NULL,
+                    sname text NOT NULL,
+                    email text NOT NULL,
+                    password_hash text NOT NULL,
                     publisher boolean,
                     role text,
                     created_on timestamp default current_timestamp);
@@ -46,7 +46,7 @@ ALTER TABLE devices ADD CONSTRAINT devices_owner_fk FOREIGN KEY (owner) REFERENC
 -- Topics & Subscriptions
 --
 
-CREATE TABLE IF NOT EXISTS topics (device_id text,
+CREATE TABLE IF NOT EXISTS topics (device_id text NOT NULL,
                            unit text,
                            type text,
                            topic_id text PRIMARY KEY,
@@ -57,9 +57,22 @@ CREATE INDEX topics_device_id_idx ON topics(device_id);
 ALTER TABLE topics ADD CONSTRAINT topics_device_id_fk FOREIGN KEY (device_id) REFERENCES devices (device_id) ON DELETE CASCADE;
 
 CREATE TABLE IF NOT EXISTS subscriptions (id text PRIMARY KEY,
-                           topic_id text,
+                           topic_id text NOT NULL,
                            created_on timestamp default current_timestamp);
 
 CREATE INDEX subscriptions_topic_id_idx ON subscriptions(topic_id);
 
-ALTER TABLE subscriptions ADD CONSTRAINT subscriptions_topic_id_fk FOREIGN KEY (topic_id) REFERENCES topics (topic_id);
+ALTER TABLE subscriptions ADD CONSTRAINT subscriptions_topic_id_fk FOREIGN KEY (topic_id) REFERENCES topics (topic_id) ON DELETE CASCADE;
+
+--
+-- WS bridge session tokens
+--
+
+CREATE TABLE IF NOT EXISTS ws_session_tokens (
+       token varchar(255) PRIMARY KEY,
+       user_id text NOT NULL,
+       expires_at timestamp default (current_timestamp + interval '24 hours')
+);
+
+ALTER TABLE ws_session_tokens ADD CONSTRAINT ws_session_tokens_user_id_fk FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE;
+

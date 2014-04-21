@@ -52,3 +52,17 @@ INSERT INTO topics (device_id, unit, type, topic_id, public)
 -- Subscriptions
 --
 
+
+
+--
+-- WS bridge session tokens
+--
+
+INSERT INTO ws_session_tokens (token, user_id)
+            VALUES ('075cb213-0726-46c7-8bd3-210919fa6b9a', 'yods');
+
+INSERT INTO ws_session_tokens (token, user_id)
+            VALUES ('e162b69f-2095-409c-940b-8914c22e97ef', 'malcolmsparks');
+
+INSERT INTO ws_session_tokens (token, user_id)
+            VALUES ('41a27093-a564-4012-b796-058ebd94c6c0', 'michaelklishin');
