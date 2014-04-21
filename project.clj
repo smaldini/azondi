@@ -23,6 +23,8 @@
                  [cheshire                "5.3.1"]
                  [clojurewerkz/meltdown   "1.0.0-beta9"]
                  [compojure               "1.1.6"]
+                 ;; for query string parsing
+                 [javax.servlet/servlet-api "2.5"]
                  [http-kit                "2.1.17"]
                  [cylon                   "0.1.2"]
                  [clj-time                "0.7.0"]
