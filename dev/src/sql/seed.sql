@@ -52,7 +52,12 @@ INSERT INTO topics (device_id, unit, type, topic_id, public)
 -- Subscriptions
 --
 
-
+INSERT INTO subscriptions (user_id, topic_id)
+            VALUES ('michaelklishin', 'yods/device1/sensor1');
+INSERT INTO subscriptions (user_id, topic_id)
+            VALUES ('michaelklishin', 'yods/device1/sensor2');
+INSERT INTO subscriptions (user_id, topic_id)
+            VALUES ('michaelklishin', 'yods/device2/sensor1');
 
 --
 -- WS bridge session tokens
