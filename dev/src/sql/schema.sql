@@ -54,14 +54,14 @@ CREATE INDEX topics_device_id_idx ON topics(device_id);
 ALTER TABLE topics ADD CONSTRAINT topics_device_id_fk FOREIGN KEY (device_id) REFERENCES devices (device_id) ON DELETE CASCADE;
 
 CREATE TABLE IF NOT EXISTS subscriptions (user_id text NOT NULL,
-                           topic_id text NOT NULL,
+                           topic text NOT NULL,
                            created_on timestamp default current_timestamp,
-                           PRIMARY KEY (user_id, topic_id),
-                           CONSTRAINT no_duplicates UNIQUE (user_id, topic_id));
+                           PRIMARY KEY (user_id, topic),
+                           CONSTRAINT no_duplicates UNIQUE (user_id, topic));
 
-CREATE INDEX subscriptions_user_id_topic_id_idx ON subscriptions(user_id, topic_id);
+CREATE INDEX subscriptions_user_id_idx ON subscriptions(user_id);
+CREATE INDEX subscriptions_user_id_topic_idx ON subscriptions(user_id, topic);
 
-ALTER TABLE subscriptions ADD CONSTRAINT subscriptions_topic_id_fk FOREIGN KEY (topic_id) REFERENCES topics (topic_id) ON DELETE CASCADE;
 ALTER TABLE subscriptions ADD CONSTRAINT subscriptions_user_id_fk  FOREIGN KEY (user_id) REFERENCES users   (id) ON DELETE CASCADE;
 
 --
