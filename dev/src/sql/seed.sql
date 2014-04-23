@@ -10,7 +10,7 @@ INSERT INTO users (id, name, email, password_hash, role)
            '$s0$e0801$dfKRFZiEStuBQm+DKQr5NQ==$9qd8nBxPSsCqcSFxMPGaqofJfeQwgMkiQAIhO7gzm34=', 'user');
 INSERT INTO users (id, name, email, password_hash, role)
            -- password: malcolmsparks-pwd
-           VALUES ('malcolmsparks', 'Malcolm Sparks' 'malcolm@opensensors.io',
+           VALUES ('malcolmsparks', 'Malcolm Sparks', 'malcolm@opensensors.io',
            '$s0$e0801$/eFWoMrBH8qvbOV6Sha5oA==$1XCf1mQvBdIWqY0rtcZax426itISxCq/J/LMMqUuHqM=', 'user');
 INSERT INTO users (id, name, email, password_hash, role)
            -- password: michael-pwd
@@ -52,11 +52,11 @@ INSERT INTO topics (device_id, unit, type, topic_id, public)
 -- Subscriptions
 --
 
-INSERT INTO subscriptions (user_id, topic_id)
+INSERT INTO subscriptions (user_id, topic)
             VALUES ('michaelklishin', 'yods/device1/sensor1');
-INSERT INTO subscriptions (user_id, topic_id)
+INSERT INTO subscriptions (user_id, topic)
             VALUES ('michaelklishin', 'yods/device1/sensor2');
-INSERT INTO subscriptions (user_id, topic_id)
+INSERT INTO subscriptions (user_id, topic)
             VALUES ('michaelklishin', 'yods/device2/sensor1');
 
 --
