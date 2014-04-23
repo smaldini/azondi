@@ -3,16 +3,13 @@
 --
 
 CREATE TABLE IF NOT EXISTS users (id text PRIMARY KEY,
-                    fname text NOT NULL,
-                    sname text NOT NULL,
+                    name text NOT NULL,
                     email text NOT NULL,
                     password_hash text NOT NULL,
-                    publisher boolean,
                     role text,
                     created_on timestamp default current_timestamp);
 
 CREATE UNIQUE INDEX users_email_idx ON users(email);
-CREATE INDEX users_publisher_idx  ON users(publisher);
 CREATE INDEX users_created_on_idx ON users(created_on);
 
 --

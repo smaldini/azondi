@@ -4,18 +4,18 @@
 
 DELETE FROM users;
 
-INSERT INTO users (id, fname, sname, email, password_hash, publisher, role)
+INSERT INTO users (id, name, email, password_hash, role)
            -- password: yods-pwd
-           VALUES ('yods', 'Yodit', 'Stanton', 'yodit@opensensors.io',
-           '$s0$e0801$dfKRFZiEStuBQm+DKQr5NQ==$9qd8nBxPSsCqcSFxMPGaqofJfeQwgMkiQAIhO7gzm34=', true, 'user');
-INSERT INTO users (id, fname, sname, email, password_hash, publisher, role)
+           VALUES ('yods', 'Yodit S', 'yodit@opensensors.io',
+           '$s0$e0801$dfKRFZiEStuBQm+DKQr5NQ==$9qd8nBxPSsCqcSFxMPGaqofJfeQwgMkiQAIhO7gzm34=', 'user');
+INSERT INTO users (id, name, email, password_hash, role)
            -- password: malcolmsparks-pwd
-           VALUES ('malcolmsparks', 'Malcolm', 'Sparks', 'malcolm@opensensors.io',
-           '$s0$e0801$/eFWoMrBH8qvbOV6Sha5oA==$1XCf1mQvBdIWqY0rtcZax426itISxCq/J/LMMqUuHqM=', true, 'user');
-INSERT INTO users (id, fname, sname, email, password_hash, publisher, role)
+           VALUES ('malcolmsparks', 'Malcolm Sparks' 'malcolm@opensensors.io',
+           '$s0$e0801$/eFWoMrBH8qvbOV6Sha5oA==$1XCf1mQvBdIWqY0rtcZax426itISxCq/J/LMMqUuHqM=', 'user');
+INSERT INTO users (id, name, email, password_hash, role)
            -- password: michael-pwd
-           VALUES ('michaelklishin', 'Michael', 'Klishin', 'michael@opensensors.io',
-           '$s0$e0801$1/DTkx1MtXX511KH9TRjqg==$Skpfo5t6IyBY465bKXaTcOdMCL/jJEUF/kqM/swzGwc=', true, 'user');
+           VALUES ('michaelklishin', 'Michael Klishin', 'michael@opensensors.io',
+           '$s0$e0801$1/DTkx1MtXX511KH9TRjqg==$Skpfo5t6IyBY465bKXaTcOdMCL/jJEUF/kqM/swzGwc=', 'user');
 
 --
 -- Devices
