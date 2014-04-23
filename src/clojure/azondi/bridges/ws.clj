@@ -6,7 +6,7 @@
             [compojure.route :as route]
             [compojure.handler :refer [api]]
             [clojurewerkz.meltdown.reactor :as mr]
-            [clojurewerkz.meltdown.selectors :refer [match-all]]
+            [clojurewerkz.meltdown.selectors :refer [set-membership]]
             [clojurewerkz.meltdown.consumers :as mc]
             [cheshire.core :as json]
             [clojure.java.jdbc :as j]))
@@ -42,14 +42,17 @@
         token        (get query-params "token")]
     (with-channel req ws
       (if (authenticated? pg-conn username token)
-        (do
+        (let [rows (j/query pg-conn
+                            ["SELECT user_id, topic FROM subscriptions WHERE user_id = ?" username])
+              subs (set (map :topic rows))]
           (log/infof "Accepted WebSocket bridge connection from %s (username: %s)" (:remote-addr req) username)
           (swap! clients conj ws)
-          (let [sub (mr/on reactor (match-all) (fn [evt]
-                                                 (send-event-message ws (:key evt) (:data evt))))]
+          (let [rsub (mr/on reactor (set-membership subs)
+                            (fn [evt]
+                              (send-event-message ws (:key evt) (:data evt))))]
             (on-close ws (fn [status]
                            (swap! clients disj ws)
-                           (mc/cancel sub)
+                           (mc/cancel rsub)
                            (log/infof "WebSocket bridge connection from %s is closed, status: %s" (:remote-addr req) status))))
           (send-welcome-message ws))
         (do
