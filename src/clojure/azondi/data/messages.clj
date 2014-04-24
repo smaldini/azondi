@@ -35,4 +35,4 @@
 (defn new-message-archiver
   []
   (-> (MessageArchiver.)
-      (component/using [:cassandra :reactor])))
+      (component/using [:reactor])))

@@ -23,11 +23,14 @@
                  [compojure               "1.1.6"]
                  ;; for query string parsing
                  [javax.servlet/servlet-api "2.5"]
-                 [http-kit                "2.1.17"]
                  [clj-time                "0.7.0"]
                  [liberator "0.11.0"]
                  [prismatic/schema "0.2.1"]
-
+                 [juxt.modular/http-kit "0.3.0"]
+                 [juxt/modular "0.3.2"]
+                 [juxt.modular/http-kit "0.3.0"]
+                 [juxt.modular/ring "0.3.0"]
+                 [juxt.modular/bidi "0.3.0"]
 
                  ;; Ext dependencies for incubated components
                  [juxt/clj-mqtt "0.4.6-alpha"]

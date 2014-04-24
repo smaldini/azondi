@@ -7,13 +7,16 @@
             [clojure.tools.reader.reader-types :refer (indexing-push-back-reader)]
             [modular.netty.mqtt :refer (new-mqtt-decoder new-mqtt-encoder)]
             [modular.netty :refer (new-netty-server)]
+            [modular.http-kit :refer (new-webserver)]
+            [modular.bidi :refer (new-bidi-ring-handler-provider)]
             [azondi.transports.mqtt :refer (new-netty-mqtt-handler)]
             [azondi.reactor :refer (new-reactor)]
             [azondi.bridges.ws :refer (new-websocket-bridge)]
             [azondi.data.messages :refer (new-message-archiver)]
             [azondi.data.cassandra :as cass]
             [azondi.data.postgres  :as pg]
-            [azondi.authentication :as auth]))
+            [azondi.authentication :as auth]
+            [azondi.api :as api]))
 
 ;;
 ;; Implementation
@@ -64,19 +67,26 @@
    :mqtt-encoder (new-mqtt-encoder)
    :mqtt-handler (new-netty-mqtt-handler)
    :server (new-netty-server {:port 1883})
+
+   :webserver (new-webserver :port 8010)
+   :webrouter (new-bidi-ring-handler-provider)
+
    :reactor (new-reactor)
    :ws (new-websocket-bridge {:port 8083})
-   :cassandra (cass/new-database (get config :cassandra {:keyspace "opensensors" :hosts ["127.0.0.1"]}))
+;;   :cassandra (cass/new-database (get config :cassandra {:keyspace "opensensors" :hosts ["127.0.0.1"]}))
    :message-archiver (new-message-archiver)
    :postgres (pg/new-database (get config :postgres))
-   :device-authenticator (auth/new-postgres-authenticator (get config :postgres))))
+   :device-authenticator (auth/new-postgres-authenticator (get config :postgres))
+   :api (api/new-entity-view :context "/api")))
 
 (defn new-dependency-map
   []
   {:device-authenticator [:postgres]
-   :server               [:mqtt-handler :mqtt-decoder :mqtt-encoder :postgres :cassandra]
+   :server               [:mqtt-handler :mqtt-decoder :mqtt-encoder :postgres]
    :ws                   [:reactor]
-   :mqtt-handler         [:device-authenticator]})
+   :mqtt-handler         [:device-authenticator]
+   :webserver [:webrouter]
+   :webrouter [:api]})
 
 (defn new-prod-system
   []
