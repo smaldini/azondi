@@ -16,11 +16,8 @@
             [azondi.data.cassandra :as cass]
             [azondi.data.postgres  :as pg]
             [azondi.authentication :as auth]
-            [azondi.api :as api]))
-
-;;
-;; Implementation
-;;
+            [azondi.api :as api]
+            [azondi.db :as db]))
 
 (defn ^:private read-file
   [f]
@@ -45,11 +42,6 @@
   (if-let [res (io/resource "azondi.edn")]
     (config-from (io/file res))
     {}))
-
-
-;;
-;; API
-;;
 
 (defn config
   "Return a map of the static configuration used in the component
@@ -77,19 +69,18 @@
    :message-archiver (new-message-archiver)
    :postgres (pg/new-database (get config :postgres))
    :device-authenticator (auth/new-postgres-authenticator (get config :postgres))
-   :api (api/new-entity-view :context "/api")))
+   :api (api/new-api :context "/api/1.0")
+   :database (db/new-atom-backed-datastore)))
 
-(defn new-dependency-map
-  []
+(defn new-dependency-map []
   {:device-authenticator [:postgres]
-   :server               [:mqtt-handler :mqtt-decoder :mqtt-encoder :postgres]
-   :ws                   [:reactor]
-   :mqtt-handler         [:device-authenticator]
+   :server [:mqtt-handler :mqtt-decoder :mqtt-encoder :postgres]
+   :ws [:reactor]
+   :mqtt-handler [:device-authenticator]
    :webserver [:webrouter]
    :webrouter [:api]})
 
-(defn new-prod-system
-  []
+(defn new-prod-system []
   (system-using
    (configurable-system-map (config))
    (new-dependency-map)))

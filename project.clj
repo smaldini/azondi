@@ -31,13 +31,16 @@
                  [juxt.modular/http-kit "0.3.0"]
                  [juxt.modular/ring "0.3.0"]
                  [juxt.modular/bidi "0.3.0"]
+                 [hiccup "1.0.4"]
 
                  ;; Ext dependencies for incubated components
                  [juxt/clj-mqtt "0.4.6-alpha"]
                  [io.netty/netty-all "5.0.0.Alpha1"]
 
                  ;; Logging
-                 [com.taoensso/timbre "3.0.1"]]
+                 [com.taoensso/timbre "3.0.1"]
+
+                 [camel-snake-kebab "0.1.4"]]
 
   :jvm-opts ["-Xss8m" "-Xmx1g" "-Duser.timezone=UTC"]
   :main azondi.main
