@@ -1,5 +1,4 @@
-(ns azondi.topics
-  (:require [clojure.java.jdbc :as j]))
+(ns azondi.topics)
 
 (defn authorized-prefixes-for
   [^String username devices]

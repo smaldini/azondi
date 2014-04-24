@@ -1,6 +1,6 @@
 (ns azondi.data.messages
   "Stores messages for time series charting and analysis"
-  (:require [clojurewerkz.cassaforte.cql :as cql]
+  (:require
             [clojurewerkz.meltdown.reactor :as mr]
             [clojurewerkz.meltdown.consumers :as mc]
             [clojurewerkz.meltdown.selectors :refer [match-all]]
@@ -15,7 +15,7 @@
 (defn archive-message
   [data]
   (let [now (tc/now)]
-    (cql/insert collection (merge data
+    #_(cql/insert collection (merge data
                                 {:created_at    (.toDate now)
                                  :date_and_hour (tf/unparse date-and-hour-formatter now)}))))
 
@@ -36,4 +36,3 @@
   []
   (-> (MessageArchiver.)
       (component/using [:cassandra :reactor])))
-

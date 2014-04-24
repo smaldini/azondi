@@ -9,7 +9,7 @@
             [clojurewerkz.meltdown.selectors :refer [set-membership]]
             [clojurewerkz.meltdown.consumers :as mc]
             [cheshire.core :as json]
-            [clojure.java.jdbc :as j]))
+            ))
 
 (defn welcome-message
   []
@@ -29,7 +29,8 @@
 
 (defn authenticated?
   [pg-conn ^String username ^String token]
-  (let [row (first (j/query pg-conn
+  true
+  #_(let [row (first (j/query pg-conn
                             ["SELECT * FROM ws_session_tokens WHERE user_id = ?
                                                               AND token = ? AND expires_at > now()
                                                               LIMIT 1" username token]))]
@@ -42,7 +43,7 @@
         token        (get query-params "token")]
     (with-channel req ws
       (if (authenticated? pg-conn username token)
-        (let [rows (j/query pg-conn
+        (let [rows [] #_(j/query pg-conn
                             ["SELECT user_id, topic FROM subscriptions WHERE user_id = ?" username])
               subs (set (map :topic rows))]
           (log/infof "Accepted WebSocket bridge connection from %s (username: %s)" (:remote-addr req) username)
