@@ -3,6 +3,7 @@
 )
 
 (defprotocol Datastore
+  (get-users [_])
   (get-user [_ user])
   (delete-user! [_ user])
   (create-user! [_ name user email pw])
@@ -23,6 +24,9 @@
   (stop [this] this)
 
   Datastore
+  (get-users [this]
+    (get-in @(:database this) [:users]))
+
   (get-user [this user]
     (get-in @(:database this) [:users user]))
 

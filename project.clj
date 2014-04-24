@@ -30,7 +30,8 @@
                  [juxt/modular "0.3.2"]
                  [juxt.modular/http-kit "0.3.0"]
                  [juxt.modular/ring "0.3.0"]
-                 [juxt.modular/bidi "0.3.0"]
+                 [juxt.modular/bidi "0.3.0" :exclusions [bidi]]
+                 [bidi "1.10.4-SNAPSHOT"]
                  [hiccup "1.0.4"]
 
                  ;; Ext dependencies for incubated components

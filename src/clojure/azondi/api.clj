@@ -14,7 +14,8 @@
    [cheshire.core :refer (decode decode-stream encode)]
    [schema.core :as s]
    [camel-snake-kebab :as csk :refer (->kebab-case-keyword ->camelCaseString)]
-   [azondi.db :refer (get-user delete-user! create-user! devices-by-owner get-device delete-device! create-device!)]
+   [azondi.db :refer (get-users get-user delete-user! create-user! devices-by-owner get-device delete-device! create-device!)]
+   [hiccup.core :refer (html)]
    ))
 
 (defprotocol Body
@@ -82,6 +83,22 @@
 
 ;;----
 
+(defn make-users-resource [handlers db]
+  {:allowed-methods #{:get}
+   :available-media-types #{"text/html" "application/json"}
+   :handle-ok
+   (fn [{{mt :media-type} :representation {routes :modular.bidi/routes :as req} :request}]
+     (case mt
+       "text/html"
+       (do
+         (html [:ul (for [[k user] (get-users db)]
+                      (do
+                        (println user)
+                        [:li [:a {:href (bidi/path-for routes (:user @handlers) :user (:user user))} (:user user)]]))]))
+       "application/json"
+       (for [user (get-users db)] {:user user :href (bidi/path-for routes  (:user @handlers) :user (:user user))})
+       ))})
+
 (def new-user-schema
   {:user s/Str
    (s/optional-key :name) s/Str
@@ -89,14 +106,26 @@
    })
 
 (defn make-user-resource [handlers db]
-  {:available-media-types #{"application/json"}
+  {:available-media-types #{"application/json" "text/html"}
    :allowed-methods #{:put :get}
    :known-content-type? #{"application/json"}
    :processable? (create-schema-check new-user-schema)
    :handle-unprocessable-entity handle-unprocessable-entity
 
    :exists? (fn [{{{user :user} :route-params} :request}]
-              (get-user db user))
+              {::user (get-user db user)})
+
+   :handle-ok (fn [{user ::user {media-type :media-type} :representation}]
+                (case media-type
+                  "application/json" user
+                  "text/html" (html
+                               [:dl
+                                (for [[k v] user]
+                                  (list [:dt k]
+                                        [:dd v])
+                                  )
+                                ]))
+                )
 
    :put! (fn [{{:keys [name email password]} :body {{user :user} :route-params} :request}]
            (when (get-user db user)
@@ -182,6 +211,7 @@
 (defn make-handlers [db]
   (let [p (promise)]
     @(deliver p {:welcome (resource (make-welcome-resource p))
+                 :users (resource (make-users-resource p db))
                  :user (resource (make-user-resource p db))
                  :devices (resource (make-devices-resource p db))
                  :device (resource (make-device-resource p db))
@@ -191,10 +221,13 @@
 (defn make-routes [handlers]
   [""
    {"" (:welcome handlers)
+    "/" (bidi/->Redirect 307 (:welcome handlers))
+    "/users" (bidi/->Redirect 307 (:users handlers))
+    "/users/" (:users handlers)
     ["/users/" :user]
     {"" (:user handlers)
-     "/devices" (:devices handlers)
-     "/devices/" (bidi/->Redirect 307 (:devices handlers))
+     "/devices" (bidi/->Redirect 307 (:devices handlers))
+     "/devices/" (:devices handlers)
      ["/devices/" :client-id] (:device handlers)}}])
 
 
