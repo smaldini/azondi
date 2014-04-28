@@ -20,7 +20,7 @@
 (defn make-uri [k & args]
   (let [h (get handlers k)]
     (assert h (str "No handler for " k))
-    (str uri-prefix (apply path-for routes (get handlers k) args))))
+    (str uri-prefix (apply path-for routes k args))))
 
 (defn request [method uri & {:keys [data api-key expected]}]
   (let [response

@@ -8,7 +8,8 @@
             [modular.netty.mqtt :refer (new-mqtt-decoder new-mqtt-encoder)]
             [modular.netty :refer (new-netty-server)]
             [modular.http-kit :refer (new-webserver)]
-            [modular.bidi :refer (new-bidi-ring-handler-provider)]
+            [modular.bidi :refer (new-router)]
+            [modular.maker :refer (make)]
             [azondi.transports.mqtt :refer (new-netty-mqtt-handler)]
             [azondi.reactor :refer (new-reactor)]
             [azondi.bridges.ws :refer (new-websocket-bridge)]
@@ -61,7 +62,9 @@
    :server (new-netty-server {:port 1883})
 
    :webserver (new-webserver :port 8010)
-   :webrouter (new-bidi-ring-handler-provider)
+   ;; bidi's route compilation doesn't yet work with pattern segments
+   ;; used in the routes, so we tell it not to compile
+   :webrouter (make new-router config :compile-routes? false)
 
    :reactor (new-reactor)
    :ws (new-websocket-bridge {:port 8083})
@@ -69,7 +72,7 @@
    :message-archiver (new-message-archiver)
    :postgres (pg/new-database (get config :postgres))
    :device-authenticator (auth/new-postgres-authenticator (get config :postgres))
-   :api (api/new-api :context "/api/1.0")
+   :api (api/new-api :uri-context "/api/1.0")
    :database (db/new-atom-backed-datastore)))
 
 (defn new-dependency-map []

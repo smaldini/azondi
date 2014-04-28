@@ -26,17 +26,22 @@
                  [clj-time                "0.7.0"]
                  [liberator "0.11.0"]
                  [prismatic/schema "0.2.1"]
-                 [juxt.modular/http-kit "0.3.0"]
-                 [juxt/modular "0.3.2"]
-                 [juxt.modular/http-kit "0.3.0"]
-                 [juxt.modular/ring "0.3.0"]
-                 [juxt.modular/bidi "0.3.0" :exclusions [bidi]]
-                 [bidi "1.10.3"]
-                 [hiccup "1.0.4"]
 
-                 ;; Ext dependencies for incubated components
-                 [juxt/clj-mqtt "0.4.6-alpha"]
-                 [io.netty/netty-all "5.0.0.Alpha1"]
+                 ;; Pre-built components supplied by modular
+                 [juxt.modular/bidi "0.4.0-SNAPSHOT" :exclusions [bidi]]
+                 [juxt.modular/cljs "0.4.0-SNAPSHOT"]
+                 [juxt.modular/clostache "0.1.0-SNAPSHOT"]
+                 [juxt.modular/http-kit "0.4.0-SNAPSHOT"]
+                 [juxt.modular/maker "0.1.0-SNAPSHOT"]
+                 [juxt.modular/menu "0.1.0-SNAPSHOT"]
+                 [juxt.modular/mqtt "0.1.0-SNAPSHOT"]
+                 [juxt.modular/netty "0.1.0-SNAPSHOT"]
+                 [juxt.modular/ring "0.4.0-SNAPSHOT"]
+                 [juxt.modular/template "0.1.0-SNAPSHOT"]
+                 [juxt.modular/wire-up "0.1.0-SNAPSHOT"]
+
+                 [bidi "1.10.3"]
+                 [hiccup "1.0.5"]
 
                  ;; Logging
                  [com.taoensso/timbre "3.0.1"]
