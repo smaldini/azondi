@@ -83,6 +83,7 @@
    :clostache (make new-clostache-templater)
    :ring-binder (make new-ring-binder)
    :web-meta (make new-template-model-contributor config
+                   :org "OpenSensors.IO"
                    :title "Azondi"
                    :description "OpenSensors.IO MQTT broker"
                    :app-name "Azondi")
