@@ -9,8 +9,8 @@
 (defn new-dev-system
   "Create a development system"
   []
-  (component/system-using
-   (->
-    (configurable-system-map (config))
-    (assoc :api-tests (azondi.api-tests/new-api-tests)))
-   (new-dependency-map)))
+  (let [s-map (->
+               (configurable-system-map (config))
+               (assoc :api-tests (azondi.api-tests/new-api-tests)))
+        d-map (new-dependency-map s-map)]
+    (component/system-using s-map d-map)))

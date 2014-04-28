@@ -42,6 +42,7 @@
 
                  [bidi "1.10.3"]
                  [hiccup "1.0.5"]
+                 [garden "1.1.5"]
 
                  ;; Logging
                  [com.taoensso/timbre "3.0.1"]
@@ -55,7 +56,7 @@
 
   :profiles {:dev {:dependencies [[org.clojure/tools.namespace "0.2.4"]
                                   [clojurewerkz/machine_head "1.0.0-beta7"]]
-                   :source-paths ["dev/src/clojure"]
+                   :source-paths ["dev/src/clojure" "src/cljs"]
                    :resource-paths ["test/resources"]}
 
              :uberjar {:main azondi.main
