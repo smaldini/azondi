@@ -33,7 +33,7 @@
     (read-file f)
     {}))
 
-(defn ^:private system-wide-config
+(defn ^:private user-config
   []
   (config-from (io/file (System/getProperty "user.home") ".azondi.edn")))
 
@@ -47,8 +47,8 @@
   "Return a map of the static configuration used in the component
   constructors."
   []
-  (merge (system-wide-config)
-         (config-from-classpath)))
+  (merge (config-from-classpath)
+         (user-config)))
 
 (defn configurable-system-map
   [config]
