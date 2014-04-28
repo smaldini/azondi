@@ -12,7 +12,7 @@
             [modular.clostache :refer (new-clostache-templater)]
             [modular.http-kit :refer (new-webserver)]
             [modular.maker :refer (make)]
-            [modular.menu :refer (new-menu-index MenuItems)]
+            [modular.menu :refer (new-menu-index new-bootstrap-menu MenuItems)]
             [modular.netty :refer (new-netty-server)]
             [modular.netty.mqtt :refer (new-mqtt-decoder new-mqtt-encoder)]
             [modular.ring :refer (new-ring-binder RingBinding)]
@@ -79,7 +79,9 @@
    ;; TODO Make this entire section a sub-system, ala cylon
    :website (make new-website)
    :html-template (make new-single-template config :template "templates/page.html.mustache")
-   :menu (make new-menu-index)
+   :menu-index (make new-menu-index)
+   :bootstrap-menu (make new-bootstrap-menu)
+
    :clostache (make new-clostache-templater)
    :ring-binder (make new-ring-binder)
    :web-meta (make new-template-model-contributor config
@@ -108,12 +110,13 @@
     :mqtt-server [:mqtt-handler :mqtt-decoder :mqtt-encoder :postgres]
     :ws [:reactor]
     :mqtt-handler [:device-authenticator]
-    :html-template {:templater :clostache}}
+    :html-template {:templater :clostache}
+    :bootstrap-menu [:menu-index]}
 
    (autowire-dependencies-satisfying system-map :router WebService)
    (autowire-dependencies-satisfying system-map :ring-binder RingBinding)
    (autowire-dependencies-satisfying system-map :html-template TemplateModel)
-   (autowire-dependencies-satisfying system-map :menu MenuItems)
+   (autowire-dependencies-satisfying system-map :menu-index MenuItems)
    (autowire-dependencies-satisfying system-map :cljs-builder ClojureScriptModule)))
 
 (defn new-prod-system []

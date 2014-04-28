@@ -43,6 +43,7 @@
                  [bidi "1.10.3"]
                  [hiccup "1.0.5"]
                  [garden "1.1.5"]
+                 [markdown-clj "0.9.36"]
 
                  ;; Logging
                  [com.taoensso/timbre "3.0.1"]
