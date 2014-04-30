@@ -19,18 +19,12 @@
 (defn styles [req]
   {:headers {"Content-Type" "text/css"}
    :body (css
-          [:form
-            {:border "1px dotted #aaa"
-             :padding (em 1)}
-           [:div.field {:padding (em 0.5)}]
-           [:label {:margin-right (em 1)}]
-           [:input {:padding (em 0.5)}]
-           ]
           [:p.loading {:color "#aaa" :font-size (pt 32)}]
           [:label.optional {:color "#aaa"}]
-          [:h1 :h2 :h3 {:color (rgb 0 0 154)}]
+
+          ;;[:h1 :h2 :h3 {:color (rgb 0 0 154)}]
           [:th {:padding-left (em 0.5)}]
-          [:td {:font-family "monospace" :font-size (pt 12) :padding-left (em 0.5)}]
+          ;;[:td {:font-family "monospace" :font-size (pt 12) :padding-left (em 0.5)}]
           [:td.numeric {:text-align :right}]
           [:th.numeric {:text-align :right}]
           [:div.container-narrow {:margin-left (pt 10) :font-size (pt 12)}]

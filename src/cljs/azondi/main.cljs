@@ -57,20 +57,21 @@
     om/IRender
     (render [this]
       (html
-       [:form {:onSubmit (fn [ev]
-                           (.preventDefault ev)
-                           (POST (str "/api/1.0/users/" (:user @app-state) "/devices/")
-                               {:handler (fn [body]
-                                           (println "Got body back!" (get body "clientId"))
-                                           (om/update! app-state [:device :client-id] (get body "clientId"))
-                                           (om/update! app-state [:device :password] (get body "password"))
-                                           (om/transact! app-state :devices #(conj % body)))
-                                :error-handler error-handler
-                                :response-format :json
-                                :params {}
-                                :format :json})
-                           )}
-        [:input {:type "submit" :value "New device" :style {:background "#8e8" :border "1px solid black"}}]]))))
+       [:form.form-horizontal
+        {:onSubmit (fn [ev]
+                     (.preventDefault ev)
+                     (POST (str "/api/1.0/users/" (:user @app-state) "/devices/")
+                         {:handler (fn [body]
+                                     (println "Got body back!" (get body "clientId"))
+                                     (om/update! app-state [:device :client-id] (get body "clientId"))
+                                     (om/update! app-state [:device :password] (get body "password"))
+                                     (om/transact! app-state :devices #(conj % body)))
+                          :error-handler error-handler
+                          :response-format :json
+                          :params {}
+                          :format :json})
+                     )}
+        [:input.btn.btn-primary {:type "submit" :value "New device"}]]))))
 
 (defn device-details-form [app-state owner]
   (reify
@@ -78,62 +79,67 @@
     (render [this]
       (html
        [:div
-        [:form {:onSubmit (fn [ev]
-                            (.preventDefault ev)
-                            (if-let [id (get-in @app-state [:device :client-id])]
-                              (PUT (str "/api/1.0/users/" (:user @app-state) "/devices/" id)
-                                  {:handler (fn [body] (println "Got body back!" body))
-                                   :error-handler error-handler
-                                   :response-format :json
-                                   :params {"name" "abc"
-                                            "description" "def"}
-                                   :format :json})
-                              (println "No client id"))
-                            )}
+        [:form.form-horizontal
+         {:onSubmit (fn [ev]
+                      (.preventDefault ev)
+                      (if-let [id (get-in @app-state [:device :client-id])]
+                        (PUT (str "/api/1.0/users/" (:user @app-state) "/devices/" id)
+                            {:handler (fn [body] (println "Got body back!" body))
+                             :error-handler error-handler
+                             :response-format :json
+                             :params {"name" "abc"
+                                      "description" "def"}
+                             :format :json})
+                        (println "No client id"))
+                      )}
+         [:div.control-group
+          [:label.control-label "Client id"]
+          [:div.controls
+           [:input {:name "id" :type "text" :value (get-in app-state [:device :client-id]) :editable false :disabled true}]]]
 
-         [:h2 "Device details"]
+         [:div.control-group
+          [:label.control-label "Name"]
+          [:div.controls
+           [:input {:name "name"
+                    :type "text"
+                    :value (get-in app-state [:device :name])
+                    :placeholder "optional device name"}]]]
 
-         [:div.field
-          [:label "Client id"]
-          [:input {:name "id" :type "text" :value (get-in app-state [:device :client-id]) :editable false :disabled true}]]
+         [:div.control-group
+          [:label.control-label "Description"]
+          [:div.controls
+           [:input {:name "description" :style {:width "90%"}
+                    :type "text" :value (get-in app-state [:device :name])
+                    :placeholder "optional description"}]]]
 
-         [:div.field
-          [:label.optional "Name"]
-          [:input {:name "name" :type "text" :value (get-in app-state [:device :name])}]]
-
-         [:div.field
-          [:label.optional "Description"]
-          [:input {:name "description" :style {:width "90%"}
-                   :type "text" :value (get-in app-state [:device :name])}]]
-
-         [:div
-          [:input {:name "action" :type "submit" :value "Update device" :style {:background "#8e8" :border "1px solid black"}}]]
+         [:div.control-group
+          [:input.btn {:name "action" :type "submit" :value "Update device"}]]
 
          ]
-        [:form {:onSubmit (fn [ev]
-                            (.preventDefault ev)
-                            (if-let [id (get-in @app-state [:device :client-id])]
-                              (PUT (str "/api/1.0/users/" (:user @app-state) "/devices/" id)
-                                  {:handler (fn [body] (println "Got body back!" body))
-                                   :error-handler error-handler
-                                   :response-format :json
-                                   :params {}
-                                   :format :json})
-                              ))}
+        [:form.form-horizontal
+         {:onSubmit (fn [ev]
+                      (.preventDefault ev)
+                      (if-let [id (get-in @app-state [:device :client-id])]
+                        (PUT (str "/api/1.0/users/" (:user @app-state) "/devices/" id)
+                            {:handler (fn [body] (println "Got body back!" body))
+                             :error-handler error-handler
+                             :response-format :json
+                             :params {}
+                             :format :json})
+                        ))}
          [:h2 "Delete device"]
-         [:p "Deleting this device is permanent"]
-         [:input {:name "action" :type "submit" :value "Delete device" :style {:background "red" :border "1px solid black"}}]]
+         [:input.btn.btn-danger {:name "action" :type "submit" :value "Delete device"}]]
 
         [:h3 "Test this device"]
-         [:h4 "Mosquitto"]
-         [:pre (str "mosquitto_pub"
-                    " -h " hostname
-                    " -i " (-> app-state :device :client-id)
-                    " -u " (:user app-state)
-                    " -P " (-> app-state :device :password)
-                    " -t " "test"
-                    " -m " "'This is a test'"
-                    )]]))))
+        [:h4 "Mosquitto"]
+        [:pre (str "mosquitto_pub"
+                   " -h " hostname
+                   " -i " (-> app-state :device :client-id)
+                   " -u " (:user app-state)
+                   " -P " (-> app-state :device :password)
+                   " -t " "test"
+                   " -m " "'This is a test'"
+                   )]]))))
 
 (defn list-devices-page-component [app-state owner]
   (reify
