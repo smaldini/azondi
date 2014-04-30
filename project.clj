@@ -19,7 +19,7 @@
                  ;; Back-end
                  [clojurewerkz/triennium  "1.0.0-beta2"]
                  [cheshire                "5.3.1"]
-                 [clojurewerkz/meltdown   "1.0.0-beta11"]
+                 [clojurewerkz/meltdown   "1.0.0-beta12"]
                  [compojure               "1.1.6"]
                  ;; for query string parsing
                  [javax.servlet/servlet-api "2.5"]
