@@ -76,18 +76,18 @@
   [^ChannelHandlerContext ctx {:keys [username client-id has-will clean-session]
                                :as   msg}
    {:keys [connections-by-ctx connections-by-client-id] :as handler-state}]
-  (let [pg-conn (get-in handler-state [:postgres :connection])
-        devices (device-names pg-conn username)
-        conn    {:username  username
-                 :client-id client-id
-                 :ctx       ctx
-                 :has-will  has-will
-                 :will-qos  (when has-will
-                              (:will-qos msg))
-                 :authorized-topic-prefixes (tp/authorized-prefixes-for username devices)}]
+  (let [db (get-in handler-state [:database])
+        ;;devices (device-names pg-conn username)
+        conn {:username  username
+              :client-id client-id
+              :ctx ctx
+              :has-will has-will
+              :will-qos (when has-will (:will-qos msg))
+              ;;:authorized-topic-prefixes (tp/authorized-prefixes-for username devices)
+              }]
     (maybe-disconnect-existing client-id handler-state)
     (dosync
-     (alter connections-by-ctx       assoc ctx conn)
+     (alter connections-by-ctx assoc ctx conn)
      (alter connections-by-client-id assoc client-id conn))
     (.writeAndFlush ctx {:type :connack :return-code :accepted})
     (let [^InetSocketAddress peer (peer-of ctx)]
@@ -376,4 +376,4 @@
   (-> (map->NettyMqttHandler {:connections-by-ctx (ref {})
                               :connections-by-client-id (ref {})
                               :topics-by-ctx (ref {})})
-      (component/using [:reactor :postgres])))
+      (component/using [:database :reactor])))

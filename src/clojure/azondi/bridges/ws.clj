@@ -37,12 +37,12 @@
     (not (nil? row))))
 
 (defn ws-connection-handler
-  [req clients reactor pg-conn]
+  [db req clients reactor]
   (let [query-params (:query-params req)
         username     (get-in req [:params :username])
         token        (get query-params "token")]
     (with-channel req ws
-      (if (authenticated? pg-conn username token)
+      (if true ;; (authenticated? pg-conn username token)
         (let [rows [] #_(j/query pg-conn
                             ["SELECT user_id, topic FROM subscriptions WHERE user_id = ?" username])
               subs (set (map :topic rows))]
@@ -63,13 +63,13 @@
 (defrecord WebsocketBridge [port]
   component/Lifecycle
   (start [this]
-    (let [r       (get-in this [:reactor :reactor])
-          pg-conn (get-in this [:postgres :connection])
+    (let [r (get-in this [:reactor :reactor])
+          db (get-in this [:database])
           clients (atom #{})
           ;; define routes here so that they have access to
           ;; clients, reactor, etc. MK.
           routes  (routes
-                   (GET  "/events/stream/users/:username" req (ws-connection-handler req clients r pg-conn))
+                   (GET  "/events/stream/users/:username" req (ws-connection-handler db req clients r))
                    (route/resources "/"))
           server (run-server (api routes) {:port port})]
       (log/infof "About to start WebSocket/polling bridge server on port %d" port)
@@ -83,4 +83,4 @@
 (defn new-websocket-bridge
   [opts]
   (-> (map->WebsocketBridge opts)
-      (component/using [:reactor :postgres])))
+      (component/using [:reactor :database])))

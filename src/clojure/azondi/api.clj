@@ -4,8 +4,8 @@
    ;; where resources are linked together using hyperlinks. Without
    ;; bidi, construction of these hyperlinks becomes increasingly
    ;; cumbersome and brittle.
-   [bidi.bidi :as bidi]
-   [modular.bidi :refer (BidiRoutesProvider)]
+   [bidi.bidi :as bidi :refer (path-for ->Redirect)]
+   [modular.bidi :refer (WebService)]
    [liberator.core :refer (resource)]
    [com.stuartsierra.component :as component]
 
@@ -58,7 +58,7 @@
 
 
 
-(defn make-welcome-resource [handlers]
+(defn make-welcome-resource []
   {:available-media-types #{"text/plain"}
    :handle-ok "OpenSensors.IO API version 1.0 (beta)\n"})
 
@@ -83,7 +83,7 @@
 
 ;;----
 
-(defn make-users-resource [handlers db]
+(defn make-users-resource [db]
   {:allowed-methods #{:get}
    :available-media-types #{"text/html" "application/json"}
    :handle-ok
@@ -92,11 +92,9 @@
        "text/html"
        (do
          (html [:ul (for [[k user] (get-users db)]
-                      (do
-                        (println user)
-                        [:li [:a {:href (bidi/path-for routes (:user @handlers) :user (:user user))} (:user user)]]))]))
+                      [:li [:a {:href (bidi/path-for routes :user :user (:user user))} (:user user)]])]))
        "application/json"
-       (for [user (get-users db)] {:user user :href (bidi/path-for routes  (:user @handlers) :user (:user user))})
+       (for [user (get-users db)] {:user user :href (bidi/path-for routes :user :user (:user user))})
        ))})
 
 (def new-user-schema
@@ -105,7 +103,7 @@
    :email s/Str
    })
 
-(defn make-user-resource [handlers db]
+(defn make-user-resource [db]
   {:available-media-types #{"application/json" "text/html"}
    :allowed-methods #{:put :get}
    :known-content-type? #{"application/json"}
@@ -133,7 +131,6 @@
 
            (let [pw (generate-user-password 8)
                  u (create-user! db name user email pw)
-                 _ (println u)
                  ;;_ (set-api-key uesrs user)
                  ;;api-key (get-api-key user)
                  ]
@@ -149,14 +146,14 @@
 (def new-device-schema
   {(s/optional-key :description) s/Str})
 
-(defn make-devices-resource [handlers db]
+(defn make-devices-resource [db]
   {:available-media-types #{"application/json"}
    :allowed-methods #{:get :post}
    :handle-ok (fn [{{{user :user} :route-params} :request}]
                 (encode {:user user
                          :devices (->>
                                    (devices-by-owner db user)
-                                   (map #(select-keys % [:device_id :client_id :description :name]))
+                                   (map #(select-keys % [:client-id :description :name]))
                                    (map #(reduce-kv (fn [acc k v] (assoc acc (->camelCaseString k) v)) {} %)))}))
 
       ;; Liberator introduced processable? in 0.9.0 - See
@@ -167,33 +164,28 @@
    :post! (fn [{body :body {{user :user client-id :client-id} :route-params} :request}]
             {:device
              (let [p (generate-device-password)]
-
                (when (get-device db client-id)
                  (delete-device! db client-id))
+               (-> (create-device! db user p)
+                   (assoc :password p)))})
 
-               (let [device (create-device! db user p)]
-                 (->>
-                  {:client-id (:client_id device)
-                   :user (:owner device)
-                   :password p
-                   :device-id (:device_id device)}
-                  (reduce-kv (fn [acc k v] (assoc acc (->camelCaseString k) v)) {}))))})
-
-   :handle-created (fn [{device :device}] device)
+   :handle-created (fn [{device :device}] (->js device))
 
 
 })
 
 (def new-device-schema
-  {(s/optional-key :description) s/Str})
+  {(s/optional-key :name) s/Str
+   (s/optional-key :description) s/Str
+   })
 
 (defn extract-api-key [req]
   (when-let [auth (get (:headers req) "authorization")]
     (second (re-matches #"api-key\s([0-9a-f-]+)" auth))))
 
-(defn make-device-resource [handlers db]
+(defn make-device-resource [db]
   {:available-media-types #{"application/json"}
-   :allowed-methods #{:get}
+   :allowed-methods #{:get :put}
    :known-content-type? #{"application/json"}
 
    #_:authorized? #_(fn [{{{user :user} :route-params headers :headers :as req} :request}]
@@ -206,49 +198,55 @@
                          (get-device db client-id))
                 {:user user
                  :client-id client-id}))
+
+   :processable? (create-schema-check new-device-schema)
+   :handle-unprocessable-entity handle-unprocessable-entity
+
+   :put! (fn [_] nil)
+
+   :handle-created (fn [_] {:message "Created"})
+
    })
 
 (defn make-handlers [db]
-  (let [p (promise)]
-    @(deliver p {:welcome (resource (make-welcome-resource p))
-                 :users (resource (make-users-resource p db))
-                 :user (resource (make-user-resource p db))
-                 :devices (resource (make-devices-resource p db))
-                 :device (resource (make-device-resource p db))
+  {:welcome (resource (make-welcome-resource))
+   :users (resource (make-users-resource db))
+   :user (resource (make-user-resource db))
+   :devices (resource (make-devices-resource db))
+   :device (resource (make-device-resource db))
+   })
 
-                 })))
-
-(defn make-routes [handlers]
+(defn make-routes
+  "This function returns the bidi route structure for the API. It should
+  be indented beautifully to read like a site-map."
+  []
   [""
-   {"" (:welcome handlers)
-    "/" (bidi/->Redirect 307 (:welcome handlers))
-    "/users" (bidi/->Redirect 307 (:users handlers))
-    "/users/" (:users handlers)
-    ["/users/" :user]
-    {"" (:user handlers)
-     "/devices" (bidi/->Redirect 307 (:devices handlers))
-     "/devices/" (:devices handlers)
-     ["/devices/" :client-id] (:device handlers)}}])
+   {"" :welcome
+    "/" (->Redirect 307 :welcome)
+    "/users" (->Redirect 307 :users)
+    "/users/" :users
+    ["/users/" :user] {"" :user
+                       "/devices" (->Redirect 307 :devices)
+                       "/devices/" :devices
+                       ["/devices/" :client-id] :device}}])
 
-
-(defrecord Api [context]
+(defrecord Api [uri-context]
   component/Lifecycle
   (start [this]
-    (let [handlers (make-handlers (:database this))]
-      (assoc this
-        :handlers handlers
-        :routes (make-routes handlers))))
+    (assoc this
+      :handlers (make-handlers (:database this))
+      :routes (make-routes)))
   (stop [this] this)
 
-  BidiRoutesProvider
-  (routes [this]
-    (:routes this))
-  (context [this] context))
+  WebService
+  (ring-handler-map [this] (:handlers this))
+  (routes [this] (:routes this))
+  (uri-context [this] uri-context))
 
 (defn new-api [& {:as opts}]
   (component/using
    (->> opts
-        (merge {:context ""}) ; specify defaults
-        (s/validate {(s/optional-key :context) s/Str})
+        (merge {:uri-context ""}) ; specify defaults
+        (s/validate {(s/optional-key :uri-context) s/Str})
         map->Api)
    [:database]))
