@@ -80,12 +80,10 @@
           (is (= 201 (:status response)))
           (is (contains? (:body response) :password))
           (is (contains? (:body response) :client-id))
+          (is (not (nil? (:client-id (:body response)))))
           (let [password (-> response :body :password)]
-            ;; Now try to publish a message to azondi
 
-            (request :post (make-uri :devices :user "alice") :data {})
-
-            ;; Let's try to get our devices
+            ;; Find our devices
             (let [uri (make-uri :devices :user "alice")
                   response (request :get uri)]
 
@@ -93,9 +91,17 @@
               (is (contains? (:body response) :devices))
 
               (let [devices (-> response :body :devices)]
-                (is (= 2 (count devices))))
+                (is (= 1 (count devices))))
 
-              ))))))
+              )
+
+            ;; Now try to publish a message to azondi
+
+
+            ;;(request :post (make-uri :devices :user "alice") :data {})
+
+            ;; Let's try to get our devices
+            )))))
 
 
   ;; TODO Test error scenarios here

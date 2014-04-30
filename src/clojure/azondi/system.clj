@@ -16,15 +16,13 @@
             [modular.netty :refer (new-netty-server)]
             [modular.netty.mqtt :refer (new-mqtt-decoder new-mqtt-encoder)]
             [modular.ring :refer (new-ring-binder RingBinding)]
-            [modular.template :refer (new-single-template new-template-model-contributor TemplateModel)]
+            [modular.template :refer (new-template new-template-model-contributor TemplateModel)]
             [modular.wire-up :refer (autowire-dependencies-satisfying)]
 
             [azondi.transports.mqtt :refer (new-netty-mqtt-handler)]
             [azondi.reactor :refer (new-reactor)]
             [azondi.bridges.ws :refer (new-websocket-bridge)]
             [azondi.data.messages :refer (new-message-archiver)]
-            [azondi.data.cassandra :as cass]
-            [azondi.data.postgres  :as pg]
             [azondi.authentication :as auth]
             [azondi.api :as api]
             [azondi.db :as db]
@@ -78,7 +76,7 @@
 
    ;; TODO Make this entire section a sub-system, ala cylon
    :website (make new-website)
-   :html-template (make new-single-template config :template "templates/page.html.mustache")
+   :html-template (make new-template config :template "templates/page.html.mustache")
    :menu-index (make new-menu-index)
    :bootstrap-menu (make new-bootstrap-menu)
 
@@ -91,33 +89,41 @@
                    :app-name "Azondi")
    :cljs-core (new-cljs-module :name :cljs :mains ['cljs.core] :dependencies #{})
    :cljs-main (new-cljs-module :name :azondi :mains ['azondi.main] :dependencies #{:cljs})
-   :cljs-builder (new-cljs-builder :source-path "src/cljs")
+
+   :main-cljs-builder (new-cljs-builder :source-path "src/cljs")
 
    :reactor (new-reactor)
    :ws (new-websocket-bridge {:port 8083})
    ;;   :cassandra (cass/new-database (get config :cassandra {:keyspace "opensensors" :hosts ["127.0.0.1"]}))
    :message-archiver (new-message-archiver)
-   :postgres (pg/new-database (get config :postgres))
-   :device-authenticator (auth/new-postgres-authenticator (get config :postgres))
+   ;;   :postgres (pg/new-database (get config :postgres))
+   ;; :device-authenticator (auth/new-postgres-authenticator (get config :postgres))
    :api (api/new-api :uri-context "/api/1.0")
-   :database (db/new-atom-backed-datastore)))
+   ))
 
 (defn new-dependency-map [system-map]
   (->
    {:webserver [:ring-binder]
     :ring-binder {:ring-handler :router}
-    :device-authenticator [:postgres]
-    :mqtt-server [:mqtt-handler :mqtt-decoder :mqtt-encoder :postgres]
-    :ws [:reactor]
-    :mqtt-handler [:device-authenticator]
-    :html-template {:templater :clostache}
-    :bootstrap-menu [:menu-index]}
+;;    :device-authenticator [:postgres]
+    :mqtt-handler {:db :database}
+    :mqtt-server [:mqtt-handler :mqtt-decoder :mqtt-encoder]
+    :ws [:reactor :database]
+;;    :mqtt-handler [:device-authenticator]
+    :html-template {:templater :clostache
+                    :web-meta :web-meta
+                    :cljs-builder :main-cljs-builder
+                    :bootstrap-menu :bootstrap-menu}
+    :main-cljs-builder [:cljs-core :cljs-main]
+    :bootstrap-menu [:menu-index]
+    }
 
    (autowire-dependencies-satisfying system-map :router WebService)
    (autowire-dependencies-satisfying system-map :ring-binder RingBinding)
-   (autowire-dependencies-satisfying system-map :html-template TemplateModel)
+   ;;(autowire-dependencies-satisfying system-map :html-template TemplateModel)
    (autowire-dependencies-satisfying system-map :menu-index MenuItems)
-   (autowire-dependencies-satisfying system-map :cljs-builder ClojureScriptModule)))
+   ;;(autowire-dependencies-satisfying system-map :main-cljs-builder ClojureScriptModule)
+   ))
 
 (defn new-prod-system []
   (let [s-map (configurable-system-map (config))

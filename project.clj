@@ -48,7 +48,15 @@
                  ;; Logging
                  [com.taoensso/timbre "3.0.1"]
 
-                 [camel-snake-kebab "0.1.4"]]
+                 [camel-snake-kebab "0.1.4"]
+
+                 ;; ClojureScript libraries
+                 [org.clojure/clojurescript "0.0-2173"]
+                 [sablono "0.2.6" :exclusions [com.facebook/react]]
+                 [om "0.5.1"]
+                 [org.clojure/core.async "0.1.267.0-0d7780-alpha"]
+                 [cljs-ajax "0.2.3"]
+                 [ankha "0.1.1"]]
 
   :jvm-opts ["-Xss8m" "-Xmx1g" "-Duser.timezone=UTC"]
   :main azondi.main

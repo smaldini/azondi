@@ -92,9 +92,7 @@
        "text/html"
        (do
          (html [:ul (for [[k user] (get-users db)]
-                      (do
-                        (println user)
-                        [:li [:a {:href (bidi/path-for routes :user :user (:user user))} (:user user)]]))]))
+                      [:li [:a {:href (bidi/path-for routes :user :user (:user user))} (:user user)]])]))
        "application/json"
        (for [user (get-users db)] {:user user :href (bidi/path-for routes :user :user (:user user))})
        ))})
@@ -133,7 +131,6 @@
 
            (let [pw (generate-user-password 8)
                  u (create-user! db name user email pw)
-                 _ (println u)
                  ;;_ (set-api-key uesrs user)
                  ;;api-key (get-api-key user)
                  ]
@@ -156,7 +153,7 @@
                 (encode {:user user
                          :devices (->>
                                    (devices-by-owner db user)
-                                   (map #(select-keys % [:device_id :client_id :description :name]))
+                                   (map #(select-keys % [:client-id :description :name]))
                                    (map #(reduce-kv (fn [acc k v] (assoc acc (->camelCaseString k) v)) {} %)))}))
 
       ;; Liberator introduced processable? in 0.9.0 - See
@@ -167,25 +164,20 @@
    :post! (fn [{body :body {{user :user client-id :client-id} :route-params} :request}]
             {:device
              (let [p (generate-device-password)]
-
                (when (get-device db client-id)
                  (delete-device! db client-id))
+               (-> (create-device! db user p)
+                   (assoc :password p)))})
 
-               (let [device (create-device! db user p)]
-                 (->>
-                  {:client-id (:client_id device)
-                   :user (:owner device)
-                   :password p
-                   :device-id (:device_id device)}
-                  (reduce-kv (fn [acc k v] (assoc acc (->camelCaseString k) v)) {}))))})
-
-   :handle-created (fn [{device :device}] device)
+   :handle-created (fn [{device :device}] (->js device))
 
 
 })
 
 (def new-device-schema
-  {(s/optional-key :description) s/Str})
+  {(s/optional-key :name) s/Str
+   (s/optional-key :description) s/Str
+   })
 
 (defn extract-api-key [req]
   (when-let [auth (get (:headers req) "authorization")]
@@ -193,7 +185,7 @@
 
 (defn make-device-resource [db]
   {:available-media-types #{"application/json"}
-   :allowed-methods #{:get}
+   :allowed-methods #{:get :put}
    :known-content-type? #{"application/json"}
 
    #_:authorized? #_(fn [{{{user :user} :route-params headers :headers :as req} :request}]
@@ -206,6 +198,14 @@
                          (get-device db client-id))
                 {:user user
                  :client-id client-id}))
+
+   :processable? (create-schema-check new-device-schema)
+   :handle-unprocessable-entity handle-unprocessable-entity
+
+   :put! (fn [_] nil)
+
+   :handle-created (fn [_] {:message "Created"})
+
    })
 
 (defn make-handlers [db]
