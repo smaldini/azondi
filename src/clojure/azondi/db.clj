@@ -10,4 +10,6 @@
   (devices-by-owner [_ user])
   (create-device! [_ user pw])
   (get-device [_ client-id])
-  (delete-device! [_ client-id]))
+  (delete-device! [_ client-id])
+  (patch-device! [_ client-id data])
+  )

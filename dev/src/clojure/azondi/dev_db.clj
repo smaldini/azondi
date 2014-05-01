@@ -36,7 +36,7 @@
 
   (create-device! [this user pw]
     (dosync
-     (let [client-id (alter (-> this :database :last-client-id) inc)
+     (let [client-id (str (alter (-> this :database :last-client-id) inc))
            device {:client-id client-id :user user :password pw}]
        (alter (-> this :database :devices) assoc client-id device)
        (dissoc device :user))))
@@ -45,10 +45,16 @@
     (-> this :database :devices deref (get client-id)))
 
   (delete-device! [this client-id]
-    (alter (-> this :database :devices) dissoc client-id))
+    (dosync
+     (alter (-> this :database :devices) dissoc client-id)))
 
   (devices-by-owner [this user]
-    (filter (comp (partial = user) :user) (vals @(-> this :database :devices)))))
+    (filter (comp (partial = user) :user) (vals @(-> this :database :devices))))
+
+  (patch-device! [this client-id data]
+    (dosync
+     (alter (-> this :database :devices) update-in [client-id] merge data))
+    ))
 
 (defn new-inmemory-datastore []
   (->InmemoryDatastore))

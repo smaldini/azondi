@@ -1,7 +1,7 @@
 (ns azondi.ajax
   (:require-macros [cljs.core.async.macros :refer [go go-loop]])
   (:require
-   [clojure.string :as str :refer (join)]
+   [clojure.string :as str :refer (join upper-case)]
    [goog.net.XhrManager :as xhrm]
    [cljs.reader :as reader]
    [azondi.csk :as csk]
@@ -41,25 +41,41 @@
 (defmethod parse-response-body "application/edn" [xhrio]
   (reader/read-string (.getResponseText xhrio)))
 
+(defn write-json [data]
+  (.serialize (goog.json.Serializer.) (clj->js data)))
+
 (defn ajax< [in & {:as opts}]
   (let [out (chan)]
     (go-loop []
       (when-let [m (<! in)]
         (let [m (merge opts m)
+              headers (clj->js (into {} (remove (comp nil? second)
+                                                 [["Accept" (:accept m)]
+                                                  ["Content-Type" (:content-type m)]])))
+              priority 1
+              _ (assert (contains? m :method) "Missing method")
               _ (assert (contains? m :uri) "Missing URI")
-              _ (assert (contains? m :accept) "Missing Accept")
+              content (when-let [content (:content m)] (csk/->js content))
               id (get-next-ajax-id)]
+          (println "Content is" content)
+          (.dir js/console content)
           (.send xhr-manager id (:uri m)
-                 "GET"
-                 nil                    ; content
-                 (clj->js {"Accept" (:accept m)})  ; headers
-                 1                      ; priority
+                 (if (keyword? (:method m))
+                   (upper-case (name (:method m)))
+                   (:method m))
+                 (case (:content-type m)
+                   "application/edn" (pr-str content)
+                   "application/json" (write-json content)
+                   (throw (ex-info "Unsupported content type" {:content-type (:content-type m)})))
+
+                 headers
+                 priority
                  (fn [ev]
                    (let [xhrio (.-target ev)
                          status (.getStatus xhrio)
-                         response (parse-response-body xhrio)]
+                         body (parse-response-body xhrio)]
                      (go
-                       (>! out response))))))
+                       (>! out {:status status :body body}))))))
         (recur)))
     out))
 
@@ -67,6 +83,6 @@
   "Cheeky name, Async Javascript And JSON. Does automatic conversion
   from the JSON protocol to ClojureScript structures on read."
   [& args]
-  (->> (apply ajax< (concat args [:accept "application/json"]))
+  (->> (apply ajax< (concat args [:accept "application/json" :content-type "application/json"]))
        (map< js->clj)
        (map< csk/->edn)))

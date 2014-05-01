@@ -6,7 +6,6 @@
    [cljs.core.async :refer [<! >! chan put! sliding-buffer close! pipe map< filter< mult tap map> timeout]]
    [om.core :as om :include-macros true]
    [sablono.core :as html :refer-macros [html]]
-   [ajax.core :refer (GET PUT POST ajax-request)]
    [ankha.core :as ankha]
    [azondi.ajax :as ajax :refer (ajaj<)]
    [goog.events :as events]
@@ -29,16 +28,17 @@
   (reify
     om/IWillMount
     (will-mount [this]
-      (GET (str "/api/1.0/users/" (:user app-state) "/devices/")
-          {:handler (fn [body]
-                      (println "Got body" body)
-                      (om/update! app-state :devices (get body "devices")))
-           :error-handler error-handler
-           :response-format :json
-           :format :json}))
+      (let [ajax-req (chan)
+            ajax-resp (ajaj< ajax-req
+                             :method :get
+                             :uri (str "/api/1.0/users/" (:user app-state) "/devices/"))]
+        (go
+          (>! ajax-req {})
+          (let [r (<! ajax-resp)]
+            (println "Response is" r)
+            (om/update! app-state :devices (:devices (:body r)))))))
     om/IRender
     (render [this]
-      (println "Rendering devices list" (:devices app-state))
       (html
        [:table
         [:thead
@@ -48,11 +48,11 @@
           [:th "Description"]]
          ]
         [:tbody
-         (for [d (:devices app-state)]
+         (for [{:keys [client-id name description]} (:devices app-state)]
            [:tr
-            [:td (get d "clientId")]
-            [:td (get d "name")]
-            [:td (get d "description")]])
+            [:td.numeric client-id]
+            [:td name]
+            [:td description]])
          ]]))))
 
 
@@ -64,17 +64,19 @@
        [:form.form-horizontal
         {:onSubmit (fn [ev]
                      (.preventDefault ev)
-                     (POST (str "/api/1.0/users/" (:user @app-state) "/devices/")
-                         {:handler (fn [body]
-                                     (println "Got body back!" (get body "clientId"))
-                                     (om/update! app-state [:device :client-id] (get body "clientId"))
-                                     (om/update! app-state [:device :password] (get body "password"))
-                                     (om/transact! app-state :devices #(conj % body)))
-                          :error-handler error-handler
-                          :response-format :json
-                          :params {}
-                          :format :json})
-                     )}
+                     (println "Click!")
+                     (let [req (chan)
+                           resp (ajaj< req :method :post)]
+                       (go
+                         (>! req
+                             {:uri (str "/api/1.0/users/" (:user @app-state) "/devices/")
+                              :content {}})
+                         (let [{:keys [status body] :as response} (<! resp)]
+                           (println "Response to POST is" response)
+                           (when (= status 201)
+                             (om/update! app-state [:device] body)
+                             (om/transact! app-state :devices #(conj % body)))
+                           ))))}
         [:div.control-group
          [:div.controls
           [:input.btn.btn-primary {:type "submit" :value "New device"}]]]]))))
@@ -88,18 +90,18 @@
         [:form.form-horizontal
          {:onSubmit (fn [ev]
                       (.preventDefault ev)
-                      (println "Name is " (om/get-state owner :name))
-                      (println "Description is " (om/get-state owner :description))
-                      (if-let [id (get-in @app-state [:device :client-id])]
-                        (PUT (str "/api/1.0/users/" (:user @app-state) "/devices/" id)
-                            {:handler (fn [body] (println "Got body back!" body))
-                             :error-handler error-handler
-                             :response-format :json
-                             :params {"name" "abc"
-                                      "description" "def"}
-                             :format :json})
-                        )
-                      )}
+                      (let [req (chan)
+                            resp (ajaj< req :method :put)]
+                        (if-let [id (get-in @app-state [:device :client-id])]
+                          (go
+                            (>! req
+                                {:uri (str "/api/1.0/users/" (:user @app-state) "/devices/" id)
+                                 :content-type "application/json"
+                                 :content {:name (om/get-state owner :name)
+                                           :description (om/get-state owner :description)}})
+                            (let [response (<! resp)]
+                              (println "Response to PUT is" response))))))}
+
          [:div.control-group
           [:label.control-label "Client id"]
           [:div.controls
@@ -131,16 +133,19 @@
 
         ;; Delete device
         [:form.form-horizontal
-         #_{:onSubmit (fn [ev]
-                      (.preventDefault ev)
-                      (if-let [id (get-in @app-state [:device :client-id])]
-                        (PUT (str "/api/1.0/users/" (:user @app-state) "/devices/" id)
-                            {:handler (fn [body] (println "Got body back!" body))
-                             :error-handler error-handler
-                             :response-format :json
-                             :params {}
-                             :format :json})
-                        ))}
+         {:onSubmit
+          (fn [ev]
+            (.preventDefault ev)
+            (let [req (chan)
+                  resp (ajaj< req :method :delete)]
+              (if-let [id (get-in @app-state [:device :client-id])]
+                (go
+                  (>! req
+                      {:uri (str "/api/1.0/users/" (:user @app-state) "/devices/" id)})
+                  (let [response (<! resp)]
+                    (println "Response to DELETE is" response))
+                  (om/update! app-state [:device] nil)))))}
+
          [:h2 "Delete device"]
          [:input.btn.btn-danger {:name "action" :type "submit" :value "Delete device"}]]
 
@@ -179,7 +184,8 @@
 
 (defn ^:export new-device-page []
   (om/root new-device-page-component app-model {:target (. js/document (getElementById "content"))})
-  (om/root ankha/inspector app-model {:target (. js/document (getElementById "ankha"))}))
+  ;;(om/root ankha/inspector app-model {:target (. js/document (getElementById "ankha"))})
+  )
 
 
 (defn test-card-page-component [app-state owner]
@@ -187,7 +193,7 @@
     om/IWillMount
     (will-mount [this]
       (let [c (chan)
-            in (ajaj< c)]
+            in (ajaj< c :method :get)]
         (go-loop []
           (when-let [data (<! in)]
             (prn data)
@@ -201,7 +207,7 @@
        [:div [:h1 "Test Card"]
         [:p "Click on the buttons to test the API."]
         [:p "This demonstrates (and tests) that the JSON messages of the API are rendered as canonical JSON with camelCase keys. Check this by analysing the request/response of each message with the Developer Tools of your browser."]
-        [:p "The use of the " [:code "ajaj<"] " core.async function ensures that the ClojureScript code doesn't have to deal with JSON. Check this by looking at the format of the messages printed below. They should be in canonical EDN format with kebab-case keywords."]
+        [:p "The use of the " [:code "ajaj<"] " core.async function ensures that the ClojureScript code doesn't have to deal with JSON. Check this by looking at the format of the messages printed below. They should be in canonical EDN format with kebab-case keywords. JSON keys, in contrast, don't work well with many ClojureScript forms, such as map destructuring."]
         [:p
          [:button.btn.btn-primary
           {:onClick #(go (>! (om/get-state owner :channel) {:uri "/api/1.0"}))}

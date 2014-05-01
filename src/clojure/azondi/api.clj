@@ -14,7 +14,7 @@
    [cheshire.core :refer (decode decode-stream encode)]
    [schema.core :as s]
    [camel-snake-kebab :as csk :refer (->kebab-case-keyword ->camelCaseString)]
-   [azondi.db :refer (get-users get-user delete-user! create-user! devices-by-owner get-device delete-device! create-device!)]
+   [azondi.db :refer (get-users get-user delete-user! create-user! devices-by-owner get-device delete-device! create-device! patch-device!)]
    [hiccup.core :refer (html)]
    [clojure.walk :refer (postwalk)]
    liberator.representation
@@ -70,10 +70,11 @@
   (fn [{{body :body method :request-method} :request}]
     (or
      (= method :get)
+     (= method :delete)
      (try
        (let [body (->clj (read-json-body body))]
          (if-let [error (s/check schema body)]
-           [false {:error {:error "Entity body failed schema check" :details error}}]
+           [false {:error {:error "Entity body failed schema check" :details (pr-str error)}}]
            {:body body}))
        (catch Exception e [false {:error {:error "Entity body did not contain valid JSON"}}])))))
 
@@ -216,26 +217,32 @@
 
 (defn make-device-resource [db]
   {:available-media-types #{"application/json"}
-   :allowed-methods #{:get :put}
+   :allowed-methods #{:get :put :delete}
    :known-content-type? #{"application/json"}
 
    #_:authorized? #_(fn [{{{user :user} :route-params headers :headers :as req} :request}]
-                  (= (extract-api-key req) (get-api-key user)))
+                      (= (extract-api-key req) (get-api-key user)))
 
    :handle-unauthorized (fn [_] (encode {:error "Unauthorized"}))
 
    :exists? (fn [{{{user :user client-id :client-id} :route-params} :request}]
+              (println "user is" user)
+              (println "client id is" client-id)
+              (println "get-user returns" (get-user db user))
+              (println "get-device returns" (get-device db client-id))
               (when (and (get-user db user)
                          (get-device db client-id))
+                (println "Returning context")
                 {:user user
                  :client-id client-id}))
 
    :processable? (create-schema-check new-device-schema)
    :handle-unprocessable-entity handle-unprocessable-entity
 
-   :put! (fn [_] nil)
+   :put! (fn [{client-id :client-id body :body}] (patch-device! db client-id body))
+   :delete! (fn [{client-id :client-id}] (delete-device! db client-id))
 
-   :handle-created (fn [_] {:message "Created"})
+   :handle-created (fn [_] {:message "Patched"})
 
    })
 

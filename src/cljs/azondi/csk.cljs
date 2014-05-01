@@ -13,7 +13,20 @@
 (defn ->keyword [s]
   (keyword (join "-" (map lower-case (rest (remove nil? (re-matches json-key s)))))))
 
+(defn ->camelCase [s]
+  (let [[h & t] (str/split s #"-")]
+           (apply str h (map str/capitalize t))))
+
 (defn ->edn [f]
-  (postwalk (fn [f] (cond
-                     (map? f) (reduce-kv (fn [acc k v ] (assoc acc (if (string? k) (->keyword k) k) v)) {} f)
-                     :otherwise f)) f))
+  (postwalk
+   (fn [f]
+     (cond
+      (map? f) (reduce-kv (fn [acc k v ] (assoc acc (if (string? k) (->keyword k) k) v)) {} f)
+      :otherwise f)) f))
+
+(defn ->js [f]
+  (postwalk
+   (fn [f]
+     (cond
+      (map? f) (reduce-kv (fn [acc k v ] (assoc acc (if (keyword? k) (->camelCase (name k)) k) v)) {} f)
+      :otherwise f)) f))
