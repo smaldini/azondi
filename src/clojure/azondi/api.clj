@@ -16,7 +16,29 @@
    [camel-snake-kebab :as csk :refer (->kebab-case-keyword ->camelCaseString)]
    [azondi.db :refer (get-users get-user delete-user! create-user! devices-by-owner get-device delete-device! create-device!)]
    [hiccup.core :refer (html)]
+   [clojure.walk :refer (postwalk)]
+   liberator.representation
    ))
+
+;; Coercians
+
+(defn process-maps [fm t]
+  (postwalk (fn [fm]
+              (cond
+               (map? fm) (reduce-kv (fn [acc k v] (assoc acc (t k) v)) {} fm)
+               :otherwise fm)) fm))
+
+(defn ->clj
+  "Convert JSON keys into Clojure keywords. This is because we receive
+  JSON but want to process it as Clojure."
+  [fm]
+  (process-maps fm ->kebab-case-keyword))
+
+(defn ->js
+  "Convert Clojure keywords into JSON keys. This is because we respond
+  with JSON."
+  [fm]
+  (process-maps fm ->camelCaseString))
 
 (defprotocol Body
   (read-edn-body [body])
@@ -30,17 +52,19 @@
   (read-edn-body [body] (io! (edn/read (java.io.PushbackReader. (io/reader body)))))
   (read-json-body [body] (io! (decode-stream (io/reader body) true))))
 
-(defn ->clj
-  "Convert JSON keys into Clojure keywords. This is because we receive
-  JSON but want to process it as Clojure."
-  [m]
-  (reduce-kv (fn [acc k v] (assoc acc (->kebab-case-keyword k) v)) {} m))
+(def version "1.0 (beta)")
 
-(defn ->js
-  "Convert Clojure keywords into JSON keys. This is because we respond
-  with JSON."
-  [m]
-  (reduce-kv (fn [acc k v] (assoc acc (->camelCaseString k) v)) {} m))
+;; We override the Liberator defaults because we want maps to be
+;; converted to JSON with Cheshire, and with conversion to camelCase for
+;; the keys.
+
+(defmethod liberator.representation/render-map-generic "application/json" [data context]
+  (encode (->js data)))
+
+(defmethod liberator.representation/render-seq-generic "application/json" [data _]
+  (encode (->js data)))
+
+;; Utility
 
 (defn create-schema-check [schema]
   (fn [{{body :body method :request-method} :request}]
@@ -56,11 +80,18 @@
 (defn handle-unprocessable-entity [{error :error}]
   (encode (update-in error [:details] ->js)))
 
+;; Welcome - this is used for testing
 
+(def welcome (str "OpenSensors.IO API version 1.0 " version))
 
 (defn make-welcome-resource []
-  {:available-media-types #{"text/plain"}
-   :handle-ok "OpenSensors.IO API version 1.0 (beta)\n"})
+  {:available-media-types #{"text/plain" "text/html" "application/json" "application/edn"}
+   :handle-ok (fn [{{mt :media-type} :representation}]
+                (case mt
+                  "text/plain" welcome
+                  "text/html" (html [:h1 welcome])
+                  ("application/json" "application/edn") {:message welcome :current-date (java.util.Date.)}
+                  ))})
 
 ;;;;; ----- USERS ----
 
@@ -71,17 +102,6 @@
   (loop [acc []]
     (if (= (count acc) length) (apply str acc)
         (recur (conj acc (rand-nth alphanumeric))))))
-
-(defn generate-device-password
-  []
-  (let [valid-chars (map char (concat (range 48 58)   ; 0-9
-                                      (range 66 91)   ; A-Z
-                                      (range 97 123)) ;a-z
-                         )
-        random-char (fn [] (nth valid-chars (rand (count valid-chars))))]
-    (apply str (take 8 (repeatedly random-char)))))
-
-;;----
 
 (defn make-users-resource [db]
   {:allowed-methods #{:get}
@@ -143,8 +163,19 @@
    :handle-created (fn [{body :response-body}] body)
    })
 
+;; DEVICES
+
 (def new-device-schema
   {(s/optional-key :description) s/Str})
+
+(defn generate-device-password
+  []
+  (let [valid-chars (map char (concat (range 48 58)   ; 0-9
+                                      (range 66 91)   ; A-Z
+                                      (range 97 123)) ;a-z
+                         )
+        random-char (fn [] (nth valid-chars (rand (count valid-chars))))]
+    (apply str (take 8 (repeatedly random-char)))))
 
 (defn make-devices-resource [db]
   {:available-media-types #{"application/json"}
@@ -207,6 +238,8 @@
    :handle-created (fn [_] {:message "Created"})
 
    })
+
+;; WebService
 
 (defn make-handlers [db]
   {:welcome (resource (make-welcome-resource))

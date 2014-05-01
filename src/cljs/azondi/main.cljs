@@ -6,9 +6,12 @@
    [cljs.core.async :refer [<! >! chan put! sliding-buffer close! pipe map< filter< mult tap map> timeout]]
    [om.core :as om :include-macros true]
    [sablono.core :as html :refer-macros [html]]
-   [ajax.core :refer (GET PUT POST DELETE ajax-request)]
+   [ajax.core :refer (GET PUT POST ajax-request)]
    [ankha.core :as ankha]
-   [goog.events :as events]))
+   [azondi.ajax :as ajax :refer (ajaj<)]
+   [goog.events :as events]
+   [azondi.csk :as csk]
+   ))
 
 (enable-console-print!)
 
@@ -16,7 +19,8 @@
 
 (def app-model (atom {:user "alice"
                       :devices []
-                      :device nil}))
+                      :device nil
+                      :test-card {:messages []}}))
 
 (defn error-handler [{:keys [status status-text] :as response}]
   (println (str "Error: " status " " status-text)))
@@ -71,7 +75,9 @@
                           :params {}
                           :format :json})
                      )}
-        [:input.btn.btn-primary {:type "submit" :value "New device"}]]))))
+        [:div.control-group
+         [:div.controls
+          [:input.btn.btn-primary {:type "submit" :value "New device"}]]]]))))
 
 (defn device-details-form [app-state owner]
   (reify
@@ -82,6 +88,8 @@
         [:form.form-horizontal
          {:onSubmit (fn [ev]
                       (.preventDefault ev)
+                      (println "Name is " (om/get-state owner :name))
+                      (println "Description is " (om/get-state owner :description))
                       (if-let [id (get-in @app-state [:device :client-id])]
                         (PUT (str "/api/1.0/users/" (:user @app-state) "/devices/" id)
                             {:handler (fn [body] (println "Got body back!" body))
@@ -90,7 +98,7 @@
                              :params {"name" "abc"
                                       "description" "def"}
                              :format :json})
-                        (println "No client id"))
+                        )
                       )}
          [:div.control-group
           [:label.control-label "Client id"]
@@ -102,22 +110,28 @@
           [:div.controls
            [:input {:name "name"
                     :type "text"
-                    :value (get-in app-state [:device :name])
+                    :defaultValue (get-in app-state [:device :name])
+                    :onChange (fn [e] (om/set-state! owner :name (.-value (.-target e))))
                     :placeholder "optional device name"}]]]
 
          [:div.control-group
           [:label.control-label "Description"]
           [:div.controls
            [:input {:name "description" :style {:width "90%"}
-                    :type "text" :value (get-in app-state [:device :name])
+                    :type "text"
+                    :defaultValue (get-in app-state [:device :description])
+                    :onChange (fn [e] (om/set-state! owner :description (.-value (.-target e))))
                     :placeholder "optional description"}]]]
 
          [:div.control-group
-          [:input.btn {:name "action" :type "submit" :value "Update device"}]]
+          [:div.controls
+           [:input.btn {:name "action" :type "submit" :value "Update device"}]]]
 
          ]
+
+        ;; Delete device
         [:form.form-horizontal
-         {:onSubmit (fn [ev]
+         #_{:onSubmit (fn [ev]
                       (.preventDefault ev)
                       (if-let [id (get-in @app-state [:device :client-id])]
                         (PUT (str "/api/1.0/users/" (:user @app-state) "/devices/" id)
@@ -164,4 +178,42 @@
       )))
 
 (defn ^:export new-device-page []
-  (om/root new-device-page-component app-model {:target (. js/document (getElementById "content"))}))
+  (om/root new-device-page-component app-model {:target (. js/document (getElementById "content"))})
+  (om/root ankha/inspector app-model {:target (. js/document (getElementById "ankha"))}))
+
+
+(defn test-card-page-component [app-state owner]
+  (reify
+    om/IWillMount
+    (will-mount [this]
+      (let [c (chan)
+            in (ajaj< c)]
+        (go-loop []
+          (when-let [data (<! in)]
+            (prn data)
+            (om/transact! app-state [:test-card :messages] #(conj % (pr-str data)))
+            (recur)))
+        (om/set-state! owner :channel c)))
+
+    om/IRender
+    (render [this]
+      (html
+       [:div [:h1 "Test Card"]
+        [:p "Click on the buttons to test the API."]
+        [:p "This demonstrates (and tests) that the JSON messages of the API are rendered as canonical JSON with camelCase keys. Check this by analysing the request/response of each message with the Developer Tools of your browser."]
+        [:p "The use of the " [:code "ajaj<"] " core.async function ensures that the ClojureScript code doesn't have to deal with JSON. Check this by looking at the format of the messages printed below. They should be in canonical EDN format with kebab-case keywords."]
+        [:p
+         [:button.btn.btn-primary
+          {:onClick #(go (>! (om/get-state owner :channel) {:uri "/api/1.0"}))}
+          "Welcome in JSON"]
+         [:button.btn
+          {:onClick #(om/update! app-state [:test-card :messages] [])}
+          "Clear"]]
+        [:h2 "Messages"]
+        (for [msg (get-in app-state [:test-card :messages])]
+          [:p msg]
+          )
+        ]))))
+
+(defn ^:export test-card []
+  (om/root test-card-page-component app-model {:target (. js/document (getElementById "content"))}))

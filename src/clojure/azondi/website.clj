@@ -21,6 +21,7 @@
    :body (css
           [:p.loading {:color "#aaa" :font-size (pt 32)}]
           [:label.optional {:color "#aaa"}]
+          [:button {:margin (em 0.5)}]
 
           ;;[:h1 :h2 :h3 {:color (rgb 0 0 154)}]
           [:th {:padding-left (em 0.5)}]
@@ -53,6 +54,13 @@
                                            [:div#content [:p.loading "Loading..."]]])
                               :cljs "azondi.main.new_device_page()"
                               }))
+
+     ::test-card (wrap-template
+                  (fn [req] {:body (html [:div
+                                          [:div#content [:p.loading "Loading..."]]])
+                             :cljs "azondi.main.test_card()"
+                             }))
+
      ::styles styles})
 
   (routes [_]
@@ -63,6 +71,8 @@
           ["css/style.css" ::styles]
           ["devices/" {"list" ::list-devices
                        "new" ::new-device}]
+          ["developer/" {"test-card" ::test-card}]
+
           ]])
 
   (uri-context [_] "")
@@ -72,6 +82,7 @@
     [{:label "Home" :order "A1" :href ::index}
      {:label "New device" :order "B1" :href ::new-device :parent "Devices"}
      {:label "List devices" :order "B2" :href ::list-devices :parent "Devices"}
+     {:label "Test Card" :order "T1" :href ::test-card :parent "Developer"}
      ]))
 
 (defn new-website []
