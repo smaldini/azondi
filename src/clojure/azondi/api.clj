@@ -262,7 +262,7 @@
   be indented beautifully to read like a site-map."
   []
   [""
-   {"" :welcome
+   {"" ::welcome
     "/" (->Redirect 307 ::welcome)
     "/users" (->Redirect 307 ::users)
     "/users/" ::users
