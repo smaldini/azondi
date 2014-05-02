@@ -17,10 +17,11 @@
 
 (def hostname "localhost")
 
-(def app-model (atom {:user "alice"
-                      :devices []
-                      :device nil
-                      :test-card {:messages []}}))
+(def app-model
+  (atom {:user "alice"
+         :devices []
+         :device nil
+         :test-card {:messages []}}))
 
 (defn error-handler [{:keys [status status-text] :as response}]
   (println (str "Error: " status " " status-text)))
@@ -36,7 +37,6 @@
         (go
           (>! ajax-req {})
           (let [r (<! ajax-resp)]
-            (println "Response is" r)
             (om/update! app-state :devices (:devices (:body r)))))))
     om/IRender
     (render [this]
@@ -51,19 +51,20 @@
         [:tbody
          (for [{:keys [client-id name description]} (:devices app-state)]
            [:tr
-            [:td.numeric [:a  {:onClick (fn [ev]
-                                          (.preventDefault ev)
-                                          (let [req (chan)
-                                                resp (ajaj< req :method :get)]
-                                            (go
-                                              (>! req
-                                                  {:uri (str "/api/1.0/users/" (:user @app-state) "/devices/" client-id)
-                                                   :content {}})
-                                              (let [{:keys [status body] :as response} (<! resp)]
-                                                (println "Response to GET is" response)
-                                                (when (= status 200)
-                                                  (om/update! app-state [:device] body))
-                                                ))))} client-id]]
+            [:td.numeric
+             [:a
+              {:onClick
+               (fn [ev]
+                 (.preventDefault ev)
+                 (let [req (chan) resp (ajaj< req :method :get)]
+                   (go
+                     (>! req
+                         {:uri (str "/api/1.0/users/" (:user @app-state) "/devices/" client-id)
+                          :content {}})
+                     (let [{:keys [status body] :as response} (<! resp)]
+                       (when (= status 200)
+                         (om/update! app-state :device (select-keys body [:client-id :name :description])))
+                       ))))} client-id]]
             [:td name]
             [:td description]])
          ]]))))
@@ -84,7 +85,6 @@
                              {:uri (str "/api/1.0/users/" (:user @app-state) "/devices/")
                               :content {}})
                          (let [{:keys [status body] :as response} (<! resp)]
-                           (println "Response to POST is" response)
                            (when (= status 201)
                              (om/update! app-state [:device] body)
                              (om/transact! app-state :devices #(conj % body)))
@@ -98,92 +98,107 @@
     om/IRender
     (render [this]
       (html
-       [:div
-        [:h2 "Device " (get-in app-state [:device :name])]
-        [:form.form-horizontal
-         {:onSubmit (fn [ev]
-                      (.preventDefault ev)
-                      (let [req (chan)
-                            resp (ajaj< req :method :put)]
-                        (if-let [id (get-in @app-state [:device :client-id])]
-                          (go
-                            (>! req
-                                {:uri (str "/api/1.0/users/" (:user @app-state) "/devices/" id)
-                                 :content-type "application/json"
-                                 :content {:name (om/get-state owner :name)
-                                           :description (om/get-state owner :description)}})
-                            (let [response (<! resp)]
-                              (println "Response to PUT is" response))))))}
+       (let [id (get-in app-state [:device :client-id])]
+         [:div
+          [:h2
+           (let [name (get-in app-state [:device :name])]
+             (if (and name (not-empty name))
+               (str "Device: " name)
+               "Device"))]
+          [:form.form-horizontal
+           {:onSubmit (fn [ev]
+                        (.preventDefault ev)
+                        (let [req (chan)
+                              resp (ajaj< req :method :put)]
+                          (if-let [id (get-in @app-state [:device :client-id])]
+                            (go
+                              (>! req
+                                  {:uri (str "/api/1.0/users/" (:user @app-state) "/devices/" id)
+                                   :content-type "application/json"
+                                   :content {:name (or (get-in @app-state [:device :name]) "")
+                                             :description (or (get-in @app-state [:device :description]) "")}})
+                              (let [response (<! resp)]
+                                (println "Response to PUT is" response))))))}
 
-         [:div.control-group
-          [:label.control-label "Client id"]
-          [:div.controls
-           [:input {:name "id" :type "text" :value (get-in app-state [:device :client-id]) :editable false :disabled true}]]]
+           [:div.control-group
+            [:label.control-label "Client id"]
+            [:div.controls
+             [:input {:name "id" :type "text" :value (get-in app-state [:device :client-id]) :editable false :disabled true}]]]
 
-         [:div.control-group
-          [:label.control-label "Name"]
-          [:div.controls
-           [:input {:name "name"
-                    :type "text"
-                    :defaultValue (get-in app-state [:device :name])
-                    :onChange (fn [e] (om/update! app-state [:device :name] (.-value (.-target e))))
-                    :placeholder "optional device name"}]]]
+           [:div.control-group
+            [:label.control-label "Name"]
+            [:div.controls
+             [:input {:name "name"
+                      :type "text"
+                      :value (get-in app-state [:device :name])
+                      :onChange (fn [e]
+                                  (let [value (.-value (.-target e))]
+                                    (om/update! app-state [:device :name] value)
+                                    (om/transact! app-state [:devices]
+                                                  (fn [devices] (vec (reduce (fn [acc device] (conj acc (if (= (:client-id device) id) (assoc device :name value) device))) [] devices)))
+                                                  )))
+                      :placeholder "optional device name"}]]]
 
-         [:div.control-group
-          [:label.control-label "Description"]
-          [:div.controls
-           [:input {:name "description" :style {:width "90%"}
-                    :type "text"
-                    :defaultValue (get-in app-state [:device :description])
-                    :onChange (fn [e] (om/set-state! owner :description (.-value (.-target e))))
-                    :placeholder "optional description"}]]]
+           [:div.control-group
+            [:label.control-label "Description"]
+            [:div.controls
+             [:input {:name "description" :style {:width "90%"}
+                      :type "text"
+                      :value (get-in app-state [:device :description])
+                      :onChange (fn [e]
+                                  (let [value (.-value (.-target e))]
+                                    (om/update! app-state [:device :description] value)
+                                    (om/transact! app-state [:devices]
+                                                  (fn [devices] (vec (reduce (fn [acc device] (conj acc (if (= (:client-id device) id) (assoc device :description value) device))) [] devices)))
+                                                  )))
+                      :placeholder "optional description"}]]]
 
-         [:div.control-group
-          [:div.controls
-           [:input.btn {:name "action" :type "submit" :value "Update device"}]]]]
+           [:div.control-group
+            [:div.controls
+             [:input.btn {:name "action" :type "submit" :value "Apply"}]]]]
 
 
+          (when-let [password (-> app-state :device :password)]
+            (list
+             [:h3 "Password"]
+             [:p "This device has a password that you must use when connecting to the broker. Please make a note of this password now, you will not get another chance. If you lose it you will have to delete and recreate the device."]
+             [:pre {:style {:font-size "2em"}} password]))
 
-        (when-let [password (-> app-state :device :password)]
-          (list
-           [:h3 "Password"]
-           [:p "This device has a password that you must use when connecting to the broker. Please make a note of this password now, you will not get another chance. If you lose it you will have to delete and recreate the device."]
-           [:pre {:style {:font-size "2em"}} password]))
+          [:h3 "Test this device"]
+          [:h4 "Mosquitto"]
+          [:pre (str "mosquitto_pub"
+                     " -h " hostname
+                     " -i " (-> app-state :device :client-id)
+                     " -t " "test"
+                     " -m " "'This is a test'"
+                     " -u " (:user app-state)
+                     " -P " (or (-> app-state :device :password) "<enter password>")
+                     )]
 
-        [:h3 "Test this device"]
-           [:h4 "Mosquitto"]
-           [:pre (str "mosquitto_pub"
-                      " -h " hostname
-                      " -i " (-> app-state :device :client-id)
-                      " -t " "test"
-                      " -m " "'This is a test'"
-                      " -u " (:user app-state)
-                      " -P " (or (-> app-state :device :password) "<enter password>")
-                      )]
+          [:h4 "Events"]
+          [:p "We will show all connection attempts from this device to help you succeed in establishing a connection from your device to the broker."]
+          [:pre]
 
-        [:h4 "Events"]
-        [:p "We will show all connection attempts from this device to help you succeed in establishing a connection from your device to the broker."]
-        [:pre]
+          [:form.form-horizontal
+           {:onSubmit
+            (fn [ev]
+              (.preventDefault ev)
+              (let [req (chan)
+                    resp (ajaj< req :method :delete)]
+                (if-let [id (get-in @app-state [:device :client-id])]
+                  (go
+                    (>! req
+                        {:uri (str "/api/1.0/users/" (:user @app-state) "/devices/" id)})
+                    (let [{:keys [status body]} (<! resp)]
+                      (when (= status 204)
+                        (om/update! app-state [:device] nil)
+                        (om/transact! app-state [:devices] (fn [devices] (remove #(= (:client-id %) id) devices)))))))))}
+           [:h3 "Delete device"]
+           [:p "This will delete the device permanently."]
+           [:input.btn.btn-danger {:name "action" :type "submit" :value "Delete device"}]]
 
-        [:form.form-horizontal
-         {:onSubmit
-          (fn [ev]
-            (.preventDefault ev)
-            (let [req (chan)
-                  resp (ajaj< req :method :delete)]
-              (if-let [id (get-in @app-state [:device :client-id])]
-                (go
-                  (>! req
-                      {:uri (str "/api/1.0/users/" (:user @app-state) "/devices/" id)})
-                  (let [{:keys [status body]} (<! resp)]
-                    (when (= status 204)
-                      (om/update! app-state [:device] nil)
-                      (om/transact! app-state [:devices] (fn [devices] (remove #(= (:client-id %) id) devices)))))))))}
-         [:h3 "Delete device"]
-         [:p "This will delete the device permanently."]
-         [:input.btn.btn-danger {:name "action" :type "submit" :value "Delete device"}]]
 
-        ]))))
+          ])))))
 
 (defn devices-page-component [app-state owner]
   (reify
@@ -197,7 +212,9 @@
           (om/build device-details-form app-state))]))))
 
 (defn ^:export devices-page []
-  (om/root devices-page-component app-model {:target (. js/document (getElementById "content"))}))
+  (om/root devices-page-component app-model {:target (. js/document (getElementById "content"))})
+  ;;(om/root ankha/inspector app-model {:target (. js/document (getElementById "ankha"))})
+  )
 
 (defn test-card-page-component [app-state owner]
   (reify
@@ -237,9 +254,8 @@
           "Connect"]]
         [:h2 "Messages"]
         (for [msg (get-in app-state [:test-card :messages])]
-          [:p msg]
-          )
-        ]))))
+          [:p msg])]))))
 
 (defn ^:export test-card []
-  (om/root test-card-page-component app-model {:target (. js/document (getElementById "content"))}))
+  (om/root test-card-page-component app-model {:target (. js/document (getElementById "content"))})
+  )

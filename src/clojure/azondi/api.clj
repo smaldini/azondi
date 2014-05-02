@@ -166,8 +166,10 @@
 
 ;; DEVICES
 
-(def new-device-schema
-  {(s/optional-key :description) s/Str})
+(def device-attributes-schema
+  {(s/optional-key :name) s/Str
+   (s/optional-key :description) s/Str
+   })
 
 (defn generate-device-password
   []
@@ -190,7 +192,7 @@
 
       ;; Liberator introduced processable? in 0.9.0 - See
    ;; http://stackoverflow.com/questions/4781187/http-400-bad-request-for-logical-error-not-malformed-request-syntax
-   :processable? (create-schema-check new-device-schema)
+   :processable? (create-schema-check device-attributes-schema)
    :handle-unprocessable-entity handle-unprocessable-entity
 
    :post! (fn [{body :body {{user :user client-id :client-id} :route-params} :request}]
@@ -205,11 +207,6 @@
 
 
 })
-
-(def new-device-schema
-  {(s/optional-key :name) s/Str
-   (s/optional-key :description) s/Str
-   })
 
 (defn extract-api-key [req]
   (when-let [auth (get (:headers req) "authorization")]
@@ -236,7 +233,7 @@
                 {:user user
                  :client-id client-id}))
 
-   :processable? (create-schema-check new-device-schema)
+   :processable? (create-schema-check device-attributes-schema)
    :handle-unprocessable-entity handle-unprocessable-entity
 
    :put! (fn [{client-id :client-id body :body}] (patch-device! db client-id body))
