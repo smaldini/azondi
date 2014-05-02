@@ -85,7 +85,7 @@
 
 (def welcome (str "OpenSensors.IO API version 1.0 " version))
 
-(defn make-welcome-resource []
+(defn welcome-resource []
   {:available-media-types #{"text/plain" "text/html" "application/json" "application/edn"}
    :handle-ok (fn [{{mt :media-type} :representation}]
                 (case mt
@@ -104,7 +104,7 @@
     (if (= (count acc) length) (apply str acc)
         (recur (conj acc (rand-nth alphanumeric))))))
 
-(defn make-users-resource [db]
+(defn users-resource [db]
   {:allowed-methods #{:get}
    :available-media-types #{"text/html" "application/json"}
    :handle-ok
@@ -124,7 +124,7 @@
    :email s/Str
    })
 
-(defn make-user-resource [db]
+(defn user-resource [db]
   {:available-media-types #{"application/json" "text/html"}
    :allowed-methods #{:put :get}
    :known-content-type? #{"application/json"}
@@ -178,7 +178,7 @@
         random-char (fn [] (nth valid-chars (rand (count valid-chars))))]
     (apply str (take 8 (repeatedly random-char)))))
 
-(defn make-devices-resource [db]
+(defn devices-resource [db]
   {:available-media-types #{"application/json"}
    :allowed-methods #{:get :post}
    :handle-ok (fn [{{{user :user} :route-params} :request}]
@@ -215,7 +215,7 @@
   (when-let [auth (get (:headers req) "authorization")]
     (second (re-matches #"api-key\s([0-9a-f-]+)" auth))))
 
-(defn make-device-resource [db]
+(defn device-resource [db]
   {:available-media-types #{"application/json"}
    :allowed-methods #{:get :put :delete}
    :known-content-type? #{"application/json"}
@@ -250,12 +250,11 @@
 ;; WebService
 
 (defn make-handlers [db]
-;; TODO All these make- prefixes feel unnecessary
-  {:welcome (resource (make-welcome-resource))
-   :users (resource (make-users-resource db))
-   :user (resource (make-user-resource db))
-   :devices (resource (make-devices-resource db))
-   :device (resource (make-device-resource db))
+  {:welcome (resource (welcome-resource))
+   :users (resource (users-resource db))
+   :user (resource (user-resource db))
+   :devices (resource (devices-resource db))
+   :device (resource (device-resource db))
    })
 
 (defn make-routes
