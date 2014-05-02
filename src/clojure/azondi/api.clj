@@ -250,11 +250,11 @@
 ;; WebService
 
 (defn make-handlers [db]
-  {:welcome (resource (welcome-resource))
-   :users (resource (users-resource db))
-   :user (resource (user-resource db))
-   :devices (resource (devices-resource db))
-   :device (resource (device-resource db))
+  {::welcome (resource (welcome-resource))
+   ::users (resource (users-resource db))
+   ::user (resource (user-resource db))
+   ::devices (resource (devices-resource db))
+   ::device (resource (device-resource db))
    })
 
 (defn make-routes
@@ -263,13 +263,13 @@
   []
   [""
    {"" :welcome
-    "/" (->Redirect 307 :welcome)
-    "/users" (->Redirect 307 :users)
-    "/users/" :users
-    ["/users/" :user] {"" :user
-                       "/devices" (->Redirect 307 :devices)
-                       "/devices/" :devices
-                       ["/devices/" :client-id] :device}}])
+    "/" (->Redirect 307 ::welcome)
+    "/users" (->Redirect 307 ::users)
+    "/users/" ::users
+    ["/users/" :user] {"" ::user
+                       "/devices" (->Redirect 307 ::devices)
+                       "/devices/" ::devices
+                       ["/devices/" :client-id] ::device}}])
 
 (defrecord Api [uri-context]
   component/Lifecycle

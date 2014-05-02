@@ -6,7 +6,7 @@
    [cheshire.core :refer (encode decode)]
    [clojure.pprint :refer (pprint)]
    [bidi.bidi :refer (path-for)]
-   [azondi.api :refer (->js ->clj)]
+   [azondi.api :refer (->js ->clj) :as api]
    [azondi.db :refer (get-user)]
    ))
 
@@ -51,7 +51,7 @@
 (deftest devices
   ;; Create Alice
   (is (not (get-user db "alice")))
-  (let [uri (make-uri :user :user "alice")
+  (let [uri (make-uri :azondi.api/user :user "alice")
         response (request :put uri :data {:user "alice"
                                           :name "Alice Cheung"
                                           :email "alice@example.org"
@@ -72,7 +72,7 @@
       (is (not= (:email (get-user db "alice")) "alice@example.org"))
       (is (= (:email (get-user db "alice")) "alice@another.com"))
 
-      (let [uri (make-uri :devices :user "alice")]
+      (let [uri (make-uri :azondi.api/devices :user "alice")]
 
         (let [response (request :post uri :data {})]
 
@@ -84,7 +84,7 @@
           (let [password (-> response :body :password)]
 
             ;; Find our devices
-            (let [uri (make-uri :devices :user "alice")
+            (let [uri (make-uri :azondi.api/devices :user "alice")
                   response (request :get uri)]
 
               (is (contains? (:body response) :user))
@@ -98,7 +98,7 @@
             ;; Now try to publish a message to azondi
 
 
-            ;;(request :post (make-uri :devices :user "alice") :data {})
+            ;;(request :post (make-uri :azondi.api/devices :user "alice") :data {})
 
             ;; Let's try to get our devices
             )))))
