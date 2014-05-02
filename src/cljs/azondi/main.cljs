@@ -139,11 +139,27 @@
 
          [:div.control-group
           [:div.controls
-           [:input.btn {:name "action" :type "submit" :value "Update device"}]]]
+           [:input.btn {:name "action" :type "submit" :value "Update device"}]]]]
 
-         ]
 
-        ;; Delete device
+
+        (when-let [password (-> app-state :device :password)]
+          (list
+           [:h3 "Password"]
+           [:p "This device has a password that you must use when connecting to the broker. Please make a note of this password now. If you lose it you will have to delete and recreate the device."]
+           [:pre {:style {:font-size "2em"}} password]
+
+           [:h3 "Test this device"]
+           [:h4 "Mosquitto"]
+           [:pre (str "mosquitto_pub"
+                      " -h " hostname
+                      " -i " (-> app-state :device :client-id)
+                      " -u " (:user app-state)
+                      " -P " password
+                      " -t " "test"
+                      " -m " "'This is a test'"
+                      )]))
+
         [:form.form-horizontal
          {:onSubmit
           (fn [ev]
@@ -158,20 +174,11 @@
                     (when (= status 204)
                       (om/update! app-state [:device] nil)
                       (om/transact! app-state [:devices] (fn [devices] (remove #(= (:client-id %) id) devices)))))))))}
-
-         [:h2 "Delete device"]
+         [:h3 "Delete device"]
+         [:p "This will delete the device permanently."]
          [:input.btn.btn-danger {:name "action" :type "submit" :value "Delete device"}]]
 
-        [:h3 "Test this device"]
-        [:h4 "Mosquitto"]
-        [:pre (str "mosquitto_pub"
-                   " -h " hostname
-                   " -i " (-> app-state :device :client-id)
-                   " -u " (:user app-state)
-                   " -P " (-> app-state :device :password)
-                   " -t " "test"
-                   " -m " "'This is a test'"
-                   )]]))))
+        ]))))
 
 (defn devices-page-component [app-state owner]
   (reify
