@@ -9,6 +9,7 @@
    [ankha.core :as ankha]
    [azondi.ajax :as ajax :refer (ajaj<)]
    [goog.events :as events]
+   [chord.client :refer [ws-ch]]
    [azondi.csk :as csk]
    ))
 
@@ -214,7 +215,16 @@
           "Welcome in JSON"]
          [:button.btn
           {:onClick #(om/update! app-state [:test-card :messages] [])}
-          "Clear"]]
+          "Clear"]
+         [:button.btn
+          {:onClick (fn [ev]
+                      (println "Connecting")
+                      (go
+                        (let [ws
+                              (<! (ws-ch "ws://localhost:8083/events/stream/users/alice" {:format :json-kw}))]
+                          (println "Websocket ch" ws-ch)
+                          )))}
+          "Connect"]]
         [:h2 "Messages"]
         (for [msg (get-in app-state [:test-card :messages])]
           [:p msg]

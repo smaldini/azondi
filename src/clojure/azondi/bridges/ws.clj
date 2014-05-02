@@ -2,9 +2,7 @@
   (:require [taoensso.timbre :as log]
             [com.stuartsierra.component :as component]
             [org.httpkit.server :refer [run-server with-channel send! on-close close]]
-            [compojure.core :refer [routes GET POST]]
-            [compojure.route :as route]
-            [compojure.handler :refer [api]]
+            [bidi.bidi :refer (make-handler)]
             [clojurewerkz.meltdown.reactor :as mr]
             [clojurewerkz.meltdown.selectors :refer [set-membership]]
             [clojurewerkz.meltdown.consumers :as mc]
@@ -68,11 +66,10 @@
           clients (atom #{})
           ;; define routes here so that they have access to
           ;; clients, reactor, etc. MK.
-          routes  (routes
-                   (GET  "/events/stream/users/:username" req (ws-connection-handler db req clients r))
-                   (route/resources "/"))
-          server (run-server (api routes) {:port port})]
-      (log/infof "About to start WebSocket/polling bridge server on port %d" port)
+          handler (make-handler [["/events/stream/users/" :username]
+                                 (fn [req] (ws-connection-handler db req clients r))])
+          server (run-server handler {:port port})]
+      (log/debugf "About to start WebSocket/polling bridge server on port %d" port)
       (assoc this :server server)))
   (stop [this]
     (when-let [server (:server this)]
