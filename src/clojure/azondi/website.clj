@@ -42,17 +42,12 @@
 
   (ring-handler-map [_]
     {::index (wrap-template (fn [req] {:body (md->html (io/resource "markdown/index.md"))}))
-     ::list-devices (wrap-template
-                     (fn [req] {:body (html [:div
-                                             [:h1 "Devices"]
-                                             [:div#content [:p.loading "Loading..."]]])
-                                :cljs "azondi.main.list_devices_page()"
-                                }))
-     ::new-device (wrap-template
+
+     ::devices (wrap-template
                    (fn [req] {:body (html [:div
                                            [:h1 "New device"]
                                            [:div#content [:p.loading "Loading..."]]])
-                              :cljs "azondi.main.new_device_page()"
+                              :cljs "azondi.main.devices_page()"
                               }))
 
      ::test-card (wrap-template
@@ -69,8 +64,7 @@
 
           ["index" ::index]
           ["css/style.css" ::styles]
-          ["devices/" {"list" ::list-devices
-                       "new" ::new-device}]
+          ["devices/" ::devices]
           ["developer/" {"test-card" ::test-card}]
 
           ]])
@@ -80,8 +74,7 @@
   MenuItems
   (menu-items [_ context]
     [{:label "Home" :order "A1" :href ::index}
-     {:label "New device" :order "B1" :href ::new-device :parent "Devices"}
-     {:label "List devices" :order "B2" :href ::list-devices :parent "Devices"}
+     {:label "Devices" :order "B1" :href ::devices :parent "Devices"}
      {:label "Test Card" :order "T1" :href ::test-card :parent "Developer"}
      ]))
 

@@ -242,6 +242,7 @@
    :put! (fn [{client-id :client-id body :body}] (patch-device! db client-id body))
    :delete! (fn [{client-id :client-id}] (delete-device! db client-id))
 
+   :handle-ok (fn [{client-id :client-id}] (get-device db client-id))
    :handle-created (fn [_] {:message "Patched"})
 
    })
@@ -249,6 +250,7 @@
 ;; WebService
 
 (defn make-handlers [db]
+;; TODO All these make- prefixes feel unnecessary
   {:welcome (resource (make-welcome-resource))
    :users (resource (make-users-resource db))
    :user (resource (make-user-resource db))

@@ -120,9 +120,7 @@
 
    (autowire-dependencies-satisfying system-map :router WebService)
    (autowire-dependencies-satisfying system-map :ring-binder RingBinding)
-   ;;(autowire-dependencies-satisfying system-map :html-template TemplateModel)
    (autowire-dependencies-satisfying system-map :menu-index MenuItems)
-   ;;(autowire-dependencies-satisfying system-map :main-cljs-builder ClojureScriptModule)
    ))
 
 (defn new-prod-system []

@@ -8,7 +8,7 @@
 
             [clojure.set :as cs]
             [clojurewerkz.meltdown.reactor :as mr]
-            [azondi.authentication :refer (allowed-device?)]
+            [azondi.authentication :refer (allowed-device? DeviceAuthenticator)]
             [azondi.devices :refer (device-names)]
             [azondi.topics :as tp]
             [clojurewerkz.meltdown.selectors :as ms :refer [$]])
@@ -135,7 +135,11 @@
   ;;  :protocol-version 3,
   ;;  :dup false
   ;;  }
-  (let [authenticator (:device-authenticator handler-state)]
+
+
+
+  (let [authenticator (reify DeviceAuthenticator
+                        (allowed-device? [this client-id owner password] true))]
     (cond
      (not (supported-protocol? protocol-name protocol-version))
      (do

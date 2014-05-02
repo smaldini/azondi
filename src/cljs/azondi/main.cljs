@@ -51,13 +51,25 @@
         [:tbody
          (for [{:keys [client-id name description]} (:devices app-state)]
            [:tr
-            [:td.numeric client-id]
+            [:td.numeric [:a  {:onClick (fn [ev]
+                                          (.preventDefault ev)
+                                          (let [req (chan)
+                                                resp (ajaj< req :method :get)]
+                                            (go
+                                              (>! req
+                                                  {:uri (str "/api/1.0/users/" (:user @app-state) "/devices/" client-id)
+                                                   :content {}})
+                                              (let [{:keys [status body] :as response} (<! resp)]
+                                                (println "Response to GET is" response)
+                                                (when (= status 200)
+                                                  (om/update! app-state [:device] body))
+                                                ))))} client-id]]
             [:td name]
             [:td description]])
          ]]))))
 
 
-(defn new-device-form [app-state owner]
+(defn new-device-button [app-state owner]
   (reify
     om/IRender
     (render [this]
@@ -65,7 +77,6 @@
        [:form.form-horizontal
         {:onSubmit (fn [ev]
                      (.preventDefault ev)
-                     (println "Click!")
                      (let [req (chan)
                            resp (ajaj< req :method :post)]
                        (go
@@ -143,9 +154,10 @@
                 (go
                   (>! req
                       {:uri (str "/api/1.0/users/" (:user @app-state) "/devices/" id)})
-                  (let [response (<! resp)]
-                    (println "Response to DELETE is" response))
-                  (om/update! app-state [:device] nil)))))}
+                  (let [{:keys [status body]} (<! resp)]
+                    (when (= status 204)
+                      (om/update! app-state [:device] nil)
+                      (om/transact! app-state [:devices] (fn [devices] (remove #(= (:client-id %) id) devices)))))))))}
 
          [:h2 "Delete device"]
          [:input.btn.btn-danger {:name "action" :type "submit" :value "Delete device"}]]
@@ -161,33 +173,19 @@
                    " -m " "'This is a test'"
                    )]]))))
 
-(defn list-devices-page-component [app-state owner]
+(defn devices-page-component [app-state owner]
   (reify
     om/IRender
     (render [this]
       (html
        [:div
-        (om/build devices-list app-state)]))))
-
-(defn ^:export list-devices-page []
-  (om/root list-devices-page-component app-model {:target (. js/document (getElementById "content"))}))
-
-(defn new-device-page-component [app-state owner]
-  (reify
-    om/IRender
-    (render [this]
-      (html
-       [:div
-        (om/build new-device-form app-state)
+        (om/build devices-list app-state)
+        (om/build new-device-button app-state)
         (when (:device app-state)
-          (om/build device-details-form app-state))])
-      )))
+          (om/build device-details-form app-state))]))))
 
-(defn ^:export new-device-page []
-  (om/root new-device-page-component app-model {:target (. js/document (getElementById "content"))})
-  ;;(om/root ankha/inspector app-model {:target (. js/document (getElementById "ankha"))})
-  )
-
+(defn ^:export devices-page []
+  (om/root devices-page-component app-model {:target (. js/document (getElementById "content"))}))
 
 (defn test-card-page-component [app-state owner]
   (reify

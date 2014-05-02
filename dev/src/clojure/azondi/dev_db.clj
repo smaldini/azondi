@@ -11,7 +11,6 @@
 (dosync
  (alter a inc))
 
-
 (defrecord InmemoryDatastore []
   component/Lifecycle
   (start [this]
@@ -42,7 +41,7 @@
        (dissoc device :user))))
 
   (get-device [this client-id]
-    (-> this :database :devices deref (get client-id)))
+    (dissoc (-> this :database :devices deref (get client-id)) :password))
 
   (delete-device! [this client-id]
     (dosync
