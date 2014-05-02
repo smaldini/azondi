@@ -45,7 +45,7 @@
 
      ::devices (wrap-template
                    (fn [req] {:body (html [:div
-                                           [:h1 "New device"]
+                                           [:h1 "Devices"]
                                            [:div#content [:p.loading "Loading..."]]])
                               :cljs "azondi.main.devices_page()"
                               }))

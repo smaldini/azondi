@@ -91,7 +91,7 @@
                            ))))}
         [:div.control-group
          [:div.controls
-          [:input.btn.btn-primary {:type "submit" :value "New device"}]]]]))))
+          [:input.btn.btn-primary {:type "submit" :value "Register new device"}]]]]))))
 
 (defn device-details-form [app-state owner]
   (reify
@@ -99,6 +99,7 @@
     (render [this]
       (html
        [:div
+        [:h2 "Device " (get-in app-state [:device :name])]
         [:form.form-horizontal
          {:onSubmit (fn [ev]
                       (.preventDefault ev)
@@ -146,19 +147,23 @@
         (when-let [password (-> app-state :device :password)]
           (list
            [:h3 "Password"]
-           [:p "This device has a password that you must use when connecting to the broker. Please make a note of this password now. If you lose it you will have to delete and recreate the device."]
-           [:pre {:style {:font-size "2em"}} password]
+           [:p "This device has a password that you must use when connecting to the broker. Please make a note of this password now, you will not get another chance. If you lose it you will have to delete and recreate the device."]
+           [:pre {:style {:font-size "2em"}} password]))
 
-           [:h3 "Test this device"]
+        [:h3 "Test this device"]
            [:h4 "Mosquitto"]
            [:pre (str "mosquitto_pub"
                       " -h " hostname
                       " -i " (-> app-state :device :client-id)
-                      " -u " (:user app-state)
-                      " -P " password
                       " -t " "test"
                       " -m " "'This is a test'"
-                      )]))
+                      " -u " (:user app-state)
+                      " -P " (or (-> app-state :device :password) "<enter password>")
+                      )]
+
+        [:h4 "Events"]
+        [:p "We will show all connection attempts from this device to help you succeed in establishing a connection from your device to the broker."]
+        [:pre]
 
         [:form.form-horizontal
          {:onSubmit
