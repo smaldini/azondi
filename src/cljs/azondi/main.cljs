@@ -126,7 +126,7 @@
            [:input {:name "name"
                     :type "text"
                     :defaultValue (get-in app-state [:device :name])
-                    :onChange (fn [e] (om/set-state! owner :name (.-value (.-target e))))
+                    :onChange (fn [e] (om/update! app-state [:device :name] (.-value (.-target e))))
                     :placeholder "optional device name"}]]]
 
          [:div.control-group
