@@ -23,21 +23,27 @@
          :device nil
          :test-card {:messages []}}))
 
-(defn error-handler [{:keys [status status-text] :as response}]
-  (println (str "Error: " status " " status-text)))
-
 (defn devices-list [app-state owner]
   (reify
     om/IWillMount
     (will-mount [this]
-      (let [ajax-req (chan)
-            ajax-resp (ajaj< ajax-req
+      ;; This code below is in preference to using clj-ajax. As such, it
+      ;; is written out each time in long-hand but eventually common
+      ;; patterns will emerge which can be factored into
+      ;; azondi/ajax.cljs. Until then, please forgive the long-winded
+      ;; set up. One such pattern is only setting up one channel-pair for
+      ;; each resource and registering it somewhere, in an atom or
+      ;; something, which can be looked up by keyword corresponding to
+      ;; the resource.
+      (let [ajax-send (chan)
+            ajax-recv (ajaj< ajax-send
                              :method :get
                              :uri (str "/api/1.0/users/" (:user app-state) "/devices/"))]
         (go
-          (>! ajax-req {})
-          (let [r (<! ajax-resp)]
+          (>! ajax-send {})
+          (let [r (<! ajax-recv)]
             (om/update! app-state :devices (:devices (:body r)))))))
+
     om/IRender
     (render [this]
       (html
@@ -50,25 +56,28 @@
          ]
         [:tbody
          (for [{:keys [client-id name description]} (:devices app-state)]
-           [:tr
+           [:tr {:style {:background (if (= client-id (get-in app-state [:device :client-id])) "#ff0" "white")}}
             [:td.numeric
              [:a
               {:onClick
                (fn [ev]
                  (.preventDefault ev)
-                 (let [req (chan) resp (ajaj< req :method :get)]
+                 (let [ajax-send (chan)
+                       ajax-recv (ajaj< ajax-send
+                                        :method :get
+                                        :uri (str "/api/1.0/users/" (:user @app-state) "/devices/" client-id)
+                                        :content {})]
                    (go
-                     (>! req
-                         {:uri (str "/api/1.0/users/" (:user @app-state) "/devices/" client-id)
-                          :content {}})
-                     (let [{:keys [status body] :as response} (<! resp)]
+                     (>! ajax-send {})
+                     (let [{:keys [status body] :as response} (<! ajax-recv)]
                        (when (= status 200)
-                         (om/update! app-state :device (select-keys body [:client-id :name :description])))
+                         (println "Updating device to body" body)
+                         ;; We must avoid setting controlled component input values to nil!
+                         (om/update! app-state :device (merge {:name "" :description ""}
+                                                              (select-keys body [:client-id :name :description]))))
                        ))))} client-id]]
             [:td name]
-            [:td description]])
-         ]]))))
-
+            [:td description]])]]))))
 
 (defn new-device-button [app-state owner]
   (reify
@@ -76,19 +85,20 @@
     (render [this]
       (html
        [:form.form-horizontal
-        {:onSubmit (fn [ev]
-                     (.preventDefault ev)
-                     (let [req (chan)
-                           resp (ajaj< req :method :post)]
-                       (go
-                         (>! req
-                             {:uri (str "/api/1.0/users/" (:user @app-state) "/devices/")
-                              :content {}})
-                         (let [{:keys [status body] :as response} (<! resp)]
-                           (when (= status 201)
-                             (om/update! app-state [:device] body)
-                             (om/transact! app-state :devices #(conj % body)))
-                           ))))}
+        {:onSubmit
+         (fn [ev]
+           (.preventDefault ev)
+           (let [ajax-send (chan)
+                 ajax-recv (ajaj< ajax-send :method :post)]
+             (go
+               (>! ajax-send
+                   {:uri (str "/api/1.0/users/" (:user @app-state) "/devices/")
+                    :content {}})
+               (let [{:keys [status body]} (<! ajax-recv)]
+                 (when (= status 201)
+                   (om/update! app-state [:device] body)
+                   (om/transact! app-state :devices #(conj % body)))
+                 ))))}
         [:div.control-group
          [:div.controls
           [:input.btn.btn-primary {:type "submit" :value "Register new device"}]]]]))))
@@ -108,22 +118,32 @@
           [:form.form-horizontal
            {:onSubmit (fn [ev]
                         (.preventDefault ev)
-                        (let [req (chan)
-                              resp (ajaj< req :method :put)]
+                        (let [ajax-send (chan)
+                              ajax-recv (ajaj< ajax-send :method :put)]
                           (if-let [id (get-in @app-state [:device :client-id])]
                             (go
-                              (>! req
+                              (>! ajax-send
                                   {:uri (str "/api/1.0/users/" (:user @app-state) "/devices/" id)
                                    :content-type "application/json"
                                    :content {:name (or (get-in @app-state [:device :name]) "")
                                              :description (or (get-in @app-state [:device :description]) "")}})
-                              (let [response (<! resp)]
-                                (println "Response to PUT is" response))))))}
+                              (let [response (<! ajax-recv)]
+                                (println "Response to PUT is" response))
+                              (let [ajax-send (chan)
+                                    ajax-recv (ajaj< ajax-send
+                                                     :method :get
+                                                     :uri (str "/api/1.0/users/" (:user @app-state) "/devices/"))]
+                                (go
+                                  (>! ajax-send {})
+                                  (let [r (<! ajax-recv)]
+                                    (om/update! app-state :devices (:devices (:body r))))))))))}
 
            [:div.control-group
             [:label.control-label "Client id"]
             [:div.controls
-             [:input {:name "id" :type "text" :value (get-in app-state [:device :client-id]) :editable false :disabled true}]]]
+             [:input {:name "id"
+                      :type "text"
+                      :value (get-in app-state [:device :client-id]) :editable false :disabled true}]]]
 
            [:div.control-group
             [:label.control-label "Name"]
@@ -131,12 +151,10 @@
              [:input {:name "name"
                       :type "text"
                       :value (get-in app-state [:device :name])
-                      :onChange (fn [e]
-                                  (let [value (.-value (.-target e))]
-                                    (om/update! app-state [:device :name] value)
-                                    (om/transact! app-state [:devices]
-                                                  (fn [devices] (vec (reduce (fn [acc device] (conj acc (if (= (:client-id device) id) (assoc device :name value) device))) [] devices)))
-                                                  )))
+                      :onChange
+                      (fn [e]
+                        (let [value (.-value (.-target e))]
+                          (om/update! app-state [:device :name] value)))
                       :placeholder "optional device name"}]]]
 
            [:div.control-group
@@ -145,12 +163,10 @@
              [:input {:name "description" :style {:width "90%"}
                       :type "text"
                       :value (get-in app-state [:device :description])
-                      :onChange (fn [e]
-                                  (let [value (.-value (.-target e))]
-                                    (om/update! app-state [:device :description] value)
-                                    (om/transact! app-state [:devices]
-                                                  (fn [devices] (vec (reduce (fn [acc device] (conj acc (if (= (:client-id device) id) (assoc device :description value) device))) [] devices)))
-                                                  )))
+                      :onChange
+                      (fn [e]
+                        (let [value (.-value (.-target e))]
+                          (om/update! app-state [:device :description] value)))
                       :placeholder "optional description"}]]]
 
            [:div.control-group
@@ -183,22 +199,19 @@
            {:onSubmit
             (fn [ev]
               (.preventDefault ev)
-              (let [req (chan)
-                    resp (ajaj< req :method :delete)]
+              (let [ajax-send (chan)
+                    ajax-recv (ajaj< ajax-send :method :delete)]
                 (if-let [id (get-in @app-state [:device :client-id])]
                   (go
-                    (>! req
+                    (>! ajax-send
                         {:uri (str "/api/1.0/users/" (:user @app-state) "/devices/" id)})
-                    (let [{:keys [status body]} (<! resp)]
+                    (let [{:keys [status body]} (<! ajax-recv)]
                       (when (= status 204)
                         (om/update! app-state [:device] nil)
                         (om/transact! app-state [:devices] (fn [devices] (remove #(= (:client-id %) id) devices)))))))))}
            [:h3 "Delete device"]
            [:p "This will delete the device permanently."]
-           [:input.btn.btn-danger {:name "action" :type "submit" :value "Delete device"}]]
-
-
-          ])))))
+           [:input.btn.btn-danger {:name "action" :type "submit" :value "Delete device"}]]])))))
 
 (defn devices-page-component [app-state owner]
   (reify
@@ -220,14 +233,14 @@
   (reify
     om/IWillMount
     (will-mount [this]
-      (let [c (chan)
-            in (ajaj< c :method :get)]
+      (let [ajax-send (chan)
+            ajax-recv (ajaj< ajax-send :method :get)]
         (go-loop []
-          (when-let [data (<! in)]
+          (when-let [data (<! ajax-recv)]
             (prn data)
             (om/transact! app-state [:test-card :messages] #(conj % (pr-str data)))
             (recur)))
-        (om/set-state! owner :channel c)))
+        (om/set-state! owner :channel ajax-send)))
 
     om/IRender
     (render [this]
@@ -257,5 +270,4 @@
           [:p msg])]))))
 
 (defn ^:export test-card []
-  (om/root test-card-page-component app-model {:target (. js/document (getElementById "content"))})
-  )
+  (om/root test-card-page-component app-model {:target (. js/document (getElementById "content"))}))

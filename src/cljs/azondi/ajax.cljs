@@ -57,8 +57,6 @@
               _ (assert (contains? m :uri) "Missing URI")
               content (when-let [content (:content m)] (csk/->js content))
               id (get-next-ajax-id)]
-          (println "Content is" content)
-          (.dir js/console content)
           (.send xhr-manager id (:uri m)
                  (if (keyword? (:method m))
                    (upper-case (name (:method m)))

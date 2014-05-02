@@ -196,11 +196,12 @@
    :handle-unprocessable-entity handle-unprocessable-entity
 
    :post! (fn [{body :body {{user :user client-id :client-id} :route-params} :request}]
+            (println "body is" body)
             {:device
              (let [p (generate-device-password)]
                (when (get-device db client-id)
                  (delete-device! db client-id))
-               (-> (create-device! db user p)
+               (-> (create-device! db user p body)
                    (assoc :password p)))})
 
    :handle-created (fn [{device :device}] (->js device))

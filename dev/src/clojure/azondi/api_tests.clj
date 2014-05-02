@@ -101,7 +101,14 @@
             ;;(request :post (make-uri :azondi.api/devices :user "alice") :data {})
 
             ;; Let's try to get our devices
-            )))))
+            ))
+
+        ;; Create another device, this time with some attributes
+        (request :post uri :data {:name "iPhone" :description "MQTTitude on my old iPhone"})
+        (request :post uri :data {:name "S3 custom" :description "My own Android app"})
+        (request :post uri :data {:name "Arduino 1" :description "Some hack"})
+
+        )))
 
 
   ;; TODO Test error scenarios here
