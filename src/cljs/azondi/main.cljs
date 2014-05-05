@@ -26,7 +26,7 @@
          :test-card {:messages []}}))
 
 ;; TODO The styling of this table component needs a lot of work
-(defn devices-list
+(defn devices-list-component
   "Show a list of devices"
   [app-state owner]
   (reify
@@ -101,7 +101,7 @@
       (let [r (<! ajax-recv)]
         (om/update! app-state :devices (:devices (:body r)))))))
 
-(defn new-device-button
+(defn new-device-button-component
   "Click this button to register a new device"
   [app-state owner]
   (reify
@@ -287,8 +287,8 @@
     (render [this]
       (html
        [:div
-        (om/build devices-list app-state)
-        (om/build new-device-button app-state)
+        (om/build devices-list-component app-state)
+        (om/build new-device-button-component app-state)
         (when (:device app-state)
           (om/build device-details-component app-state))]))))
 
