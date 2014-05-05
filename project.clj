@@ -53,7 +53,7 @@
                  ;; ClojureScript libraries
                  [org.clojure/clojurescript "0.0-2173"]
                  [sablono "0.2.6" :exclusions [com.facebook/react]]
-                 [om "0.5.1"]
+                 [om "0.6.2"]
                  [org.clojure/core.async "0.1.267.0-0d7780-alpha"]
                  [cljs-ajax "0.2.3"]
                  [ankha "0.1.1"]
