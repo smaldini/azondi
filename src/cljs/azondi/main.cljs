@@ -205,9 +205,9 @@
           [:pre
            (for [msg (-> app-state :device :messages)]
 ;;;;
-             (let [d (goog.date.UtcDateTime.)]
-               ;;(.setTime d (:date msg))
-               (str #_(.toIsoTimeString d) (pr-str msg) "\r\n")))]
+             (let [d (js/Date.)]
+               (.setTime d (:date msg))
+               (str d (.getUTCMilliseconds d) (pr-str (:message msg)) "\r\n")))]
 
           [:form.form-horizontal
            {:onSubmit
