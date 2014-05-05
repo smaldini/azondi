@@ -11,6 +11,7 @@
    [goog.events :as events]
    [chord.client :refer [ws-ch]]
    [azondi.csk :as csk]
+   [azondi.chart :refer (chart-component)]
    ))
 
 (enable-console-print!)
@@ -159,13 +160,13 @@
           (when-let [message (<! notify-ch)]
             (om/transact! app-state [:device :messages]
                           #(conj (or % [])
-                                 (str (:time message) " "
+                                 (merge message
                                       (case (:type message)
-                                        :open "Debugger connected"
-                                        :error (do
-                                                 (.dir js/console (:event message))
-                                                 "ERROR")
-                                        (get-in message [:message :message])))))
+                                        :open {:text "Debugger connected"}
+                                        :error {:text (do
+                                                        (.dir js/console (:event message))
+                                                        "ERROR")}
+                                        {:text (get-in message [:message :message])}))))
             (recur)))
         ;; Connect the device 'debugger' to the device
         (connect-device-debugger owner (get-in app-state [:device :client-id]) notify-ch)))
@@ -264,7 +265,11 @@
           [:pre
            (for [msg (-> app-state :device :messages)]
 ;;;;
-             (str msg "\r\n"))]
+             (str (:text msg) "\r\n"))]
+
+          [:h4 "Charting"]
+          [:p "An example chart, plotting the messages"]
+          (om/build chart-component (-> app-state :device :messages))
 
           [:form.form-horizontal
            {:onSubmit
@@ -531,7 +536,7 @@
 
 (defn ^:export topics-page []
   (om/root topics-page-component app-model {:target (. js/document (getElementById "content"))})
-  ;;(om/root ankha/inspector app-model {:target (. js/document (getElementById "ankha"))})
+  (om/root ankha/inspector app-model {:target (. js/document (getElementById "ankha"))})
   )
 
 (defn test-card-page-component [app-state owner]

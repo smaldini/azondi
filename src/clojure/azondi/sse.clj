@@ -21,7 +21,7 @@
           (loop []
             (when-let [data (<! ch)]
               (send! channel
-                     (str "data: " (-> data (assoc :date (System/currentTimeMillis)) encode) "\r\n\r\n")
+                     (str "data: " (-> data (assoc :time (System/currentTimeMillis)) encode) "\r\n\r\n")
                      false)
               (recur))))))))
 
