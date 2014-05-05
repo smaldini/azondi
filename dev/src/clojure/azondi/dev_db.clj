@@ -50,17 +50,28 @@
   (devices-by-owner [this user]
     (sort-by :client-id (filter (comp (partial = user) :user) (vals @(-> this :database :devices)))))
 
-  (topics-by-owner [this user]
-    (filter (comp (partial = user) :user) (vals @(-> this :database :topics))))
-
- ;; {:topics {:name name :owner user :unit measure :topic_id topic_id}}
-  (create-topic! [this topic]
-    (alter (-> this :database :topics) assoc topic))
-
   (patch-device! [this client-id data]
     (dosync
      (alter (-> this :database :devices) update-in [client-id] merge data))
-    ))
+    )
+
+  (topics-by-owner [this user]
+    (filter (comp (partial = user) :owner) (vals @(-> this :database :topics))))
+
+ ;; {:topics {:name name :owner user :unit measure :topic_id topic_id}}
+  (create-topic! [this topic]
+    (dosync
+     (alter (-> this :database :topics) assoc (:topic_id topic) topic)))
+
+  (get-topic [this topic-id]
+    (-> this :database :topics deref (get topic-id)))
+
+  (delete-topic! [this topic-id]
+     (dosync
+      (alter (-> this :database :topic-id) dissoc topic-id)))
+
+
+  )
 
 (defn new-inmemory-datastore []
   (->InmemoryDatastore))

@@ -27,7 +27,6 @@
          :device nil
          :topic nil
          :test-card {:messages []}}))
->>>>>>> ca994b94ce3fa3ec4913554514cafe7a9a413c50
 
 ;; TODO The styling of this table component needs a lot of work
 (defn devices-list-component

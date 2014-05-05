@@ -15,6 +15,6 @@
   (topics-by-owner [_ user])
   (create-topic! [_ topic])
   (get-topic [_ topic-uuid])
-  (delete-topic [_ topic-uuid])
+  (delete-topic! [_ topic-uuid])
   (patch-device! [_ client-id data]))
 

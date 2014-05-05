@@ -14,7 +14,7 @@
    [cheshire.core :refer (decode decode-stream encode)]
    [schema.core :as s]
    [camel-snake-kebab :as csk :refer (->kebab-case-keyword ->camelCaseString)]
-   [azondi.db :refer (get-users get-user delete-user! create-user! devices-by-owner get-device delete-device! create-device! patch-device!)]
+   [azondi.db :refer (get-users get-user delete-user! create-user! devices-by-owner get-device delete-device! create-device! patch-device! topics-by-owner get-topic delete-topic! create-topic!)]
    [hiccup.core :refer (html)]
    [clojure.walk :refer (postwalk)]
    liberator.representation
@@ -245,12 +245,38 @@
 
    })
 
+(def topic-attributes-schema
+  {(s/required-key :name) s/Str
+   (s/optional-key :unit) s/Str})
 
-(defn make-topics-resource [db]
+(defn topics-resource [db]
   {:available-media-types #{"application/json"}
-   :allowed-methods #{:get :post}})
+   :allowed-methods #{:get :post}
+   :handle-ok (fn [{{{user :user} :route-params} :request}]
+                (encode {:user user
+                         :topics (->>
+                                  (topics-by-owner db user)
+                                  (map #(select-keys % [:owner :description :name :unit :topic_id]))
+                                  (map #(reduce-kv (fn [acc k v] (assoc acc (->camelCaseString k) v)) {} %))
+                                  )}))
+   :processable? (create-schema-check topic-attributes-schema)
+   :handle-unprocessable-entity handle-unprocessable-entity
+   :post! (fn [{body :body {{user :user} :route-params} :request}]
+            (println "body is" body)
+            {:topic
+             (let [name (:name body)
+                   topic-id (str user "/" name)]
+               (when (get-topic db topic-id)
+                 (delete-topic! db topic-id))
+               (create-topic! db {:name name
+                                  :owner user
+                                  :unit (:unit body)
+                                  :topic_id topic-id}))})
 
-(defn make-topic-resource [db])
+   :handle-created (fn [{topic :topic}] (->js topic))
+   })
+
+(defn topic-resource [db])
 
 
 ;; WebService
@@ -261,8 +287,8 @@
    ::user (resource (user-resource db))
    ::devices (resource (devices-resource db))
    ::device (resource (device-resource db))
-   ::topics (resource (make-topics-resource db))
-   ::topic (resource (make-topic-resource db))
+   ::topics (resource (topics-resource db))
+   ::topic (resource (topic-resource db))
    })
 
 (defn make-routes
@@ -280,7 +306,7 @@
                        ["/devices/" :client-id] ::device
                        "/topics" (->Redirect 307 ::topics)
                        "/topics/" ::topics
-                       ["/topics/" :topic-uuid] ::topic} }])
+                       ["/topics/" :topic-name] ::topic} }])
 
 (defrecord Api [uri-context]
   component/Lifecycle

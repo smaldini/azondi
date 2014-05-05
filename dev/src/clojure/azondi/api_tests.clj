@@ -108,7 +108,20 @@
         (request :post uri :data {:name "S3 custom" :description "My own Android app"})
         (request :post uri :data {:name "Arduino 1" :description "Some hack"})
 
+        ;; create and find topics
+        (let [uri (make-uri :azondi.api/topics :user "alice")
+              response (request :get uri)]
+          (is (contains? (:body response) :user))
+          (is (contains? (:body response) :topics))
+          (request :post uri :data {:name "pollution" :unit "PM25"})
+          (request :post uri :data {:name "pollution-E12"})
+          
+          )
+
         )))
+
+
+  
 
 
   ;; TODO Test error scenarios here
