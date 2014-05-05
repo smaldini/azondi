@@ -50,6 +50,13 @@
                               :cljs "azondi.main.devices_page()"
                               }))
 
+     ::topics (wrap-template
+                   (fn [req] {:body (html [:div
+                                           [:h1 "Topics"]
+                                           [:div#content [:p.loading "Loading..."]]])
+                              :cljs "azondi.main.topics_page()"
+                              }))
+
      ::test-card (wrap-template
                   (fn [req] {:body (html [:div
                                           [:div#content [:p.loading "Loading..."]]])
@@ -65,6 +72,7 @@
           ["index" ::index]
           ["css/style.css" ::styles]
           ["devices/" ::devices]
+          ["topics/" ::topics]
           ["developer/" {"test-card" ::test-card}]
 
           ]])
@@ -74,7 +82,8 @@
   MenuItems
   (menu-items [_ context]
     [{:label "Home" :order "A1" :href ::index}
-     {:label "Devices" :order "B1" :href ::devices :parent "Devices"}
+     {:label "Devices" :order "B1" :href ::devices :parent "My"}
+     {:label "Topics" :order "B2" :href ::topics :parent "My"}
      {:label "Test Card" :order "T1" :href ::test-card :parent "Developer"}
      ]))
 
