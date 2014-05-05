@@ -68,7 +68,7 @@
 
   (delete-topic! [this topic-id]
      (dosync
-      (alter (-> this :database :topic-id) dissoc topic-id)))
+      (alter (-> this :database :topics) dissoc topic-id)))
 
   (patch-topic! [this topic-id data]
     (dosync
