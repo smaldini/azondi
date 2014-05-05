@@ -55,12 +55,12 @@
 
  ;; {:topics {:name name :owner user :unit measure :topic_id topic_id}}
   (create-topic! [this topic]
-    (alter (-> this :database :topics) assoc topic)))
+    (alter (-> this :database :topics) assoc topic))
 
-(patch-device! [this client-id data]
-               (dosync
-                (alter (-> this :database :devices) update-in [client-id] merge data))
-    )
+  (patch-device! [this client-id data]
+    (dosync
+     (alter (-> this :database :devices) update-in [client-id] merge data))
+    ))
 
 (defn new-inmemory-datastore []
   (->InmemoryDatastore))
