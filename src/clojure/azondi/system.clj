@@ -92,7 +92,8 @@
                      :org "OpenSensors.IO"
                      :title "Azondi"
                      :description "OpenSensors.IO MQTT broker"
-                     :app-name "Azondi")
+                     :app-name "Azondi"
+                     :home-href "/")
      :cljs-core (new-cljs-module :name :cljs :mains ['cljs.core] :dependencies #{})
      :cljs-main (new-cljs-module :name :azondi :mains ['azondi.main] :dependencies #{:cljs})
 
