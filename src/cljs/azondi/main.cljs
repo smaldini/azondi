@@ -16,7 +16,9 @@
 
 (def app-model (atom {:user "alice"
                       :devices []
-                      :device nil}))
+                      :device nil
+                      :topics []
+                      :topic nil}))
 
 (defn error-handler [{:keys [status status-text] :as response}]
   (println (str "Error: " status " " status-text)))
@@ -165,3 +167,6 @@
 
 (defn ^:export new-device-page []
   (om/root new-device-page-component app-model {:target (. js/document (getElementById "content"))}))
+
+
+(defn new-topic-page-component [app-state owner])

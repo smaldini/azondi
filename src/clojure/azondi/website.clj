@@ -53,6 +53,11 @@
                                            [:div#content [:p.loading "Loading..."]]])
                               :cljs "azondi.main.new_device_page()"
                               }))
+     ::new-topic (wrap-template
+                  (fn [req] {:body (html [:div
+                                          [:h1 "New Topic"]
+                                          [:div#content [:p.loading "Loading..."]]])
+                             :cljs "azondi.main.new_topic_page()"}))
      ::styles styles})
 
   (routes [_]

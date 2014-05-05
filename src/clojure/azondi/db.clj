@@ -10,4 +10,9 @@
   (devices-by-owner [_ user])
   (create-device! [_ user pw])
   (get-device [_ client-id])
-  (delete-device! [_ client-id]))
+  (delete-device! [_ client-id])
+  ;;topics
+  (topics-by-owner [_ user])
+  (create-topic! [_ topic])
+  (get-topic [_ topic-uuid])
+  (delete-topic [_ topic-uuid]))

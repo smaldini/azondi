@@ -48,7 +48,14 @@
     (alter (-> this :database :devices) dissoc client-id))
 
   (devices-by-owner [this user]
-    (filter (comp (partial = user) :user) (vals @(-> this :database :devices)))))
+    (filter (comp (partial = user) :user) (vals @(-> this :database :devices))))
+
+  (topics-by-owner [this user]
+    (filter (comp (partial = user) :user) (vals @(-> this :database :topics))))
+
+ ;; {:topics {:name name :owner user :unit measure :topic_id topic_id}}
+  (create-topic! [this topic]
+    (alter (-> this :database :topics) assoc topic)))
 
 (defn new-inmemory-datastore []
   (->InmemoryDatastore))

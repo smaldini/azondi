@@ -208,12 +208,20 @@
 
    })
 
+(defn make-topics-resource [db]
+  {:available-media-types #{"application/json"}
+   :allowed-methods #{:get :post}})
+
+(defn make-topic-resource [db])
+
 (defn make-handlers [db]
   {:welcome (resource (make-welcome-resource))
    :users (resource (make-users-resource db))
    :user (resource (make-user-resource db))
    :devices (resource (make-devices-resource db))
    :device (resource (make-device-resource db))
+   :topics (resource (make-topics-resource db))
+   :topic (resource (make-topic-resource db))
    })
 
 (defn make-routes
@@ -228,7 +236,10 @@
     ["/users/" :user] {"" :user
                        "/devices" (->Redirect 307 :devices)
                        "/devices/" :devices
-                       ["/devices/" :client-id] :device}}])
+                       ["/devices/" :client-id] :device
+                       "/topics" (->Redirect 307 :topics)
+                       "/topics/" :topics
+                       ["/topics/" :topic-uuid] :topic}}])
 
 (defrecord Api [uri-context]
   component/Lifecycle
