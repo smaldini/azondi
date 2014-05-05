@@ -15,6 +15,8 @@
 
 (enable-console-print!)
 
+;; This would eventually be opensensors.io, or probably
+;; configurable. It's only used for the mosquitto curl examples.
 (def hostname "localhost")
 
 (def app-model
@@ -23,7 +25,10 @@
          :device nil
          :test-card {:messages []}}))
 
-(defn devices-list [app-state owner]
+;; TODO The styling of this table component needs a lot of work
+(defn devices-list
+  "Show a list of devices"
+  [app-state owner]
   (reify
     om/IWillMount
     (will-mount [this]
@@ -42,7 +47,7 @@
         (go
           (>! ajax-send {})
           (let [r (<! ajax-recv)]
-            (om/update! app-state :devices (:devices (:body r)))))))
+            (om/update! app-state :devices (-> r :body :devices))))))
 
     om/IRender
     (render [this]
@@ -52,34 +57,53 @@
          [:tr
           [:th "Client id"]
           [:th "Name"]
-          [:th "Description"]]
-         ]
+          [:th "Description"]]]
         [:tbody
          (for [{:keys [client-id name description]} (:devices app-state)]
            [:tr {:style {:background (if (= client-id (get-in app-state [:device :client-id])) "#ff0" "white")}}
             [:td.numeric
              [:a
-              {:onClick
+              {:onClick ; if we click on one of the devices
                (fn [ev]
-                 (.preventDefault ev)
+                 (.preventDefault ev) ; don't follow the link
                  (let [ajax-send (chan)
                        ajax-recv (ajaj< ajax-send
                                         :method :get
                                         :uri (str "/api/1.0/users/" (:user @app-state) "/devices/" client-id)
                                         :content {})]
                    (go
-                     (>! ajax-send {})
+                     (>! ajax-send {}) ; Trigger a 'GET' of the latest device details
                      (let [{:keys [status body] :as response} (<! ajax-recv)]
                        (when (= status 200)
-                         (println "Updating device to body" body)
-                         ;; We must avoid setting controlled component input values to nil!
-                         (om/update! app-state :device (merge {:name "" :description ""}
-                                                              (select-keys body [:client-id :name :description]))))
-                       ))))} client-id]]
+                         ;; Update the device in the app-state. This
+                         ;; causes the device details component to
+                         ;; refresh.
+                         (om/update! app-state :device
+                                     ;; We must avoid setting controlled
+                                     ;; component input values to nil,
+                                     ;; so we merge in empty string
+                                     ;; defaults!
+                                     (merge {:name "" :description ""}
+                                            (select-keys body [:client-id :name :description]))))))))}
+              ;; We display the client-id as the link text
+              client-id]]
+
             [:td name]
             [:td description]])]]))))
 
-(defn new-device-button [app-state owner]
+(defn update-devices-list! [user app-state]
+  (let [ajax-send (chan)
+        ajax-recv (ajaj< ajax-send
+                         :method :get
+                         :uri (str "/api/1.0/users/" user "/devices/"))]
+    (go
+      (>! ajax-send {})
+      (let [r (<! ajax-recv)]
+        (om/update! app-state :devices (:devices (:body r)))))))
+
+(defn new-device-button
+  "Click this button to register a new device"
+  [app-state owner]
   (reify
     om/IRender
     (render [this]
@@ -93,24 +117,41 @@
              (go
                (>! ajax-send
                    {:uri (str "/api/1.0/users/" (:user @app-state) "/devices/")
+                    ;; Empty content, but we can patch in device
+                    ;; meta-data later.
                     :content {}})
                (let [{:keys [status body]} (<! ajax-recv)]
                  (when (= status 201)
-                   (om/update! app-state [:device] body)
-                   (om/transact! app-state :devices #(conj % body)))
-                 ))))}
+                   ;; Add the device to the list
+                   (om/transact! app-state :devices #(conj % body))
+                   ;; Set the current device to this new one
+                   (om/update! app-state [:device] body))))))}
         [:div.control-group
          [:div.controls
           [:input.btn.btn-primary {:type "submit" :value "Register new device"}]]]]))))
 
-(defn device-details-form [app-state owner]
+(defn connect-debugger
+  "Connect the device debugger to the notification (server-sent event)
+  source of the given client-id. This debugger is useful Events are put
+  to notify-ch."
+  [owner client-id notify-ch]
+  ;; We only have one event-source per device-details component, not per device.
+  (when-let [es (om/get-state owner :event-source)] (.close es))
+  (om/set-state! owner :event-source (listen-sse (str "/events/" client-id) notify-ch)))
+
+(defn device-details-component [app-state owner]
   (reify
     om/IInitState
-    (init-state [this] {:notification-channel (chan)})
+    (init-state [this]
+      ;; We set up a channel that will receive events we'll display in a
+      ;; debug messages section
+      {:debugger-events (chan)})
 
     om/IWillMount
     (will-mount [this]
-      (let [notify-ch (om/get-state owner :notification-channel)]
+      (let [notify-ch (om/get-state owner :debugger-events)]
+        ;; We continuously pull from our debug channel, and add it to
+        ;; our messages section.
         (go-loop []
           (when-let [message (<! notify-ch)]
             (om/transact! app-state [:device :messages]
@@ -123,23 +164,18 @@
                                                  "ERROR")
                                         (get-in message [:message :message])))))
             (recur)))
-        (let [uri (str "/events/" (get-in app-state [:device :client-id]))]
-          (om/set-state! owner :event-source (listen-sse uri notify-ch)))))
+        ;; Connect the device 'debugger' to the device
+        (connect-debugger owner (get-in app-state [:device :client-id]) notify-ch)))
 
     om/IWillUpdate
     (will-update [this next-props next-state]
-      ;; Change event source
-      (when (not= (get-in next-props [:device :client-id])
-                  (get-in app-state [:device :client-id]))
-
-        (when-let [es (om/get-state owner :event-source)]
-          (.dir js/console es)
-          (.close es))
-
-        (let [uri (str "/events/" (get-in next-props [:device :client-id]))]
-          (om/set-state! owner
-                         :event-source (listen-sse uri
-                                                   (om/get-state owner :notification-channel))))))
+      ;; If the client-id changes, we must reconnect the debugger to the
+      ;; corresponding device
+      (let [old-client-id (get-in app-state [:device :client-id])
+            new-client-id (get-in next-props [:device :client-id])]
+        (when (not= old-client-id new-client-id)
+          (connect-debugger owner new-client-id
+                            (om/get-state owner :debugger-events) ))))
     om/IRender
     (render [this]
       (html
@@ -147,6 +183,7 @@
          [:div
           [:h2
            (let [name (get-in app-state [:device :name])]
+             ;; If there's a device name, let's display it in the title.
              (if (and name (not-empty name))
                (str "Device: " name)
                "Device"))]
@@ -159,19 +196,12 @@
                             (go
                               (>! ajax-send
                                   {:uri (str "/api/1.0/users/" (:user @app-state) "/devices/" id)
-                                   :content-type "application/json"
                                    :content {:name (or (get-in @app-state [:device :name]) "")
                                              :description (or (get-in @app-state [:device :description]) "")}})
                               (let [response (<! ajax-recv)]
                                 (println "Response to PUT is" response))
-                              (let [ajax-send (chan)
-                                    ajax-recv (ajaj< ajax-send
-                                                     :method :get
-                                                     :uri (str "/api/1.0/users/" (:user @app-state) "/devices/"))]
-                                (go
-                                  (>! ajax-send {})
-                                  (let [r (<! ajax-recv)]
-                                    (om/update! app-state :devices (:devices (:body r))))))))))}
+                              ;; Having PUT, let's update the devices list
+                              (update-devices-list! (:user @app-state) app-state)))))}
 
            [:div.control-group
             [:label.control-label "Client id"]
@@ -260,7 +290,7 @@
         (om/build devices-list app-state)
         (om/build new-device-button app-state)
         (when (:device app-state)
-          (om/build device-details-form app-state))]))))
+          (om/build device-details-component app-state))]))))
 
 (defn ^:export devices-page []
   (om/root devices-page-component app-model {:target (. js/document (getElementById "content"))})

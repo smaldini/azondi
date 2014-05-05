@@ -88,10 +88,13 @@
        (map< csk/->edn)))
 
 
-(defn event->clj [evt]
+(defn- event->clj [evt]
   (-> evt .-event_ .-data json/parse (js->clj :keywordize-keys true)))
 
-(defn listen-sse [uri ch]
+(defn listen-sse
+  "Return an EventSource listening on the given uri and putting events
+  on the given channel."
+  [uri ch]
   (let [source (js/EventSource. uri)]
     (events/listen source "open"
                    (fn [ev] (go
