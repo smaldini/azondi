@@ -8,8 +8,9 @@
    [schema.core :as s]))
 
 (defn server-event-source [source]
-  (fn [req]
+  (fn [{{:keys [client-id]} :route-params :as req}]
     (let [ch (chan 16)]
+      (println "Client id events:" client-id)
       (tap source ch)
       (with-channel req channel
         (send! channel {:headers {"Content-Type" "text/event-stream"}} false)
@@ -21,14 +22,13 @@
                      false)
               (recur))))))))
 
-
 (defrecord EventService [source]
   WebService
   (ring-handler-map [_]
-    {::index (server-event-source source)})
+    {::events (server-event-source source)})
   (routes [_]
-    ["/" [["index" ::index]]])
-  (uri-context [_] "/sse"))
+    ["/" {[[#"\d+" :client-id]] ::events}])
+  (uri-context [_] "/events"))
 
 (defn new-event-service [& {:as opts}]
   (->> opts

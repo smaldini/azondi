@@ -93,9 +93,22 @@
 
 (defn listen-sse [uri ch]
   (let [source (js/EventSource. uri)]
-    (events/listen source "open" (fn [ev] (println "OPEN")))
-    (events/listen source "error" (fn [ev] (println "ERROR")))
+    (events/listen source "open"
+                   (fn [ev] (go
+                              (>! ch {:type :open
+                                      :time (js/Date.)
+                                      :event ev}))))
+
+    (events/listen source "error"
+                   (fn [ev] (go
+                              (>! ch {:type :error
+                                      :time (js/Date.)
+                                      :event ev}))))
     (events/listen source "message"
                    (fn [ev]
                      (go
-                       (>! ch (event->clj ev)))))))
+                       (>! ch {:type :message
+                               :time (js/Date.)
+                               :event ev
+                               :message (event->clj ev)}))))
+    source))

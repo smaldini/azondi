@@ -105,15 +105,47 @@
 
 (defn device-details-form [app-state owner]
   (reify
+    om/IInitState
+    (init-state [this] {:notification-channel (chan)})
+
     om/IWillMount
     (will-mount [this]
-      (let [c (chan)]
-        (listen-sse "/sse/index" c)
+      (let [notify-ch (om/get-state owner :notification-channel)]
         (go-loop []
-          (when-let [message (<! c)]
+          (when-let [message (<! notify-ch)]
             (println "message is " message)
-            (om/transact! app-state [:device :messages] #(conj (or % []) message))
-            (recur)))))
+            (println "Type is" (:type message))
+
+            (om/transact! app-state [:device :messages]
+                          #(conj (or % [])
+                                 (str (:time message) " "
+                                      (case (:type message)
+                                        :open "Debugger connected"
+                                        :error (do
+                                                 (.dir js/console (:event message))
+                                                 "ERROR")
+                                        (get-in message [:message :message])))))
+            (recur)))
+        (let [uri (str "/events/" (get-in app-state [:device :client-id]))]
+          (println "Connecting to" uri)
+          (om/set-state! owner :event-source (listen-sse uri notify-ch)))))
+
+    om/IWillUpdate
+    (will-update [this next-props next-state]
+      ;; Change event source
+      (when (not= (get-in next-props [:device :client-id])
+                  (get-in app-state [:device :client-id]))
+
+        (when-let [es (om/get-state owner :event-source)]
+          (println "Closing event source" (.-url es))
+          (.dir js/console es)
+          (.close es))
+
+        (let [uri (str "/events/" (get-in next-props [:device :client-id]))]
+          (println "Connecting to" uri)
+          (om/set-state! owner
+                         :event-source (listen-sse uri
+                                                   (om/get-state owner :notification-channel))))))
     om/IRender
     (render [this]
       (html
@@ -205,9 +237,7 @@
           [:pre
            (for [msg (-> app-state :device :messages)]
 ;;;;
-             (let [d (js/Date.)]
-               (.setTime d (:date msg))
-               (str d (.getUTCMilliseconds d) (pr-str (:message msg)) "\r\n")))]
+             (str msg "\r\n"))]
 
           [:form.form-horizontal
            {:onSubmit
