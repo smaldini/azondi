@@ -20,10 +20,11 @@
                  [clojurewerkz/triennium  "1.0.0-beta2"]
                  [cheshire                "5.3.1"]
                  [clojurewerkz/meltdown   "1.0.0-beta12"]
-                 [compojure               "1.1.6"]
+
+
                  ;; for query string parsing
-                 [javax.servlet/servlet-api "2.5"]
-                 [clj-time                "0.7.0"]
+                 ;;[javax.servlet/servlet-api "2.5"]
+                 [clj-time "0.7.0"]
                  [liberator "0.11.0"]
                  [prismatic/schema "0.2.1"]
 
@@ -53,12 +54,15 @@
                  ;; ClojureScript libraries
                  [org.clojure/clojurescript "0.0-2173"]
                  [sablono "0.2.6" :exclusions [com.facebook/react]]
-                 [om "0.5.1"]
+                 [om "0.6.2"]
                  [org.clojure/core.async "0.1.267.0-0d7780-alpha"]
                  [cljs-ajax "0.2.3"]
-                 [ankha "0.1.1"]]
+                 [ankha "0.1.1"]
+                 [jarohen/chord "0.3.1"]]
 
-  :jvm-opts ["-Xss8m" "-Xmx1g" "-Duser.timezone=UTC"]
+  :jvm-opts ["-Xss8m" "-Xmx1g" "-Duser.timezone=UTC"
+;;             "-Djava.net.preferIPv4Stack=true"
+             ]
   :main azondi.main
 
   :repl-options {:init-ns user}

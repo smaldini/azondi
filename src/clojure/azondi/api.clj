@@ -14,9 +14,31 @@
    [cheshire.core :refer (decode decode-stream encode)]
    [schema.core :as s]
    [camel-snake-kebab :as csk :refer (->kebab-case-keyword ->camelCaseString)]
-   [azondi.db :refer (get-users get-user delete-user! create-user! devices-by-owner get-device delete-device! create-device!)]
+   [azondi.db :refer (get-users get-user delete-user! create-user! devices-by-owner get-device delete-device! create-device! patch-device!)]
    [hiccup.core :refer (html)]
+   [clojure.walk :refer (postwalk)]
+   liberator.representation
    ))
+
+;; Coercians
+
+(defn process-maps [fm t]
+  (postwalk (fn [fm]
+              (cond
+               (map? fm) (reduce-kv (fn [acc k v] (assoc acc (t k) v)) {} fm)
+               :otherwise fm)) fm))
+
+(defn ->clj
+  "Convert JSON keys into Clojure keywords. This is because we receive
+  JSON but want to process it as Clojure."
+  [fm]
+  (process-maps fm ->kebab-case-keyword))
+
+(defn ->js
+  "Convert Clojure keywords into JSON keys. This is because we respond
+  with JSON."
+  [fm]
+  (process-maps fm ->camelCaseString))
 
 (defprotocol Body
   (read-edn-body [body])
@@ -30,37 +52,47 @@
   (read-edn-body [body] (io! (edn/read (java.io.PushbackReader. (io/reader body)))))
   (read-json-body [body] (io! (decode-stream (io/reader body) true))))
 
-(defn ->clj
-  "Convert JSON keys into Clojure keywords. This is because we receive
-  JSON but want to process it as Clojure."
-  [m]
-  (reduce-kv (fn [acc k v] (assoc acc (->kebab-case-keyword k) v)) {} m))
+(def version "1.0 (beta)")
 
-(defn ->js
-  "Convert Clojure keywords into JSON keys. This is because we respond
-  with JSON."
-  [m]
-  (reduce-kv (fn [acc k v] (assoc acc (->camelCaseString k) v)) {} m))
+;; We override the Liberator defaults because we want maps to be
+;; converted to JSON with Cheshire, and with conversion to camelCase for
+;; the keys.
+
+(defmethod liberator.representation/render-map-generic "application/json" [data context]
+  (encode (->js data)))
+
+(defmethod liberator.representation/render-seq-generic "application/json" [data _]
+  (encode (->js data)))
+
+;; Utility
 
 (defn create-schema-check [schema]
   (fn [{{body :body method :request-method} :request}]
     (or
      (= method :get)
+     (= method :delete)
      (try
        (let [body (->clj (read-json-body body))]
          (if-let [error (s/check schema body)]
-           [false {:error {:error "Entity body failed schema check" :details error}}]
+           [false {:error {:error "Entity body failed schema check" :details (pr-str error)}}]
            {:body body}))
        (catch Exception e [false {:error {:error "Entity body did not contain valid JSON"}}])))))
 
 (defn handle-unprocessable-entity [{error :error}]
   (encode (update-in error [:details] ->js)))
 
+;; Welcome - this is used for testing
 
+(def welcome (str "OpenSensors.IO API version 1.0 " version))
 
-(defn make-welcome-resource []
-  {:available-media-types #{"text/plain"}
-   :handle-ok "OpenSensors.IO API version 1.0 (beta)\n"})
+(defn welcome-resource []
+  {:available-media-types #{"text/plain" "text/html" "application/json" "application/edn"}
+   :handle-ok (fn [{{mt :media-type} :representation}]
+                (case mt
+                  "text/plain" welcome
+                  "text/html" (html [:h1 welcome])
+                  ("application/json" "application/edn") {:message welcome :current-date (java.util.Date.)}
+                  ))})
 
 ;;;;; ----- USERS ----
 
@@ -72,18 +104,7 @@
     (if (= (count acc) length) (apply str acc)
         (recur (conj acc (rand-nth alphanumeric))))))
 
-(defn generate-device-password
-  []
-  (let [valid-chars (map char (concat (range 48 58)   ; 0-9
-                                      (range 66 91)   ; A-Z
-                                      (range 97 123)) ;a-z
-                         )
-        random-char (fn [] (nth valid-chars (rand (count valid-chars))))]
-    (apply str (take 8 (repeatedly random-char)))))
-
-;;----
-
-(defn make-users-resource [db]
+(defn users-resource [db]
   {:allowed-methods #{:get}
    :available-media-types #{"text/html" "application/json"}
    :handle-ok
@@ -103,7 +124,7 @@
    :email s/Str
    })
 
-(defn make-user-resource [db]
+(defn user-resource [db]
   {:available-media-types #{"application/json" "text/html"}
    :allowed-methods #{:put :get}
    :known-content-type? #{"application/json"}
@@ -143,10 +164,23 @@
    :handle-created (fn [{body :response-body}] body)
    })
 
-(def new-device-schema
-  {(s/optional-key :description) s/Str})
+;; DEVICES
 
-(defn make-devices-resource [db]
+(def device-attributes-schema
+  {(s/optional-key :name) s/Str
+   (s/optional-key :description) s/Str
+   })
+
+(defn generate-device-password
+  []
+  (let [valid-chars (map char (concat (range 48 58)   ; 0-9
+                                      (range 66 91)   ; A-Z
+                                      (range 97 123)) ;a-z
+                         )
+        random-char (fn [] (nth valid-chars (rand (count valid-chars))))]
+    (apply str (take 8 (repeatedly random-char)))))
+
+(defn devices-resource [db]
   {:available-media-types #{"application/json"}
    :allowed-methods #{:get :post}
    :handle-ok (fn [{{{user :user} :route-params} :request}]
@@ -158,15 +192,16 @@
 
       ;; Liberator introduced processable? in 0.9.0 - See
    ;; http://stackoverflow.com/questions/4781187/http-400-bad-request-for-logical-error-not-malformed-request-syntax
-   :processable? (create-schema-check new-device-schema)
+   :processable? (create-schema-check device-attributes-schema)
    :handle-unprocessable-entity handle-unprocessable-entity
 
    :post! (fn [{body :body {{user :user client-id :client-id} :route-params} :request}]
+            (println "body is" body)
             {:device
              (let [p (generate-device-password)]
                (when (get-device db client-id)
                  (delete-device! db client-id))
-               (-> (create-device! db user p)
+               (-> (create-device! db user p body)
                    (assoc :password p)))})
 
    :handle-created (fn [{device :device}] (->js device))
@@ -174,39 +209,42 @@
 
 })
 
-(def new-device-schema
-  {(s/optional-key :name) s/Str
-   (s/optional-key :description) s/Str
-   })
-
 (defn extract-api-key [req]
   (when-let [auth (get (:headers req) "authorization")]
     (second (re-matches #"api-key\s([0-9a-f-]+)" auth))))
 
-(defn make-device-resource [db]
+(defn device-resource [db]
   {:available-media-types #{"application/json"}
-   :allowed-methods #{:get :put}
+   :allowed-methods #{:get :put :delete}
    :known-content-type? #{"application/json"}
 
    #_:authorized? #_(fn [{{{user :user} :route-params headers :headers :as req} :request}]
-                  (= (extract-api-key req) (get-api-key user)))
+                      (= (extract-api-key req) (get-api-key user)))
 
    :handle-unauthorized (fn [_] (encode {:error "Unauthorized"}))
 
    :exists? (fn [{{{user :user client-id :client-id} :route-params} :request}]
+              (println "user is" user)
+              (println "client id is" client-id)
+              (println "get-user returns" (get-user db user))
+              (println "get-device returns" (get-device db client-id))
               (when (and (get-user db user)
                          (get-device db client-id))
+                (println "Returning context")
                 {:user user
                  :client-id client-id}))
 
-   :processable? (create-schema-check new-device-schema)
+   :processable? (create-schema-check device-attributes-schema)
    :handle-unprocessable-entity handle-unprocessable-entity
 
-   :put! (fn [_] nil)
+   :put! (fn [{client-id :client-id body :body}] (patch-device! db client-id body))
+   :delete! (fn [{client-id :client-id}] (delete-device! db client-id))
 
-   :handle-created (fn [_] {:message "Created"})
+   :handle-ok (fn [{client-id :client-id}] (get-device db client-id))
+   :handle-created (fn [_] {:message "Patched"})
 
    })
+
 
 (defn make-topics-resource [db]
   {:available-media-types #{"application/json"}
@@ -214,14 +252,17 @@
 
 (defn make-topic-resource [db])
 
+
+;; WebService
+
 (defn make-handlers [db]
-  {:welcome (resource (make-welcome-resource))
-   :users (resource (make-users-resource db))
-   :user (resource (make-user-resource db))
-   :devices (resource (make-devices-resource db))
-   :device (resource (make-device-resource db))
-   :topics (resource (make-topics-resource db))
-   :topic (resource (make-topic-resource db))
+  {::welcome (resource (welcome-resource))
+   ::users (resource (users-resource db))
+   ::user (resource (user-resource db))
+   ::devices (resource (devices-resource db))
+   ::device (resource (device-resource db))
+   ::topics (resource (make-topics-resource db))
+   ::topic (resource (make-topic-resource db))
    })
 
 (defn make-routes
@@ -229,17 +270,17 @@
   be indented beautifully to read like a site-map."
   []
   [""
-   {"" :welcome
-    "/" (->Redirect 307 :welcome)
-    "/users" (->Redirect 307 :users)
-    "/users/" :users
-    ["/users/" :user] {"" :user
-                       "/devices" (->Redirect 307 :devices)
-                       "/devices/" :devices
-                       ["/devices/" :client-id] :device
-                       "/topics" (->Redirect 307 :topics)
-                       "/topics/" :topics
-                       ["/topics/" :topic-uuid] :topic}}])
+   {"" ::welcome
+    "/" (->Redirect 307 ::welcome)
+    "/users" (->Redirect 307 ::users)
+    "/users/" ::users
+    ["/users/" :user] {"" ::user
+                       "/devices" (->Redirect 307 ::devices)
+                       "/devices/" ::devices
+                       ["/devices/" :client-id] ::device
+                       "/topics" (->Redirect 307 ::topics)
+                       "/topics/" ::topics
+                       ["/topics/" :topic-uuid] ::topic} }])
 
 (defrecord Api [uri-context]
   component/Lifecycle

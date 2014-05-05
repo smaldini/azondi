@@ -21,6 +21,7 @@
    :body (css
           [:p.loading {:color "#aaa" :font-size (pt 32)}]
           [:label.optional {:color "#aaa"}]
+          [:button {:margin (em 0.5)}]
 
           ;;[:h1 :h2 :h3 {:color (rgb 0 0 154)}]
           [:th {:padding-left (em 0.5)}]
@@ -41,23 +42,32 @@
 
   (ring-handler-map [_]
     {::index (wrap-template (fn [req] {:body (md->html (io/resource "markdown/index.md"))}))
-     ::list-devices (wrap-template
-                     (fn [req] {:body (html [:div
-                                             [:h1 "Devices"]
-                                             [:div#content [:p.loading "Loading..."]]])
-                                :cljs "azondi.main.list_devices_page()"
-                                }))
-     ::new-device (wrap-template
+
+     ::devices (wrap-template
                    (fn [req] {:body (html [:div
-                                           [:h1 "New device"]
+                                           [:h1 "Devices"]
                                            [:div#content [:p.loading "Loading..."]]])
-                              :cljs "azondi.main.new_device_page()"
+                              :cljs "azondi.main.devices_page()"
+                              }))
+
+     ::topics (wrap-template
+                   (fn [req] {:body (html [:div
+                                           [:h1 "Topics"]
+                                           [:div#content [:p.loading "Loading..."]]])
+                              :cljs "azondi.main.topics_page()"
                               }))
      ::new-topic (wrap-template
                   (fn [req] {:body (html [:div
                                           [:h1 "New Topic"]
                                           [:div#content [:p.loading "Loading..."]]])
                              :cljs "azondi.main.new_topic_page()"}))
+
+     ::test-card (wrap-template
+                  (fn [req] {:body (html [:div
+                                          [:div#content [:p.loading "Loading..."]]])
+                             :cljs "azondi.main.test_card()"
+                             }))
+
      ::styles styles})
 
   (routes [_]
@@ -66,8 +76,10 @@
 
           ["index" ::index]
           ["css/style.css" ::styles]
-          ["devices/" {"list" ::list-devices
-                       "new" ::new-device}]
+          ["devices/" ::devices]
+          ["topics/" ::topics]
+          ["developer/" {"test-card" ::test-card}]
+
           ]])
 
   (uri-context [_] "")
@@ -75,8 +87,9 @@
   MenuItems
   (menu-items [_ context]
     [{:label "Home" :order "A1" :href ::index}
-     {:label "New device" :order "B1" :href ::new-device :parent "Devices"}
-     {:label "List devices" :order "B2" :href ::list-devices :parent "Devices"}
+     {:label "Devices" :order "B1" :href ::devices :parent "My"}
+     {:label "Topics" :order "B2" :href ::topics :parent "My"}
+     {:label "Test Card" :order "T1" :href ::test-card :parent "Developer"}
      ]))
 
 (defn new-website []

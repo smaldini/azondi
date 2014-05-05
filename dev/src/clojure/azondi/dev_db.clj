@@ -11,7 +11,6 @@
 (dosync
  (alter a inc))
 
-
 (defrecord InmemoryDatastore []
   component/Lifecycle
   (start [this]
@@ -34,21 +33,22 @@
   (delete-user! [this user]
     (dosync (alter (-> this :database :users) update-in [:users] dissoc user)))
 
-  (create-device! [this user pw]
+  (create-device! [this user pw data]
     (dosync
-     (let [client-id (alter (-> this :database :last-client-id) inc)
-           device {:client-id client-id :user user :password pw}]
+     (let [client-id (str (alter (-> this :database :last-client-id) inc))
+           device (merge data {:client-id client-id :user user :password pw})]
        (alter (-> this :database :devices) assoc client-id device)
        (dissoc device :user))))
 
   (get-device [this client-id]
-    (-> this :database :devices deref (get client-id)))
+    (dissoc (-> this :database :devices deref (get client-id)) :password))
 
   (delete-device! [this client-id]
-    (alter (-> this :database :devices) dissoc client-id))
+    (dosync
+     (alter (-> this :database :devices) dissoc client-id)))
 
   (devices-by-owner [this user]
-    (filter (comp (partial = user) :user) (vals @(-> this :database :devices))))
+    (sort-by :client-id (filter (comp (partial = user) :user) (vals @(-> this :database :devices)))))
 
   (topics-by-owner [this user]
     (filter (comp (partial = user) :user) (vals @(-> this :database :topics))))
@@ -56,6 +56,11 @@
  ;; {:topics {:name name :owner user :unit measure :topic_id topic_id}}
   (create-topic! [this topic]
     (alter (-> this :database :topics) assoc topic)))
+
+(patch-device! [this client-id data]
+               (dosync
+                (alter (-> this :database :devices) update-in [client-id] merge data))
+    )
 
 (defn new-inmemory-datastore []
   (->InmemoryDatastore))
