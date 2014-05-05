@@ -7,7 +7,7 @@
    [clojure.tools.reader :refer (read)]
    [clojure.string :as str]
    [clojure.tools.reader.reader-types :refer (indexing-push-back-reader)]
-   [clojure.core.async :refer (chan mult)]
+   [clojure.core.async :as async]
 
    [modular.bidi :refer (new-router WebService)]
    [modular.cljs :refer (new-cljs-module new-cljs-builder ClojureScriptModule)]
@@ -64,7 +64,9 @@
 
 (defn configurable-system-map
   [config]
-  (let [debug-ch (chan 64)]
+  (let [debug-ch (async/chan 64)
+        debug-mult (async/mult debug-ch)
+        ]
     (system-map
      ;; We create the system map by calling a constructor for each
      ;; component.
@@ -104,7 +106,11 @@
      ;; :device-authenticator (auth/new-postgres-authenticator (get config :postgres))
      :api (api/new-api :uri-context "/api/1.0")
 
-     :sse (new-event-service :source (mult debug-ch))
+     :sse
+     (let [sse-ch (async/chan 64)
+           ;; SSE splits on client-id
+           sse-pub (async/pub (async/tap debug-mult sse-ch) :client-id)]
+       (new-event-service :async-pub sse-pub))
      )))
 
 (defn new-dependency-map [system-map]

@@ -3,18 +3,19 @@
    [modular.bidi :refer (WebService)]
    [org.httpkit.server :refer (with-channel send! on-close)]
    [org.httpkit.timer :refer (schedule-task)]
-   [clojure.core.async :refer (go <! Mult tap untap chan close!)]
+   [clojure.core.async :as async :refer (go <! Mult Pub tap untap chan close!)]
    [cheshire.core :refer (decode decode-stream encode)]
    [schema.core :as s]))
 
-(defn server-event-source [source]
+(defn server-event-source [async-pub]
   (fn [{{:keys [client-id]} :route-params :as req}]
     (let [ch (chan 16)]
-      (tap source ch)
+      (async/sub async-pub client-id ch)
       (with-channel req channel
-        (on-close channel (fn [_]
-                            (untap source ch)
-                            (close! ch)))
+        (on-close channel
+                  (fn [_]
+                    (async/unsub async-pub client-id ch)
+                    (close! ch)))
         (send! channel {:headers {"Content-Type" "text/event-stream"}} false)
         (go
           (loop []
@@ -24,13 +25,13 @@
                      false)
               (recur))))))))
 
-(defrecord EventService [source]
+(defrecord EventService [async-pub]
   WebService
-  (ring-handler-map [_] {::events (server-event-source source)})
+  (ring-handler-map [_] {::events (server-event-source async-pub)})
   (routes [_] ["/" {[[#"\d+" :client-id]] ::events}])
   (uri-context [_] "/events"))
 
 (defn new-event-service [& {:as opts}]
   (->> opts
-       (s/validate {:source (s/protocol Mult)})
+       (s/validate {:async-pub (s/protocol Pub)})
        map->EventService))

@@ -137,9 +137,7 @@
   ;;  :dup false
   ;;  }
 
-  (println "Handle connect")
-  (go (>!! (:debug-ch handler-state) {:message "handle-connect"}) )
-  (println "here")
+  (go (>!! (:debug-ch handler-state) {:message "handle-connect" :client-id client-id}) )
 
   (let [authenticator (reify DeviceAuthenticator
                         (allowed-device? [this client-id owner password] true))]
