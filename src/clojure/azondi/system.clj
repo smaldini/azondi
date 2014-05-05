@@ -1,32 +1,35 @@
 (ns azondi.system
   "(Component-based) system configuration and inter-component dependencies"
   (:refer-clojure :exclude (read))
-  (:require [com.stuartsierra.component :as component :refer (system-map system-using)]
-            [clojure.java.io :as io]
-            [clojure.tools.reader :refer (read)]
-            [clojure.string :as str]
-            [clojure.tools.reader.reader-types :refer (indexing-push-back-reader)]
+  (:require
+   [com.stuartsierra.component :as component :refer (system-map system-using)]
+   [clojure.java.io :as io]
+   [clojure.tools.reader :refer (read)]
+   [clojure.string :as str]
+   [clojure.tools.reader.reader-types :refer (indexing-push-back-reader)]
+   [clojure.core.async :refer (chan mult)]
 
-            [modular.bidi :refer (new-router WebService)]
-            [modular.cljs :refer (new-cljs-module new-cljs-builder ClojureScriptModule)]
-            [modular.clostache :refer (new-clostache-templater)]
-            [modular.http-kit :refer (new-webserver)]
-            [modular.maker :refer (make)]
-            [modular.menu :refer (new-menu-index new-bootstrap-menu MenuItems)]
-            [modular.netty :refer (new-netty-server)]
-            [modular.netty.mqtt :refer (new-mqtt-decoder new-mqtt-encoder)]
-            [modular.ring :refer (new-ring-binder RingBinding)]
-            [modular.template :refer (new-template new-template-model-contributor TemplateModel)]
-            [modular.wire-up :refer (autowire-dependencies-satisfying)]
+   [modular.bidi :refer (new-router WebService)]
+   [modular.cljs :refer (new-cljs-module new-cljs-builder ClojureScriptModule)]
+   [modular.clostache :refer (new-clostache-templater)]
+   [modular.http-kit :refer (new-webserver)]
+   [modular.maker :refer (make)]
+   [modular.menu :refer (new-menu-index new-bootstrap-menu MenuItems)]
+   [modular.netty :refer (new-netty-server)]
+   [modular.netty.mqtt :refer (new-mqtt-decoder new-mqtt-encoder)]
+   [modular.ring :refer (new-ring-binder RingBinding)]
+   [modular.template :refer (new-template new-template-model-contributor TemplateModel)]
+   [modular.wire-up :refer (autowire-dependencies-satisfying)]
 
-            [azondi.transports.mqtt :refer (new-netty-mqtt-handler)]
-            [azondi.reactor :refer (new-reactor)]
-            [azondi.bridges.ws :refer (new-websocket-bridge)]
-            [azondi.data.messages :refer (new-message-archiver)]
-            [azondi.authentication :as auth]
-            [azondi.api :as api]
-            [azondi.db :as db]
-            [azondi.website :refer (new-website)]))
+   [azondi.transports.mqtt :refer (new-netty-mqtt-handler)]
+   [azondi.reactor :refer (new-reactor)]
+   [azondi.bridges.ws :refer (new-websocket-bridge)]
+   [azondi.data.messages :refer (new-message-archiver)]
+   [azondi.authentication :as auth]
+   [azondi.api :as api]
+   [azondi.db :as db]
+   [azondi.website :refer (new-website)]
+   [azondi.sse :refer (new-event-service)]))
 
 (defn ^:private read-file
   [f]
@@ -61,45 +64,48 @@
 
 (defn configurable-system-map
   [config]
-  (system-map
-   ;; We create the system map by calling a constructor for each
-   ;; component.
-   :mqtt-decoder (new-mqtt-decoder)
-   :mqtt-encoder (new-mqtt-encoder)
-   :mqtt-handler (new-netty-mqtt-handler)
-   :mqtt-server (new-netty-server {:port 1883})
+  (let [debug-ch (chan 64)]
+    (system-map
+     ;; We create the system map by calling a constructor for each
+     ;; component.
+     :mqtt-decoder (new-mqtt-decoder)
+     :mqtt-encoder (new-mqtt-encoder)
+     :mqtt-handler (new-netty-mqtt-handler debug-ch)
+     :mqtt-server (new-netty-server {:port 1883})
 
-   :webserver (new-webserver :port 8010)
-   ;; bidi's route compilation doesn't yet work with pattern segments
-   ;; used in the routes, so we tell it not to compile
-   :router (make new-router config :compile-routes? false)
+     :webserver (new-webserver :port 8010)
+     ;; bidi's route compilation doesn't yet work with pattern segments
+     ;; used in the routes, so we tell it not to compile
+     :router (make new-router config :compile-routes? false)
 
-   ;; TODO Make this entire section a sub-system, ala cylon
-   :website (make new-website)
-   :html-template (make new-template config :template "templates/page.html.mustache")
-   :menu-index (make new-menu-index)
-   :bootstrap-menu (make new-bootstrap-menu)
+     ;; TODO Make this entire section a sub-system, ala cylon
+     :website (make new-website)
+     :html-template (make new-template config :template "templates/page.html.mustache")
+     :menu-index (make new-menu-index)
+     :bootstrap-menu (make new-bootstrap-menu)
 
-   :clostache (make new-clostache-templater)
-   :ring-binder (make new-ring-binder)
-   :web-meta (make new-template-model-contributor config
-                   :org "OpenSensors.IO"
-                   :title "Azondi"
-                   :description "OpenSensors.IO MQTT broker"
-                   :app-name "Azondi")
-   :cljs-core (new-cljs-module :name :cljs :mains ['cljs.core] :dependencies #{})
-   :cljs-main (new-cljs-module :name :azondi :mains ['azondi.main] :dependencies #{:cljs})
+     :clostache (make new-clostache-templater)
+     :ring-binder (make new-ring-binder)
+     :web-meta (make new-template-model-contributor config
+                     :org "OpenSensors.IO"
+                     :title "Azondi"
+                     :description "OpenSensors.IO MQTT broker"
+                     :app-name "Azondi")
+     :cljs-core (new-cljs-module :name :cljs :mains ['cljs.core] :dependencies #{})
+     :cljs-main (new-cljs-module :name :azondi :mains ['azondi.main] :dependencies #{:cljs})
 
-   :main-cljs-builder (new-cljs-builder :source-path "src/cljs")
+     :main-cljs-builder (new-cljs-builder :source-path "src/cljs")
 
-   :reactor (new-reactor)
-   :ws (new-websocket-bridge {:port 8083})
-   ;;   :cassandra (cass/new-database (get config :cassandra {:keyspace "opensensors" :hosts ["127.0.0.1"]}))
-   :message-archiver (new-message-archiver)
-   ;;   :postgres (pg/new-database (get config :postgres))
-   ;; :device-authenticator (auth/new-postgres-authenticator (get config :postgres))
-   :api (api/new-api :uri-context "/api/1.0")
-   ))
+     :reactor (new-reactor)
+     :ws (new-websocket-bridge {:port 8083})
+     ;;   :cassandra (cass/new-database (get config :cassandra {:keyspace "opensensors" :hosts ["127.0.0.1"]}))
+     :message-archiver (new-message-archiver)
+     ;;   :postgres (pg/new-database (get config :postgres))
+     ;; :device-authenticator (auth/new-postgres-authenticator (get config :postgres))
+     :api (api/new-api :uri-context "/api/1.0")
+
+     :sse (new-event-service :source (mult debug-ch))
+     )))
 
 (defn new-dependency-map [system-map]
   (->

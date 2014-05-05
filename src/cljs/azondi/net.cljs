@@ -1,4 +1,4 @@
-(ns azondi.ajax
+(ns azondi.net
   (:require-macros [cljs.core.async.macros :refer [go go-loop]])
   (:require
    [clojure.string :as str :refer (join upper-case)]
@@ -7,6 +7,8 @@
    [azondi.csk :as csk]
    [cljs.core.async :refer [<! >! chan put! sliding-buffer close! pipe map< filter< mult tap map> timeout]]
    ;;[schema.core :as s]
+   [goog.json :as json]
+   [goog.events :as events]
    ))
 
 ;; XHR
@@ -84,3 +86,16 @@
   (->> (apply ajax< (concat args [:accept "application/json" :content-type "application/json"]))
        (map< js->clj)
        (map< csk/->edn)))
+
+
+(defn event->clj [evt]
+  (-> evt .-event_ .-data json/parse (js->clj :keywordize-keys true)))
+
+(defn listen-sse [uri ch]
+  (let [source (js/EventSource. uri)]
+    (events/listen source "open" (fn [ev] (println "OPEN")))
+    (events/listen source "error" (fn [ev] (println "ERROR")))
+    (events/listen source "message"
+                   (fn [ev]
+                     (go
+                       (>! ch (event->clj ev)))))))

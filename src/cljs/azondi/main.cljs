@@ -7,7 +7,7 @@
    [om.core :as om :include-macros true]
    [sablono.core :as html :refer-macros [html]]
    [ankha.core :as ankha]
-   [azondi.ajax :as ajax :refer (ajaj<)]
+   [azondi.net :refer (ajaj< listen-sse)]
    [goog.events :as events]
    [chord.client :refer [ws-ch]]
    [azondi.csk :as csk]
@@ -105,6 +105,15 @@
 
 (defn device-details-form [app-state owner]
   (reify
+    om/IWillMount
+    (will-mount [this]
+      (let [c (chan)]
+        (listen-sse "/sse/index" c)
+        (go-loop []
+          (when-let [message (<! c)]
+            (println "message is " message)
+            (om/transact! app-state [:device :messages] #(conj (or % []) message))
+            (recur)))))
     om/IRender
     (render [this]
       (html
@@ -193,7 +202,12 @@
 
           [:h4 "Events"]
           [:p "We will show all connection attempts from this device to help you succeed in establishing a connection from your device to the broker."]
-          [:pre]
+          [:pre
+           (for [msg (-> app-state :device :messages)]
+;;;;
+             (let [d (goog.date.UtcDateTime.)]
+               ;;(.setTime d (:date msg))
+               (str #_(.toIsoTimeString d) (pr-str msg) "\r\n")))]
 
           [:form.form-horizontal
            {:onSubmit

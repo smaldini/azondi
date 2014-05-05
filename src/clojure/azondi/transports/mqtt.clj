@@ -11,7 +11,8 @@
             [azondi.authentication :refer (allowed-device? DeviceAuthenticator)]
             [azondi.devices :refer (device-names)]
             [azondi.topics :as tp]
-            [clojurewerkz.meltdown.selectors :as ms :refer [$]])
+            [clojurewerkz.meltdown.selectors :as ms :refer [$]]
+            [clojure.core.async :refer (chan pub dropping-buffer sub go >! <! >!! <!! take! put! timeout)])
   (:import  [io.netty.channel ChannelHandlerAdapter ChannelHandlerContext Channel]
             java.net.InetSocketAddress
             [java.util.concurrent ExecutorService Executors]))
@@ -85,7 +86,7 @@
               :will-qos (when has-will (:will-qos msg))
               ;;:authorized-topic-prefixes (tp/authorized-prefixes-for username devices)
               }]
-    (maybe-disconnect-existing client-id handler-state)
+    ;;(maybe-disconnect-existing client-id handler-state)
     (dosync
      (alter connections-by-ctx assoc ctx conn)
      (alter connections-by-client-id assoc client-id conn))
@@ -136,7 +137,9 @@
   ;;  :dup false
   ;;  }
 
-
+  (println "Handle connect")
+  (go (>!! (:debug-ch handler-state) {:message "handle-connect"}) )
+  (println "here")
 
   (let [authenticator (reify DeviceAuthenticator
                         (allowed-device? [this client-id owner password] true))]
@@ -351,24 +354,26 @@
   (proxy [ChannelHandlerAdapter] []
     (channelRead [^ChannelHandlerContext ctx msg]
       (case (:type msg)
-        :connect     (handle-connect     ctx msg handler-state)
-        :subscribe   (handle-subscribe   ctx msg handler-state)
+        :connect (handle-connect ctx msg handler-state)
+        :subscribe (handle-subscribe ctx msg handler-state)
         :unsubscribe (handle-unsubscribe ctx msg handler-state)
-        :publish     (handle-publish     ctx msg handler-state)
-        :pingreq     (handle-pingreq     ctx handler-state)
-        :disconnect  (handle-disconnect  ctx handler-state)))
+        :publish (handle-publish ctx msg handler-state)
+        :pingreq (handle-pingreq ctx handler-state)
+        :disconnect (handle-disconnect ctx handler-state)))
     (exceptionCaught [^ChannelHandlerContext ctx cause]
       (try (throw cause)
            (finally (abort ctx))))))
 
-(defrecord NettyMqttHandler [connections-by-ctx connections-by-client-id topics-by-ctx]
+(defrecord NettyMqttHandler [connections-by-ctx connections-by-client-id topics-by-ctx debug-ch]
   component/Lifecycle
   (start [this]
     (info "MQTT transport starting...")
     (assoc this
       :handler-provider
       #(make-channel-handler
-        (assoc this :reactor (get-in this [:reactor :reactor])))))
+        (assoc this
+          :reactor (get-in this [:reactor :reactor])
+          :debug-ch debug-ch))))
   (stop [this] this)
 
   NettyHandlerProvider
@@ -376,8 +381,19 @@
   (priority [this] 20))
 
 (defn new-netty-mqtt-handler
-  []
+  [debug-ch]
   (-> (map->NettyMqttHandler {:connections-by-ctx (ref {})
                               :connections-by-client-id (ref {})
-                              :topics-by-ctx (ref {})})
+                              :topics-by-ctx (ref {})
+                              :debug-ch debug-ch})
       (component/using [:database :reactor])))
+
+#_(let [c (chan 100)
+      p (pub c :user)
+      subch (chan 100)]
+  (sub p :user subch)
+  (go
+    (>! c {:user "alice"})
+    (println (<! subch)))
+
+)

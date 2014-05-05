@@ -59,7 +59,9 @@
                  [ankha "0.1.1"]
                  [jarohen/chord "0.3.1"]]
 
-  :jvm-opts ["-Xss8m" "-Xmx1g" "-Duser.timezone=UTC"]
+  :jvm-opts ["-Xss8m" "-Xmx1g" "-Duser.timezone=UTC"
+;;             "-Djava.net.preferIPv4Stack=true"
+             ]
   :main azondi.main
 
   :repl-options {:init-ns user}
