@@ -113,9 +113,6 @@
       (let [notify-ch (om/get-state owner :notification-channel)]
         (go-loop []
           (when-let [message (<! notify-ch)]
-            (println "message is " message)
-            (println "Type is" (:type message))
-
             (om/transact! app-state [:device :messages]
                           #(conj (or % [])
                                  (str (:time message) " "
@@ -127,7 +124,6 @@
                                         (get-in message [:message :message])))))
             (recur)))
         (let [uri (str "/events/" (get-in app-state [:device :client-id]))]
-          (println "Connecting to" uri)
           (om/set-state! owner :event-source (listen-sse uri notify-ch)))))
 
     om/IWillUpdate
@@ -137,12 +133,10 @@
                   (get-in app-state [:device :client-id]))
 
         (when-let [es (om/get-state owner :event-source)]
-          (println "Closing event source" (.-url es))
           (.dir js/console es)
           (.close es))
 
         (let [uri (str "/events/" (get-in next-props [:device :client-id]))]
-          (println "Connecting to" uri)
           (om/set-state! owner
                          :event-source (listen-sse uri
                                                    (om/get-state owner :notification-channel))))))
