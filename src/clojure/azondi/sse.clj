@@ -22,15 +22,12 @@
               (send! channel
                      (str "data: " (-> data (assoc :date (System/currentTimeMillis)) encode) "\r\n\r\n")
                      false)
-              (recur))))
-        ))))
+              (recur))))))))
 
 (defrecord EventService [source]
   WebService
-  (ring-handler-map [_]
-    {::events (server-event-source source)})
-  (routes [_]
-    ["/" {[[#"\d+" :client-id]] ::events}])
+  (ring-handler-map [_] {::events (server-event-source source)})
+  (routes [_] ["/" {[[#"\d+" :client-id]] ::events}])
   (uri-context [_] "/events"))
 
 (defn new-event-service [& {:as opts}]
