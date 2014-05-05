@@ -14,7 +14,7 @@
    [cheshire.core :refer (decode decode-stream encode)]
    [schema.core :as s]
    [camel-snake-kebab :as csk :refer (->kebab-case-keyword ->camelCaseString)]
-   [azondi.db :refer (get-users get-user delete-user! create-user! devices-by-owner get-device delete-device! create-device! patch-device! topics-by-owner get-topic delete-topic! create-topic!)]
+   [azondi.db :refer (get-users get-user delete-user! create-user! devices-by-owner get-device delete-device! create-device! patch-device! topics-by-owner get-topic delete-topic! create-topic! patch-topic!)]
    [hiccup.core :refer (html)]
    [clojure.walk :refer (postwalk)]
    liberator.representation
@@ -247,7 +247,8 @@
 
 (def topic-attributes-schema
   {(s/required-key :name) s/Str
-   (s/optional-key :unit) s/Str})
+   (s/optional-key :unit) s/Str
+   (s/optional-key :description) s/Str})
 
 (defn topics-resource [db]
   {:available-media-types #{"application/json"}
@@ -271,12 +272,37 @@
                (create-topic! db {:name name
                                   :owner user
                                   :unit (:unit body)
-                                  :topic_id topic-id}))})
+                                  :topic-id topic-id}))})
 
    :handle-created (fn [{topic :topic}] (->js topic))
    })
 
-(defn topic-resource [db])
+(defn topic-resource [db]
+  {:available-media-types #{"application/json"}
+   :allowed-methods #{:get :put :delete}
+   :known-content-type? #{"application/json"}
+   :exists? (fn [{{{user :user topic-name :topic-name} :route-params} :request}]
+              (let [topic-id (str user "/" topic-name)]
+                (println "user is" user)
+                (println "topic name is" topic-name)
+                (println "get-user returns" (get-user db user))
+                (println "get-topic returns" (get-topic db topic-id))
+                (when (and (get-user db user)
+                           (get-topic db topic-id))
+                  (println "Returning context")
+                  {:user user
+                   :topic-id topic-id})))
+
+   :processable? (create-schema-check device-attributes-schema)
+   :handle-unprocessable-entity handle-unprocessable-entity
+
+   :put! (fn [{topic-id :topic-id body :body}] (patch-topic! db topic-id body))
+   :delete! (fn [{topic-id :topic-id}] (delete-topic! db topic-id))
+
+   :handle-ok (fn [{topic-id :topic-id}] (get-topic db topic-id))
+   :handle-created (fn [_] {:message "Patched"})
+   
+})
 
 
 ;; WebService
