@@ -326,9 +326,10 @@
         [:thead
          [:tr
           [:th "Name"]
-          [:th "Description"]]]
+          [:th "Description"]
+          [:th "Unit of Measure"]]]
         [:tbody
-         (for [{:keys [name description]} (:topics app-state)]
+         (for [{:keys [name description unit]} (:topics app-state)]
            [:tr
             [:td
              [:a
@@ -352,11 +353,12 @@
                                      ;; component input values to nil,
                                      ;; so we merge in empty string
                                      ;; defaults!
-                                     (merge {:name "" :description ""}
-                                            (select-keys body [:name :description]))))))))}
+                                     (merge {:name "" :description "" :unit ""}
+                                            (select-keys body [:name :description :unit]))))))))}
               ;; We display the topic name as the link text
               name]]
-            [:td description]])]]))))
+            [:td description]
+            [:td unit]])]]))))
 
 (defn update-topics-list! [user app-state]
   (let [ajax-send (chan)
@@ -384,9 +386,13 @@
              (go
                (>! ajax-send
                    {:uri (str "/api/1.0/users/" (:user @app-state) "/topics/")
-                    :content {}}
-                   (.log js/console @app-state))
+                    :content {:name (get-in @app-state [:topic :name])
+                              :description (or (get-in @app-state [:topic :description]) "")
+                              :unit (or (get-in @app-state [:topic :unit]) "")}
+                              })
+               (update-topics-list! (:user @app-state) app-state)
                (let [{:keys [status body]} (<! ajax-recv)]
+                 
                  (when (= status 201)
                    ;; Add the device to the list
                    (om/transact! app-state :topics #(conj % body))
@@ -397,7 +403,7 @@
          [:div.controls
           [:input {:id "name"
                    :type "text"
-                   :placeholder "test"
+                   :placeholder "Name of New Topic"
                    :onChange
                    (fn [e]
                      (let [value (.-value (.-target e))]
@@ -468,9 +474,12 @@
                             (go
                               (>! ajax-send
                                   {:uri (str "/api/1.0/users/" (:user @app-state) "/topics/" name)
-                                   :content {:description (or (get-in @app-state [:topic :description]) "")}})
+                                   :content {:description (or (get-in @app-state [:topic :description]) "")
+                                             :unit (or (get-in @app-state [:topic :unit]) "")
+                                             }})
                               (let [response (<! ajax-recv)]
-                                (println "Response to PUT is" response))
+                                (println "Response to PUT is" response)
+                                )
                               ;; Having PUT, let's update the devices list
                               (update-topics-list! (:user @app-state) app-state)))))}
 
@@ -484,7 +493,7 @@
            [:div.control-group
             [:label.control-label "Description"]
             [:div.controls
-             [:input {:name "description" :style {:width "90%"}
+             [:input {:name "description" :style {:width "60%"}
                       :type "text"
                       :value (get-in app-state [:topic :description])
                       :onChange
@@ -492,6 +501,19 @@
                         (let [value (.-value (.-target e))]
                           (om/update! app-state [:topic :description] value)))
                       :placeholder "optional description"}]]]
+
+           [:div.control-group
+            [:label.control-label "Unit"]
+            [:div.controls
+             [:input {:name "unit" :style {:width "60%"}
+                      :type "text"
+                      :value (get-in app-state [:topic :unit])
+                      :onChange
+                      (fn [e]
+                        (let [value (.-value (.-target e))]
+                         (om/update! app-state [:topic :unit] value)
+                          ))
+                      :placeholder "optional unit of measure e.g. PM25, celcius"}]]]
 
            [:div.control-group
             [:div.controls
@@ -580,13 +602,11 @@
         (for [msg (get-in app-state [:test-card :messages])]
           [:p msg])]))))
 
-<<<<<<< HEAD
+
 (defn ^:export new-device-page []
   (om/root new-device-page-component app-model {:target (. js/document (getElementById "content"))}))
 
 
-(defn new-topic-page-component [app-state owner])
-=======
 (defn ^:export test-card []
   (om/root test-card-page-component app-model {:target (. js/document (getElementById "content"))}))
->>>>>>> ca994b94ce3fa3ec4913554514cafe7a9a413c50
+

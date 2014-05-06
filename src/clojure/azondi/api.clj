@@ -74,7 +74,7 @@
      (try
        (let [body (->clj (read-json-body body))]
          (if-let [error (s/check schema body)]
-           [false {:error {:error "Entity body failed schema check" :details (pr-str error)}}]
+           [false {:error {:error "Entity body failed schema check" :details (pr-str error) :body body}}]
            {:body body}))
        (catch Exception e [false {:error {:error "Entity body did not contain valid JSON"}}])))))
 
@@ -246,7 +246,7 @@
    })
 
 (def topic-attributes-schema
-  {:name s/Str
+  {(s/required-key :name) s/Str
    (s/optional-key :unit) s/Str
    (s/optional-key :description) s/Str})
 
@@ -272,6 +272,7 @@
                (create-topic! db {:name name
                                   :owner user
                                   :unit (:unit body)
+                                  :description (:description body)
                                   :topic-id topic-id}))})
 
    :handle-created (fn [{topic :topic}] (->js topic))
