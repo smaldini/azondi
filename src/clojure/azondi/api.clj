@@ -246,7 +246,7 @@
    })
 
 (def topic-attributes-schema
-  {(s/required-key :name) s/Str
+  {:name s/Str
    (s/optional-key :unit) s/Str
    (s/optional-key :description) s/Str})
 

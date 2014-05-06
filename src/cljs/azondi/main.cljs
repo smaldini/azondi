@@ -369,7 +369,7 @@
         (om/update! app-state :topics (:topics (:body r)))))))
 
 (defn new-topic-button-component
-  "Click this button to register a new topic"
+  "Click this button to register  new topic"
   [app-state owner]
   (reify
     om/IRender
@@ -384,11 +384,13 @@
              (go
                (>! ajax-send
                    {:uri (str "/api/1.0/users/" (:user @app-state) "/topics/")
-                    :content {}})
+                    :content {}}
+                   (.log js/console @app-state))
                (let [{:keys [status body]} (<! ajax-recv)]
                  (when (= status 201)
                    ;; Add the device to the list
                    (om/transact! app-state :topics #(conj % body))
+                   
                    ;; Set the current device to this new one
                    (om/update! app-state [:topic] body))))))}
         [:div.control-group
