@@ -392,11 +392,11 @@
                               })
                (update-topics-list! (:user @app-state) app-state)
                (let [{:keys [status body]} (<! ajax-recv)]
-                 
+
                  (when (= status 201)
                    ;; Add the device to the list
                    (om/transact! app-state :topics #(conj % body))
-                   
+
                    ;; Set the current device to this new one
                    (om/update! app-state [:topic] body))))))}
         [:div.control-group
@@ -602,11 +602,5 @@
         (for [msg (get-in app-state [:test-card :messages])]
           [:p msg])]))))
 
-
-(defn ^:export new-device-page []
-  (om/root new-device-page-component app-model {:target (. js/document (getElementById "content"))}))
-
-
 (defn ^:export test-card []
   (om/root test-card-page-component app-model {:target (. js/document (getElementById "content"))}))
-
