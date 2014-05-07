@@ -12,6 +12,7 @@
   (get-device [_ client-id])
   (delete-device! [_ client-id])
   (set-device-password! [_ client-id p])
+  (allowed-device? [_ client-id user p])
   ;;topics
   (topics-by-owner [_ user])
   (create-topic! [_ topic])

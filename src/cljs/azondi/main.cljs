@@ -276,8 +276,16 @@
           [:pre (str "mosquitto_pub"
                      " -h " hostname
                      " -i " (-> app-state :device :client-id)
-                     " -t " "test"
+                     " -t " (str "/users/" (:user app-state) "/test")
                      " -m " "'This is a test'"
+                     " -u " (:user app-state)
+                     " -P " (or (-> app-state :device :password) "<enter password>")
+                     )]
+
+          [:pre (str "mosquitto_sub"
+                     " -h " hostname
+                     " -i " (-> app-state :device :client-id)
+                     " -t " (str "/users/" (:user app-state) "/test")
                      " -u " (:user app-state)
                      " -P " (or (-> app-state :device :password) "<enter password>")
                      )]

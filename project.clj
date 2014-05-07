@@ -21,12 +21,16 @@
                  [cheshire                "5.3.1"]
                  [clojurewerkz/meltdown   "1.0.0-beta12"]
 
+                 ;; Database
+                 [org.clojure/java.jdbc "0.3.3"]
+                 [postgresql/postgresql "8.4-702.jdbc4"]
 
                  ;; for query string parsing
                  ;;[javax.servlet/servlet-api "2.5"]
                  [clj-time "0.7.0"]
                  [liberator "0.11.0"]
                  [prismatic/schema "0.2.1"]
+                 [clojurewerkz/scrypt     "1.1.0"]
 
                  ;; Pre-built components supplied by modular
                  [juxt.modular/bidi "0.4.0-SNAPSHOT" :exclusions [bidi]]

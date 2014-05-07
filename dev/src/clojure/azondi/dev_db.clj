@@ -59,10 +59,18 @@
     (dosync
      (alter (-> this :database :devices) update-in [client-id] assoc :password p)))
 
+  (allowed-device? [this client-id user p]
+    (println "Real creds" (select-keys (-> this :database :devices deref (get client-id)) [:user :password]))
+    (println "Attempted creds" {:user user :password p})
+    (= (select-keys
+        (-> this :database :devices deref (get client-id))
+        [:user :password])
+       {:user user :password p}))
+
   (topics-by-owner [this user]
     (filter (comp (partial = user) :owner) (vals @(-> this :database :topics))))
 
- ;; {:topics {:topic-name topic-name name :description description :owner user :unit measure :topic_id topic_id}}
+  ;; {:topics {:topic-name topic-name name :description description :owner user :unit measure :topic_id topic_id}}
   (create-topic! [this topic]
     (dosync
      (alter (-> this :database :topics) assoc (:topic-id topic) topic)))
@@ -71,8 +79,8 @@
     (-> this :database :topics deref (get topic-id)))
 
   (delete-topic! [this topic-id]
-     (dosync
-      (alter (-> this :database :topics) dissoc topic-id)))
+    (dosync
+     (alter (-> this :database :topics) dissoc topic-id)))
 
   (patch-topic! [this topic-id data]
     (dosync

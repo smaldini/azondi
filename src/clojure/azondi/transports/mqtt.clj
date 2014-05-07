@@ -6,11 +6,11 @@
                                      logf tracef debugf infof warnf errorf fatalf]]
             [clojurewerkz.triennium.mqtt :as tr]
 
+            [azondi.db :refer (allowed-device?)]
+
             [clojure.set :as cs]
             [clojurewerkz.meltdown.reactor :as mr]
-            [azondi.authentication :refer (allowed-device? DeviceAuthenticator)]
             [azondi.devices :refer (device-names)]
-            [azondi.topics :as tp]
             [clojurewerkz.meltdown.selectors :as ms :refer [$]]
             [clojure.core.async :refer (chan pub dropping-buffer sub go >! <! >!! <!! take! put! timeout)])
   (:import  [io.netty.channel ChannelHandlerAdapter ChannelHandlerContext Channel]
@@ -137,35 +137,42 @@
   ;;  :dup false
   ;;  }
 
-  (go (>!! (:debug-ch handler-state) {:message "handle-connect" :client-id client-id}) )
+  (go (>!! (:debug-ch handler-state) {:message "Connected" :client-id client-id}))
 
-  (let [authenticator (reify DeviceAuthenticator
-                        (allowed-device? [this client-id owner password] true))]
-    (cond
-     (not (supported-protocol? protocol-name protocol-version))
-     (do
-       (warnf "Unsupported protocol and/or version: %s v%d, rejecting connection"
-              protocol-name
-              protocol-version)
-       (reject-connection ctx :unacceptable-protocol-version))
+  (cond
+   (not (supported-protocol? protocol-name protocol-version))
+   (do
+     (warnf "Unsupported protocol and/or version: %s v%d, rejecting connection"
+            protocol-name
+            protocol-version)
+     (reject-connection ctx :unacceptable-protocol-version))
 
-     (not (and has-username has-password))
-     (do
-       (warnf "Client has no username or password, rejecting connection")
-       (reject-connection ctx :bad-username-or-password))
+   (not (and has-username has-password))
+   (do
+     (warnf "Client has no username or password, rejecting connection")
+     (go (>!! (:debug-ch handler-state) {:message "rejecting connection" :client-id client-id}))
+     (reject-connection ctx :bad-username-or-password))
 
-     (not (allowed-device? authenticator client-id username password))
-     (do
-       (warnf "Device authentication failed, rejecting connection")
-       (reject-connection ctx :bad-username-or-password))
+   (not (allowed-device? (:database handler-state) client-id username password))
+   (do
+     (warnf "Device authentication failed, rejecting connection")
+     (go (>!! (:debug-ch handler-state) {:client-id client-id
+                                         :message "Please check username/password"}))
+     (reject-connection ctx :bad-username-or-password))
 
-     ;; TODO: check known devices table, too
-     (not (valid-client-id? client-id))
-     (do
-       (warnf "Invalid client id: %s, rejecting connection" client-id)
-       (reject-connection ctx :identifier-rejected))
+   ;; TODO: check known devices table, too
+   (not (valid-client-id? client-id))
+   (do
+     (warnf "Invalid client id: %s, rejecting connection" client-id)
+     (reject-connection ctx :identifier-rejected))
 
-     :otherwise
+   :otherwise
+   (do
+     (go (>!! (:debug-ch handler-state) {:message (rand-nth [
+                                                             "Great! connection accepted!"
+                                                             "Yay!"
+                                                             "It worked!"
+                                                             "You're in!"]) :client-id client-id}))
      (accept-connection ctx msg handler-state))))
 
 ;;
@@ -200,21 +207,14 @@
   ;;  ;; not used per MQTT v3.1 spec (section 3.8)
   ;;  :retain false}
   (let [{:keys [authorized-topic-prefixes]} (get @connections-by-ctx ctx)]
-    (if (every? (fn [^String topic]
-                  (tp/authorized? authorized-topic-prefixes topic))
-                (map first topics))
-      (do
-        (dosync
-         (alter subscriptions record-subscribers ctx topics)
-         (alter topics-by-ctx assoc-with-union ctx (set (map first topics))))
-        ;; TODO: QoS > 0
-        (.writeAndFlush ctx {:type :suback
-                             :message-id message-id
-                             :granted-qos (repeat (count topics) 0)}))
-      (let [state (get @connections-by-ctx ctx)
-            peer  (peer-of ctx)]
-        (warnf "Dropping connection %s (client id: %s), unauthorized to subscribe to %s" peer (:client-id state) topics)
-        (disconnect-client ctx)))))
+    (do
+      (dosync
+       (alter subscriptions record-subscribers ctx topics)
+       (alter topics-by-ctx assoc-with-union ctx (set (map first topics))))
+      ;; TODO: QoS > 0
+      (.writeAndFlush ctx {:type :suback
+                           :message-id message-id
+                           :granted-qos (repeat (count topics) 0)}))))
 
 (defn unrecord-subscribers
   [trie ctx topics]
@@ -297,8 +297,8 @@
   ;;  :dup false,
   ;;  :qos 1,
   ;;  :retain false}
-  (let [{:keys [authorized-topic-prefixes]} (get @connections-by-ctx ctx)]
-    (if (tp/authorized? authorized-topic-prefixes topic)
+  (let [{:keys [username]} (get @connections-by-ctx ctx)]
+    (if (.startsWith topic (str "/users/" username "/"))
       (let [{:keys [client-id]} (get @connections-by-ctx ctx)
             f (case qos
                 0 handle-publish-with-qos0
@@ -371,6 +371,7 @@
       #(make-channel-handler
         (assoc this
           :reactor (get-in this [:reactor :reactor])
+          :database (get-in this [:database])
           :debug-ch debug-ch))))
   (stop [this] this)
 
@@ -385,13 +386,3 @@
                               :topics-by-ctx (ref {})
                               :debug-ch debug-ch})
       (component/using [:database :reactor])))
-
-#_(let [c (chan 100)
-      p (pub c :user)
-      subch (chan 100)]
-  (sub p :user subch)
-  (go
-    (>! c {:user "alice"})
-    (println (<! subch)))
-
-)

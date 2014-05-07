@@ -25,11 +25,11 @@
    [azondi.reactor :refer (new-reactor)]
    [azondi.bridges.ws :refer (new-websocket-bridge)]
    [azondi.data.messages :refer (new-message-archiver)]
-   [azondi.authentication :as auth]
    [azondi.api :as api]
    [azondi.db :as db]
    [azondi.website :refer (new-website)]
-   [azondi.sse :refer (new-event-service)]))
+   [azondi.sse :refer (new-event-service)]
+   [azondi.postgres :refer (new-database)]))
 
 (defn ^:private read-file
   [f]
@@ -104,7 +104,7 @@
      ;;   :cassandra (cass/new-database (get config :cassandra {:keyspace "opensensors" :hosts ["127.0.0.1"]}))
      :message-archiver (new-message-archiver)
      ;;   :postgres (pg/new-database (get config :postgres))
-     ;; :device-authenticator (auth/new-postgres-authenticator (get config :postgres))
+
      :api (api/new-api :uri-context "/api/1.0")
 
      :sse
@@ -137,6 +137,8 @@
    ))
 
 (defn new-prod-system []
-  (let [s-map (configurable-system-map (config))
+  (let [s-map (-> (configurable-system-map (config))
+                  (assoc :database (new-database)))
         d-map (new-dependency-map s-map)]
+
     (component/system-using s-map d-map)))
