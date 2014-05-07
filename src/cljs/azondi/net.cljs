@@ -13,13 +13,6 @@
 
 ;; XHR
 
-(def xhr-manager (goog.net.XhrManager.))
-
-(def next-id (atom 0))
-
-(defn ^:export get-next-ajax-id []
-  (str (swap! next-id inc)))
-
 (defmulti parse-response-body "Dispatch on media type"
   (fn [xhrio]
     (first (str/split (.getResponseHeader xhrio "Content-Type") ";"))))
@@ -50,32 +43,31 @@
   (let [out (chan)]
     (go-loop []
       (when-let [m (<! in)]
-        (let [m (merge opts m)
+        (let [m (merge {:timeout 0} opts m)
               headers (clj->js (into {} (remove (comp nil? second)
-                                                 [["Accept" (:accept m)]
-                                                  ["Content-Type" (:content-type m)]])))
-              priority 1
+                                                [["Accept" (:accept m)]
+                                                 ["Content-Type" (:content-type m)]])))
               _ (assert (contains? m :method) "Missing method")
               _ (assert (contains? m :uri) "Missing URI")
-              content (when-let [content (:content m)] (csk/->js content))
-              id (get-next-ajax-id)]
-          (.send xhr-manager id (:uri m)
-                 (if (keyword? (:method m))
-                   (upper-case (name (:method m)))
-                   (:method m))
-                 (case (:content-type m)
-                   "application/edn" (pr-str content)
-                   "application/json" (write-json content)
-                   (throw (ex-info "Unsupported content type" {:content-type (:content-type m)})))
-
-                 headers
-                 priority
-                 (fn [ev]
-                   (let [xhrio (.-target ev)
-                         status (.getStatus xhrio)
-                         body (parse-response-body xhrio)]
-                     (go
-                       (>! out {:status status :body body}))))))
+              content (when-let [content (:content m)] (csk/->js content))]
+          (doto (new goog.net.XhrIo)
+            (events/listen goog.net.EventType/COMPLETE
+                           (fn [ev]
+                             (let [xhrio (.-target ev)
+                                   status (.getStatus xhrio)
+                                   body (parse-response-body xhrio)]
+                               (go
+                                 (>! out {:status status :body body})))))
+            (.setTimeoutInterval (:timeout m))
+            (.send (:uri m)
+                   (if (keyword? (:method m))
+                     (upper-case (name (:method m)))
+                     (:method m))
+                   (case (:content-type m)
+                     "application/edn" (pr-str content)
+                     "application/json" (write-json content)
+                     (throw (ex-info "Unsupported content type" {:content-type (:content-type m)})))
+                   headers)))
         (recur)))
     out))
 
