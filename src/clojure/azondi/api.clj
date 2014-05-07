@@ -14,7 +14,7 @@
    [cheshire.core :refer (decode decode-stream encode)]
    [schema.core :as s]
    [camel-snake-kebab :as csk :refer (->kebab-case-keyword ->camelCaseString)]
-   [azondi.db :refer (get-users get-user delete-user! create-user! devices-by-owner get-device delete-device! create-device! patch-device! topics-by-owner get-topic delete-topic! create-topic! patch-topic!)]
+   [azondi.db :refer (get-users get-user delete-user! create-user! devices-by-owner get-device delete-device! create-device! patch-device! topics-by-owner get-topic delete-topic! create-topic! patch-topic! set-device-password!)]
    [hiccup.core :refer (html)]
    [clojure.walk :refer (postwalk)]
    liberator.representation
@@ -245,6 +245,16 @@
 
    })
 
+(defn reset-device-password-resource [db]
+  {:available-media-types #{"application/json"}
+   :allowed-methods #{:post}
+   :post! (fn [{{{:keys [client-id]} :route-params} :request}]
+            (let [p (generate-device-password)]
+              (set-device-password! db client-id p)
+              {:password p}))
+   :handle-created (fn [{password :password}] {:password password})
+})
+
 (def topic-attributes-schema
   {(s/required-key :name) s/Str
    (s/optional-key :unit) s/Str
@@ -302,7 +312,7 @@
 
    :handle-ok (fn [{topic-id :topic-id}] (get-topic db topic-id))
    :handle-created (fn [_] {:message "Patched"})
-   
+
 })
 
 
@@ -314,6 +324,7 @@
    ::user (resource (user-resource db))
    ::devices (resource (devices-resource db))
    ::device (resource (device-resource db))
+   ::reset-device-password (resource (reset-device-password-resource db))
    ::topics (resource (topics-resource db))
    ::topic (resource (topic-resource db))
    })
@@ -331,6 +342,7 @@
                        "/devices" (->Redirect 307 ::devices)
                        "/devices/" ::devices
                        ["/devices/" :client-id] ::device
+                       ["/devices/" :client-id "/reset-password"] ::reset-device-password
                        "/topics" (->Redirect 307 ::topics)
                        "/topics/" ::topics
                        ["/topics/" :topic-name] ::topic} }])

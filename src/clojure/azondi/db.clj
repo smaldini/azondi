@@ -11,6 +11,7 @@
   (create-device! [_ user pw data])
   (get-device [_ client-id])
   (delete-device! [_ client-id])
+  (set-device-password! [_ client-id p])
   ;;topics
   (topics-by-owner [_ user])
   (create-topic! [_ topic])
@@ -18,4 +19,3 @@
   (delete-topic! [_ topic-id])
   (patch-device! [_ client-id data])
   (patch-topic! [_ topic-id data]))
-

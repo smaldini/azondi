@@ -241,6 +241,29 @@
             [:div.controls
              [:input.btn {:name "action" :type "submit" :value "Apply"}]]]]
 
+          [:h3 "Reset password"]
+          [:form.form-horizontal
+           {:onSubmit (fn [ev]
+                        (println "RESET PASSWORD")
+                        (.preventDefault ev)
+                        (let [ajax-send (chan)
+                              ajax-recv (ajaj< ajax-send :method :post)]
+                          (if-let [id (get-in @app-state [:device :client-id])]
+                            (go
+                              (println "here - reset password")
+                              (>! ajax-send
+                                  {:uri (str "/api/1.0/users/" (:user @app-state) "/devices/" id "/reset-password")
+                                   :content {:name (or (get-in @app-state [:device :name]) "")
+                                             :description (or (get-in @app-state [:device :description]) "")}})
+                              (let [response (<! ajax-recv)]
+                                (om/update! app-state [:device :password] (-> response :body :password)))
+
+                              ))))}
+           [:div.control-group
+            [:div.controls
+             [:input.btn {:name "action" :type "submit" :value "Reset"}]]]]
+
+
 
           (when-let [password (-> app-state :device :password)]
             (list

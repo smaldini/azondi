@@ -55,6 +55,10 @@
      (alter (-> this :database :devices) update-in [client-id] merge data))
     )
 
+  (set-device-password! [this client-id p]
+    (dosync
+     (alter (-> this :database :devices) update-in [client-id] assoc :password p)))
+
   (topics-by-owner [this user]
     (filter (comp (partial = user) :owner) (vals @(-> this :database :topics))))
 
