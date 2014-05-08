@@ -1,11 +1,13 @@
 body {
   font-family: 'Open Sans', sans-serif;
-  font-size: 18px;
+
+  font-size: 18px;  
   line-height: 1.428571429;
   color: #2f575d;
   background-color: #white;
   margin-top: auto;
   margin-bottom: auto;
+ 
 }
 
 .jumbotron {background-color: #28363D;
@@ -22,6 +24,10 @@ body {
               font-weight:normal;
               font-weight:100;
               text-shadow:0 0 50px #0af, 0 0 3px #fff;}
+
+.container-narrow {margin-left: 50px;
+		   margin-right: 50px;
+				}
 
 #header {width:auto;}
 
