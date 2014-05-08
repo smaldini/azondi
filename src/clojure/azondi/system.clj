@@ -138,7 +138,7 @@
 
 (defn new-prod-system []
   (let [s-map (-> (configurable-system-map (config))
-                  (assoc :database (new-database)))
+                  (assoc :database (new-database (get config :postgres))))
         d-map (new-dependency-map s-map)]
 
     (component/system-using s-map d-map)))

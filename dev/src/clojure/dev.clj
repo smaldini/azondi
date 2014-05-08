@@ -6,6 +6,7 @@
    [com.stuartsierra.component :as component]
    [clojure.tools.namespace.repl :refer (refresh refresh-all)]
    [azondi.dev-system :refer (new-dev-system)]
+   env
    ))
 
 (def system nil)
@@ -14,7 +15,8 @@
   "Constructs the current development system."
   []
   (alter-var-root #'system
-    (constantly (new-dev-system))))
+                  (constantly (new-dev-system env/env)
+     )))
 
 (defn start
   "Starts the current development system."
@@ -36,3 +38,9 @@
 (defn reset []
   (stop)
   (refresh :after 'dev/go))
+
+(defn set-env! [env]
+  (alter-var-root #'env/env (constantly env)))
+
+(println "Welcome developer!")
+(println "Please (set-env! <env>) if you don't want the default configuration")
