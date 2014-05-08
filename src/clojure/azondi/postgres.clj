@@ -7,14 +7,8 @@
             [azondi.db :refer (Datastore)]
             [azondi.passwords :as sc]))
 
-(defn users-query [this]
-  (let [conn (get-in this [:connection])]
-    (j/query conn ["SELECT * from users;"])))
-
-(defn user-query
-  [this value]
-  (let [conn (get-in this [:connection])]
-    (j/query conn [(format "SELECT * FROM users WHERE id = '%s' ;" value)])))
+(defn conn [this]
+  (get-in this [:connection]))
 
 (defrecord Database [host port dbname user password]
   component/Lifecycle
@@ -27,34 +21,66 @@
             :password password}))
   (stop [this] this)
   Datastore
+
+ 
+  (create-user! [this name user email password]
+    (let [p (sc/encrypt password)
+          role "user"]
+      (j/insert! (conn this) :users {:id user :name name :email email :password_hash p :role role})))
+
   (get-users [this]
-    (users-query this))
+    (j/query (conn this) ["Select * from users;"]))
 
   (get-user [this user]
-    ;; assumes that id is being sent
-    (first (user-query this user)))
+    (first (j/query (conn this) [(format "Select * from users where id = '%s'" user)])))
 
-  (create-user! [this user name email password]
-    (let [p (sc/encrypt password)
-        conn (get-in this [:connection])
-        role "user"]
-      (j/insert! conn :users {:id user :name name :email email :password_hash p :role role})))
+  (delete-user! [this user]
+    (j/delete! (conn this) :users [(format "id = '%s'" user)]))
 
   (devices-by-owner [this user]
-    (j/query (get-in this [:connection]) [(format "SELECT * from devices WHERE owner = '%s';" user)]))
+    (j/query (conn this) [(format "SELECT * from devices WHERE owner = '%s';" user)]))
 
-  #_(create-device! [this device]
-    (let [p (sc/encrypt (:password device))
-          d (-> device
+  (create-device! [this user pwd data]
+    (let [p (sc/encrypt pwd)
+          d (-> data
+                (assoc :owner_user_id user)
                 (assoc :device_password_hash p)
                 (dissoc :password))]
-      (j/insert! (get-in this [:connection]) :devices d)))
+      (j/insert! (conn this) :devices d)))
 
   (get-device [this client-id]
-    (first (j/query (get-in this [:connection]) [(format "SELECT * from devices where client_id = '%s' ;" client-id)])))
+    (first (j/query (conn this) [(format "SELECT * from devices where client_id = '%s' ;" client-id)])))
 
   (delete-device! [this client-id]
-    (j/delete! (get-in this [:connection]) :devices [(format  "client_id = '%s'" client-id)])))
+    (j/delete! (conn this) :devices [(format  "client_id = '%s'" client-id)]))
+
+  (set-device-password! [this client-id p]
+    (let [pwd-hash (sc/encrypt p)]
+      (j/update! (conn this) :devices {:device_password_hash pwd-hash} [(format "client_id = '%s'" client-id)])))
+
+  (allowed-device? [this client-id user p]
+    (let [device (first (j/query (conn this) [(format "Select * from devices where client_id = '%s';" client-id)]))]
+      (and (= (:owner_user_id device) user)
+           (sc/verify p (:password device)))))
+
+  (patch-device! [this client-id data]
+    (j/update! (conn this) :devices data [(format "client_id = '%s'") client-id]))
+
+  (topics-by-owner [this user]
+    (j/query (conn this) :topics [(format "Select * from topics where owner_user_id = '%s';" user)]))
+
+  (create-topic! [this topic]
+    (j/insert! (conn this) :topics topic))
+
+  (get-topic [this topic-id]
+    (first (j/query (conn this) [(format "Select * from topics where topic_id = '%s';" topic-id)])))
+
+  (delete-topic! [this topic-id]
+    (j/delete! (conn this) :topics [(format  "topic_id = '%s'" topic-id)]))
+
+  (patch-topic! [this topic-id data]
+    (j/update! (conn this) :topics data [(format "topic_id = '%s'") topic-id]))
+  ) 
 
 (defn new-database
   [opts]
