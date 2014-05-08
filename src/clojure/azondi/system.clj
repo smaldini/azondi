@@ -96,7 +96,7 @@
                      :home-href "/")
      :cljs-core (new-cljs-module :name :cljs :mains ['cljs.core] :dependencies #{})
      :cljs-main (new-cljs-module :name :azondi :mains ['azondi.main] :dependencies #{:cljs})
-
+     :cljs-logo (new-cljs-module :name :logo :mains ['azondi.logo] :dependencies #{:cljs})
      :main-cljs-builder (new-cljs-builder :source-path "src/cljs")
 
      :reactor (new-reactor)
@@ -127,7 +127,7 @@
                     :web-meta :web-meta
                     :cljs-builder :main-cljs-builder
                     :bootstrap-menu :bootstrap-menu}
-    :main-cljs-builder [:cljs-core :cljs-main]
+    :main-cljs-builder [:cljs-core :cljs-main :cljs-logo]
     :bootstrap-menu [:menu-index]
     }
 

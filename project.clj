@@ -62,7 +62,8 @@
                  [org.clojure/core.async "0.1.267.0-0d7780-alpha"]
                  [cljs-ajax "0.2.3"]
                  [ankha "0.1.1"]
-                 [jarohen/chord "0.3.1"]]
+                 [jarohen/chord "0.3.1"]
+                 [org.clojars.ideal-knee/dommy "0.1.3-SNAPSHOT"]]
 
   :jvm-opts ["-Xss8m" "-Xmx1g" "-Duser.timezone=UTC"
 ;;             "-Djava.net.preferIPv4Stack=true"

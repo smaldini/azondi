@@ -12,6 +12,7 @@
    [chord.client :refer [ws-ch]]
    [azondi.csk :as csk]
    [azondi.chart :refer (chart-component)]
+   
    ))
 
 (enable-console-print!)
@@ -178,7 +179,7 @@
             new-client-id (get-in next-props [:device :client-id])]
         (when (not= old-client-id new-client-id)
           (connect-device-debugger owner new-client-id
-                            (om/get-state owner :debugger-events) ))))
+                            nn(om/get-state owner :debugger-events) ))))
     om/IRender
     (render [this]
       (html
