@@ -32,3 +32,8 @@ body {
 #header {width:auto;}
 
 #logoarea {height:100px;}
+
+.footer-list {list-style-type:none}
+.footer-list > li {display:inline;
+		   padding: 10px 10px 10px 10px;}
+
