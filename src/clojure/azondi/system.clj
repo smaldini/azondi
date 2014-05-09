@@ -88,7 +88,7 @@
      :menu-index (make new-menu-index)
      :bootstrap-menu (make new-bootstrap-menu)
 
-     ;;:protection-domain (make new-default-protection-system config :password-file :modular.maker/required)
+     :protection-domain (make new-default-protection-system config :password-file :modular.maker/required)
 
      :clostache (make new-clostache-templater)
      :ring-binder (make new-ring-binder)

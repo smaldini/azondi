@@ -196,7 +196,6 @@
    :handle-unprocessable-entity handle-unprocessable-entity
 
    :post! (fn [{body :body {{user :user client-id :client-id} :route-params} :request}]
-            (println "body is" body)
             {:device
              (let [p (generate-device-password)]
                (when (get-device db client-id)
@@ -273,7 +272,6 @@
    :processable? (create-schema-check topic-attributes-schema)
    :handle-unprocessable-entity handle-unprocessable-entity
    :post! (fn [{body :body {{user :user} :route-params} :request}]
-            (println "body is" body)
             {:topic
              (let [name (:name body)
                    topic-id (str user "/" name)]
