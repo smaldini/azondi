@@ -29,7 +29,9 @@
    [azondi.db :as db]
    [azondi.website :refer (new-website)]
    [azondi.sse :refer (new-event-service)]
-   [azondi.postgres :refer (new-database)]))
+   [azondi.postgres :refer (new-database)]
+
+   [cylon.core :refer (new-default-protection-system)]))
 
 (defn ^:private read-file
   [f]
@@ -75,7 +77,7 @@
      :mqtt-handler (new-netty-mqtt-handler debug-ch)
      :mqtt-server (new-netty-server {:port 1883})
 
-     :webserver (new-webserver :port 8010)
+     :webserver (make new-webserver config {:port [:webserver :port]} 8010)
      ;; bidi's route compilation doesn't yet work with pattern segments
      ;; used in the routes, so we tell it not to compile
      :router (make new-router config :compile-routes? false)
@@ -85,6 +87,8 @@
      :html-template (make new-template config :template "templates/page.html.mustache")
      :menu-index (make new-menu-index)
      :bootstrap-menu (make new-bootstrap-menu)
+
+     ;;:protection-domain (make new-default-protection-system config :password-file :modular.maker/required)
 
      :clostache (make new-clostache-templater)
      :ring-binder (make new-ring-binder)

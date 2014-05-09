@@ -8,19 +8,19 @@
    [bidi.bidi :refer (path-for)]
    [azondi.api :refer (->js ->clj) :as api]
    [azondi.db :refer (get-user)]
+   [azondi.system :refer (config)]
    ))
 
 ;; This is to set the API handlers and routes - they are set by le-web.api.api-starter.APITests
 (def db nil)
 (def routes nil)
 (def handlers nil)
-
-(def uri-prefix "http://localhost:8010/api/1.0")
+(def port nil)
 
 (defn make-uri [k & args]
   (let [h (get handlers k)]
     (assert h (str "No handler for " k))
-    (str uri-prefix (apply path-for routes k args))))
+    (str "http://localhost:" port "/api/1.0" (apply path-for routes k args))))
 
 (defn request [method uri & {:keys [data api-key expected]}]
   (let [response
@@ -115,13 +115,13 @@
           (is (contains? (:body response) :topics))
           (request :post uri :data {:name "pollution" :unit "PM25"})
           (request :post uri :data {:name "pollution-E12"})
-          
+
           )
 
         )))
 
 
-  
+
 
 
   ;; TODO Test error scenarios here
@@ -133,10 +133,13 @@
   (start [this]
     (let [handlers (get-in this [:api :handlers])
           routes (get-in this [:api :routes])
-          db (get-in this [:database])]
+          db (get-in this [:database])
+          port (get-in this [:webserver :port])]
       (alter-var-root #'handlers (constantly handlers))
       (alter-var-root #'routes (constantly routes))
-      (alter-var-root #'db (constantly db)))
+      (alter-var-root #'db (constantly db))
+      (alter-var-root #'port (constantly port)))
+
     (clojure.test/run-tests 'azondi.api-tests)
     this)
   (stop [this] this))
