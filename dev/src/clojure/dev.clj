@@ -6,7 +6,7 @@
    [com.stuartsierra.component :as component]
    [clojure.tools.namespace.repl :refer (refresh refresh-all)]
    [azondi.dev-system :refer (new-dev-system)]
-   [cylon.core :as cylon]
+   [cylon.password :as password]
    ))
 
 (def system nil)
@@ -43,7 +43,7 @@
   (alter-var-root #'env/env (constantly env)))
 
 (defn add-user! [uid pw]
-  (cylon/add-user!
+  (password/add-user!
    (-> system :protection-domain)
    uid pw))
 

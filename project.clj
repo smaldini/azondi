@@ -52,7 +52,12 @@
                  ;;[cylon "0.2.0-SNAPSHOT"]
 
                  ;; Logging
-                 [com.taoensso/timbre "3.0.1"]
+
+                 ;; I tried but couldn't get timbre to talk to
+                 ;;.logging - plus I don't know how its global
+                 ;; atom plays with component
+
+                 ;;[com.taoensso/timbre "3.2.1"]
 
                  [camel-snake-kebab "0.1.4"]
 

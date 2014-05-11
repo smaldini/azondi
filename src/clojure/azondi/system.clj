@@ -31,7 +31,15 @@
    [azondi.sse :refer (new-event-service)]
    [azondi.postgres :refer (new-database)]
 
-   [cylon.core :refer (new-default-protection-system)]))
+   [cylon.impl.login-form :refer (new-login-form)]
+   [cylon.impl.password :refer (new-password-file new-user-domain)]
+   [cylon.impl.session :refer (new-atom-backed-session-store)]
+   [cylon.impl.request :refer (new-auth-request-binding)]
+   [cylon.impl.authentication :refer (new-static-authenticator)]
+   [cylon.impl.authorization :refer (new-role-based-request-authorizer)]
+
+   [taoensso.timbre :as timbre]
+   ))
 
 (defn ^:private read-file
   [f]
@@ -67,31 +75,33 @@
 (defn configurable-system-map
   [config]
   (let [debug-ch (async/chan 64)
-        debug-mult (async/mult debug-ch)
-        ]
+        debug-mult (async/mult debug-ch)]
+
     (system-map
      ;; We create the system map by calling a constructor for each
      ;; component.
+
+     ;; MQTT
      :mqtt-decoder (new-mqtt-decoder)
      :mqtt-encoder (new-mqtt-encoder)
      :mqtt-handler (new-netty-mqtt-handler debug-ch)
      :mqtt-server (new-netty-server {:port 1883})
+     :reactor (new-reactor)
+     :ws (new-websocket-bridge {:port 8083})
 
+     ;; Webserver and routing
      :webserver (make new-webserver config {:port [:webserver :port]} 8010)
+     :ring-binder (make new-ring-binder) ; one ring (binder) to bind them all
      ;; bidi's route compilation doesn't yet work with pattern segments
      ;; used in the routes, so we tell it not to compile
      :router (make new-router config :compile-routes? false)
 
-     ;; TODO Make this entire section a sub-system, ala cylon
+     ;; Website
      :website (make new-website)
      :html-template (make new-template config :template "templates/page.html.mustache")
+     :clostache (make new-clostache-templater)
      :menu-index (make new-menu-index)
      :bootstrap-menu (make new-bootstrap-menu)
-
-     :protection-domain (make new-default-protection-system config :password-file :modular.maker/required)
-
-     :clostache (make new-clostache-templater)
-     :ring-binder (make new-ring-binder)
      :web-meta (make new-template-model-contributor config
                      :org "OpenSensors.IO"
                      :title "Azondi"
@@ -103,30 +113,34 @@
      :cljs-logo (new-cljs-module :name :logo :mains ['azondi.logo] :dependencies #{:cljs})
      :main-cljs-builder (new-cljs-builder :source-path "src/cljs")
 
-     :reactor (new-reactor)
-     :ws (new-websocket-bridge {:port 8083})
-     ;;   :cassandra (cass/new-database (get config :cassandra {:keyspace "opensensors" :hosts ["127.0.0.1"]}))
-     :message-archiver (new-message-archiver)
-     ;;   :postgres (pg/new-database (get config :postgres))
-
+     ;; API
      :api (api/new-api :uri-context "/api/1.0")
+     :sse (let [sse-ch (async/chan 64)
+                ;; SSE splits on client-id
+                sse-pub (async/pub (async/tap debug-mult sse-ch) :client-id)]
+            (new-event-service :async-pub sse-pub))
 
-     :sse
-     (let [sse-ch (async/chan 64)
-           ;; SSE splits on client-id
-           sse-pub (async/pub (async/tap debug-mult sse-ch) :client-id)]
-       (new-event-service :async-pub sse-pub))
-     )))
+     ;; Security
+     ;; :protection-domain (make new-default-protection-system config :password-file :modular.maker/required)
+     #_:login-form #_(new-login-form)
+     #_:user-authenticator #_(new-user-domain)
+     #_:password-store #_(make new-password-file config
+                                 :password-file (io/file (System/getProperty "user.home")
+                                                         ".azondi-passwords.edn"))
+     #_:session-store #_(new-atom-backed-session-store)
+     :auth-binding (new-auth-request-binding)
+     :authenticator (new-static-authenticator)
+     :authorizer (new-role-based-request-authorizer)
+
+     :message-archiver (new-message-archiver))))
 
 (defn new-dependency-map [system-map]
   (->
    {:webserver [:ring-binder]
     :ring-binder {:ring-handler :router}
-;;    :device-authenticator [:postgres]
     :mqtt-handler {:db :database}
     :mqtt-server [:mqtt-handler :mqtt-decoder :mqtt-encoder]
     :ws [:reactor :database]
-;;    :mqtt-handler [:device-authenticator]
     :html-template {:templater :clostache
                     :web-meta :web-meta
                     :cljs-builder :main-cljs-builder
@@ -137,8 +151,7 @@
 
    (autowire-dependencies-satisfying system-map :router WebService)
    (autowire-dependencies-satisfying system-map :ring-binder RingBinding)
-   (autowire-dependencies-satisfying system-map :menu-index MenuItems)
-   ))
+   (autowire-dependencies-satisfying system-map :menu-index MenuItems)))
 
 (defn new-prod-system []
   (let [s-map (-> (configurable-system-map (config))
@@ -146,3 +159,5 @@
         d-map (new-dependency-map s-map)]
 
     (component/system-using s-map d-map)))
+
+(timbre/set-config! [:shared-appender-config :spit-filename] "/path/my-file.log")

@@ -17,6 +17,7 @@
    [azondi.db :refer (get-users get-user delete-user! create-user! devices-by-owner get-device delete-device! create-device! patch-device! topics-by-owner get-topic delete-topic! create-topic! patch-topic! set-device-password!)]
    [hiccup.core :refer (html)]
    [clojure.walk :refer (postwalk)]
+   [cylon.authorization :refer (restrict-handler)]
    liberator.representation
    ))
 
@@ -183,7 +184,9 @@
 (defn devices-resource [db]
   {:available-media-types #{"application/json"}
    :allowed-methods #{:get :post}
-   :handle-ok (fn [{{{user :user} :route-params} :request}]
+   :handle-ok (fn [{{{user :user} :route-params} :request :as req}]
+                (println "Request keys are:" (keys req))
+                (println "Cylon user is:" (:cylon/user req))
                 (encode {:user user
                          :devices (->>
                                    (devices-by-owner db user)
@@ -316,11 +319,12 @@
 
 ;; WebService
 
-(defn make-handlers [db]
+(defn make-handlers [db auth]
   {::welcome (resource (welcome-resource))
    ::users (resource (users-resource db))
    ::user (resource (user-resource db))
-   ::devices (resource (devices-resource db))
+   ::devices (-> (resource (devices-resource db))
+                 (restrict-handler auth :user))
    ::device (resource (device-resource db))
    ::reset-device-password (resource (reset-device-password-resource db))
    ::topics (resource (topics-resource db))
@@ -348,8 +352,10 @@
 (defrecord Api [uri-context]
   component/Lifecycle
   (start [this]
+    ;; Handlers and routes need to be associated to this at component
+    ;; start so that they can be referenced by api tests.
     (assoc this
-      :handlers (make-handlers (:database this))
+      :handlers (make-handlers (:database this) (:authorizer this))
       :routes (make-routes)))
   (stop [this] this)
 
@@ -364,4 +370,4 @@
         (merge {:uri-context ""}) ; specify defaults
         (s/validate {(s/optional-key :uri-context) s/Str})
         map->Api)
-   [:database]))
+   [:database :authorizer]))
