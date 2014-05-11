@@ -53,9 +53,22 @@ body {
 }
 #header {width:auto;}
 
+#wrapper { min-height: 100%;
+    height: auto !important;
+    height: 100%;
+    margin: 0 auto -155px;}
+
 #logoarea {height:100px;}
+
 
 .footer-list {list-style-type:none}
 .footer-list > li {display:inline;
 		   padding: 10px 10px 10px 10px;}
 
+#footer {
+   background-color: #F5F5F5;
+   bottom: 0;
+   height: 60px;
+
+  width: 100%;
+}
