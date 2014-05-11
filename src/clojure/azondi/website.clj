@@ -4,7 +4,7 @@
    [bidi.bidi :refer (->Redirect ->ResourcesMaybe)]
    [modular.bidi :refer (WebService)]
    [modular.template :refer (wrap-template)]
-   [modular.menu :refer (MenuItems)]
+   [azondi.sidebar :refer (MenuItems)]
    [garden.core :refer (css)]
    [garden.units :refer (pt em px)]
    [garden.color :refer (rgb)]
