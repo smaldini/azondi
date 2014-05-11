@@ -592,7 +592,8 @@
           (om/build topic-details-component app-state))
         ]))))
 
-(defn ^:export topics-page []
+(defn ^:export topics-page [user]
+  (swap! app-model assoc :user user)
   (om/root topics-page-component app-model {:target (. js/document (getElementById "content"))})
   (om/root ankha/inspector app-model {:target (. js/document (getElementById "ankha"))})
   )
