@@ -12,6 +12,7 @@
    [chord.client :refer [ws-ch]]
    [azondi.csk :as csk]
    [azondi.chart :refer (chart-component)]
+   
    ))
 
 (enable-console-print!)
