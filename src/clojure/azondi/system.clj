@@ -8,9 +8,11 @@
    [clojure.string :as str]
    [clojure.tools.reader.reader-types :refer (indexing-push-back-reader)]
    [clojure.core.async :as async]
+   [clojure.tools.logging :refer (infof)]
 
+   ;; Pre-baked components
    [modular.bidi :refer (new-router WebService)]
-   [modular.cljs :refer (new-cljs-module new-cljs-builder ClojureScriptModule)]
+   [modular.cljs :refer (new-cljs-module new-cljs-builder)]
    [modular.clostache :refer (new-clostache-templater)]
    [modular.http-kit :refer (new-webserver)]
    [modular.maker :refer (make)]
@@ -18,27 +20,24 @@
    [modular.netty :refer (new-netty-server)]
    [modular.netty.mqtt :refer (new-mqtt-decoder new-mqtt-encoder)]
    [modular.ring :refer (new-ring-binder RingBinding)]
-   [modular.template :refer (new-template new-template-model-contributor TemplateModel)]
+   [modular.template :refer (new-template new-template-model-contributor)]
    [modular.wire-up :refer (autowire-dependencies-satisfying)]
-
-   [azondi.transports.mqtt :refer (new-netty-mqtt-handler)]
-   [azondi.reactor :refer (new-reactor)]
-   [azondi.bridges.ws :refer (new-websocket-bridge)]
-   [azondi.data.messages :refer (new-message-archiver)]
-   [azondi.api :as api]
-   [azondi.db :as db]
-   [azondi.website :refer (new-website)]
-   [azondi.sse :refer (new-event-service)]
-   [azondi.postgres :refer (new-database)]
-
    [cylon.impl.login-form :refer (new-login-form)]
    [cylon.impl.password :refer (new-password-file new-user-domain)]
    [cylon.impl.session :refer (new-atom-backed-session-store)]
    [cylon.impl.request :refer (new-auth-request-binding)]
    [cylon.impl.authentication :refer (new-static-authenticator)]
-   [cylon.impl.authorization :refer (new-role-based-request-authorizer)]
+   [cylon.impl.authorization :refer (new-role-based-authorizer)]
 
-   [taoensso.timbre :as timbre]
+   ;; Custom components
+   [azondi.transports.mqtt :refer (new-netty-mqtt-handler)]
+   [azondi.reactor :refer (new-reactor)]
+   [azondi.bridges.ws :refer (new-websocket-bridge)]
+   [azondi.data.messages :refer (new-message-archiver)]
+   [azondi.website :refer (new-website)]
+   [azondi.sse :refer (new-event-service)]
+   [azondi.postgres :refer (new-database)]
+   [azondi.api :refer (new-api new-user-based-authorizer)]
    ))
 
 (defn ^:private read-file
@@ -77,6 +76,7 @@
   (let [debug-ch (async/chan 64)
         debug-mult (async/mult debug-ch)]
 
+    (infof "Building system map")
     (system-map
      ;; We create the system map by calling a constructor for each
      ;; component.
@@ -114,7 +114,7 @@
      :main-cljs-builder (new-cljs-builder :source-path "src/cljs")
 
      ;; API
-     :api (api/new-api :uri-context "/api/1.0")
+     :api (new-api :uri-context "/api/1.0")
      :sse (let [sse-ch (async/chan 64)
                 ;; SSE splits on client-id
                 sse-pub (async/pub (async/tap debug-mult sse-ch) :client-id)]
@@ -129,8 +129,9 @@
                                                          ".azondi-passwords.edn"))
      #_:session-store #_(new-atom-backed-session-store)
      :auth-binding (new-auth-request-binding)
-     :authenticator (new-static-authenticator)
-     :authorizer (new-role-based-request-authorizer)
+     :authenticator (new-static-authenticator :user "alice")
+     :user-authorizer (new-user-based-authorizer)
+     :authorizer (new-role-based-authorizer)
 
      :message-archiver (new-message-archiver))))
 
@@ -138,6 +139,7 @@
   (->
    {:webserver [:ring-binder]
     :ring-binder {:ring-handler :router}
+;;    :auth-binding {:authorizer :role-authorizer}
     :mqtt-handler {:db :database}
     :mqtt-server [:mqtt-handler :mqtt-decoder :mqtt-encoder]
     :ws [:reactor :database]
@@ -146,8 +148,7 @@
                     :cljs-builder :main-cljs-builder
                     :bootstrap-menu :bootstrap-menu}
     :main-cljs-builder [:cljs-core :cljs-main :cljs-logo]
-    :bootstrap-menu [:menu-index]
-    }
+    :bootstrap-menu [:menu-index]}
 
    (autowire-dependencies-satisfying system-map :router WebService)
    (autowire-dependencies-satisfying system-map :ring-binder RingBinding)
@@ -159,5 +160,3 @@
         d-map (new-dependency-map s-map)]
 
     (component/system-using s-map d-map)))
-
-(timbre/set-config! [:shared-appender-config :spit-filename] "/path/my-file.log")

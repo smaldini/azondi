@@ -1,14 +1,19 @@
-<configuration debug="true">
+<configuration scan="true" scanPeriod="1 seconds" debug="false">
 
-  <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
-    <!-- encoders are  by default assigned the type
-         ch.qos.logback.classic.encoder.PatternLayoutEncoder -->
+  <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
     <encoder>
       <pattern>%d{HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n</pattern>
     </encoder>
+    <filter class="ch.qos.logback.classic.filter.ThresholdFilter">
+      <level>DEBUG</level>
+    </filter>
   </appender>
 
-  <root level="debug">
-    <appender-ref ref="STDOUT" />
+  <logger name="modular" level="DEBUG"/>
+  <logger name="azondi" level="INFO"/>
+
+  <root level="DEBUG">
+    <appender-ref ref="CONSOLE"/>
   </root>
+
 </configuration>

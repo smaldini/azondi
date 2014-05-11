@@ -7,6 +7,8 @@
    [clojure.tools.namespace.repl :refer (refresh refresh-all)]
    [azondi.dev-system :refer (new-dev-system)]
    [cylon.password :as password]
+   [clojure.tools.logging :refer (infof)]
+   env
    ))
 
 (def system nil)
@@ -49,3 +51,5 @@
 
 (println "Welcome developer!")
 (println "Please (set-env! <env>) if you don't want the default configuration")
+
+(infof "Starting Azondi")

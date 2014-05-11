@@ -56,6 +56,10 @@
                  ;; I tried but couldn't get timbre to talk to
                  ;;.logging - plus I don't know how its global
                  ;; atom plays with component
+                 [ch.qos.logback/logback-classic "1.0.7" :exclusions [org.slf4j/slf4j-api]]
+                 [org.slf4j/jul-to-slf4j "1.7.2"]
+                 [org.slf4j/jcl-over-slf4j "1.7.2"]
+                 [org.slf4j/log4j-over-slf4j "1.7.2"]
 
                  ;;[com.taoensso/timbre "3.2.1"]
 

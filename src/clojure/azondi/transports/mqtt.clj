@@ -2,8 +2,9 @@
 (ns azondi.transports.mqtt
   (:require [com.stuartsierra.component :as component]
             [modular.netty :refer (NettyHandlerProvider)]
-            [taoensso.timbre :refer [log  trace  debug  info  warn  error  fatal
+            #_[taoensso.timbre :refer [log  trace  debug  info  warn  error  fatal
                                      logf tracef debugf infof warnf errorf fatalf]]
+            [clojure.tools.logging :refer (warnf infof info log)]
             [clojurewerkz.triennium.mqtt :as tr]
 
             [azondi.db :refer (allowed-device?)]

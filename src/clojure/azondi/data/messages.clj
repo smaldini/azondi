@@ -4,7 +4,6 @@
             [clojurewerkz.meltdown.reactor :as mr]
             [clojurewerkz.meltdown.consumers :as mc]
             [clojurewerkz.meltdown.selectors :refer [match-all]]
-            [taoensso.timbre :as log]
             [clj-time.core   :as tc]
             [clj-time.format :as tf]
             [com.stuartsierra.component :as component]))
