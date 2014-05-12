@@ -6,6 +6,8 @@
    [com.stuartsierra.component :as component]
    [clojure.tools.namespace.repl :refer (refresh refresh-all)]
    [azondi.dev-system :refer (new-dev-system)]
+;;   [cylon.user :as user]
+   [clojure.tools.logging :refer (infof)]
    env
    ))
 
@@ -42,5 +44,12 @@
 (defn set-env! [env]
   (alter-var-root #'env/env (constantly env)))
 
+#_(defn add-user! [user password]
+  (user/add-user!
+   (-> system :protection-domain)
+   user password))
+
 (println "Welcome developer!")
 (println "Please (set-env! <env>) if you don't want the default configuration")
+
+(infof "Starting Azondi")

@@ -1,19 +1,48 @@
 (ns azondi.dev-system
   (:require
    [clojure.java.io :as io]
+   [clojure.tools.logging :refer :all]
    [com.stuartsierra.component :as component]
    [azondi.system :refer (config configurable-system-map new-dependency-map new-prod-system)]
    [azondi.api-tests :refer (new-api-tests)]
-   [azondi.dev-db :refer (new-inmemory-datastore)]))
+   [azondi.db :refer (Datastore get-user)]
+   [azondi.dev-db :refer (new-inmemory-datastore)]
+   [cylon.user :refer (UserDomain)]
+   [cylon.impl.authentication :refer (new-http-basic-authenticator new-composite-disjunctive-authenticator)]
+   [cylon.impl.session :refer (new-cookie-authenticator)]))
+
+(defrecord DevUserDomain []
+  UserDomain
+  (verify-user [this uid password]
+    (infof "Verifying user: %s against password %s" uid password)
+    (infof "User in database is: %s" (get-user (:database this) uid))
+    (= (:password (get-user (:database this) uid)) password)))
+
+(defn new-dev-user-domain []
+  (component/using (->DevUserDomain) [:database]))
 
 (defn new-dev-system
   "Create a development system"
   [& [env]]
   (cond
    (= env "dev") (new-prod-system)
-   :else (let [s-map (->
-                 (configurable-system-map (config))
-                 (assoc :api-tests (azondi.api-tests/new-api-tests)
-                        :database (new-inmemory-datastore)))
-          d-map (new-dependency-map s-map)]
-      (component/system-using s-map d-map))))
+   :else
+   (let [s-map
+         (->
+          (configurable-system-map (config))
+          (assoc :api-tests (azondi.api-tests/new-api-tests)
+                 :database (new-inmemory-datastore)
+                 :user-domain (new-dev-user-domain)
+
+                 ;; We are going to use a combination of basic and
+                 ;; cookie authentication. The basic authentication is
+                 ;; needed by the API tests, because it isn't cookie
+                 ;; aware. We still want cookied-based authentication
+                 ;; for manually testing the dev system via a browser.
+                 :cookie-authenticator (new-cookie-authenticator)
+                 :basic-authenticator (new-http-basic-authenticator)
+                 :authenticator (new-composite-disjunctive-authenticator
+                                 :cookie-authenticator :basic-authenticator)))
+
+         d-map (new-dependency-map s-map)]
+     (component/system-using s-map d-map))))

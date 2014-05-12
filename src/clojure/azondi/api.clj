@@ -17,6 +17,7 @@
    [azondi.db :refer (get-users get-user delete-user! create-user! devices-by-owner get-device delete-device! create-device! patch-device! topics-by-owner get-topic delete-topic! create-topic! patch-topic! set-device-password!)]
    [hiccup.core :refer (html)]
    [clojure.walk :refer (postwalk)]
+   [cylon.authorization :refer (restrict-handler Authorizer)]
    liberator.representation
    ))
 
@@ -121,6 +122,7 @@
 (def new-user-schema
   {:user s/Str
    (s/optional-key :name) s/Str
+   :password s/Str
    :email s/Str
    })
 
@@ -150,15 +152,13 @@
            (when (get-user db user)
              (delete-user! db user))
 
-           (let [pw (generate-user-password 8)
-                 u (create-user! db name user email pw)
+           (let [u (create-user! db name user email password)
                  ;;_ (set-api-key uesrs user)
                  ;;api-key (get-api-key user)
                  ]
              ;; We create the api-key, in order to return. This is
              ;; really just to help with the tests. Is this appropriate?
-             {:response-body {:api-key "12345"
-                              :password pw}}
+             {:response-body {:api-key "12345"}}
              )
            )
    :handle-created (fn [{body :response-body}] body)
@@ -183,7 +183,8 @@
 (defn devices-resource [db]
   {:available-media-types #{"application/json"}
    :allowed-methods #{:get :post}
-   :handle-ok (fn [{{{user :user} :route-params} :request}]
+   :handle-ok (fn [{{{user :user} :route-params :as req} :request}]
+                (println "Cylon user is:" (:cylon/user req))
                 (encode {:user user
                          :devices (->>
                                    (devices-by-owner db user)
@@ -196,7 +197,6 @@
    :handle-unprocessable-entity handle-unprocessable-entity
 
    :post! (fn [{body :body {{user :user client-id :client-id} :route-params} :request}]
-            (println "body is" body)
             {:device
              (let [p (generate-device-password)]
                (when (get-device db client-id)
@@ -273,7 +273,6 @@
    :processable? (create-schema-check topic-attributes-schema)
    :handle-unprocessable-entity handle-unprocessable-entity
    :post! (fn [{body :body {{user :user} :route-params} :request}]
-            (println "body is" body)
             {:topic
              (let [name (:name body)
                    topic-id (str "users/" user "/" name)]
@@ -318,11 +317,12 @@
 
 ;; WebService
 
-(defn make-handlers [db]
+(defn make-handlers [db auth user-auth]
   {::welcome (resource (welcome-resource))
    ::users (resource (users-resource db))
    ::user (resource (user-resource db))
-   ::devices (resource (devices-resource db))
+   ::devices (-> (resource (devices-resource db))
+                 (restrict-handler user-auth :user))
    ::device (resource (device-resource db))
    ::reset-device-password (resource (reset-device-password-resource db))
    ::topics (resource (topics-resource db))
@@ -350,8 +350,10 @@
 (defrecord Api [uri-context]
   component/Lifecycle
   (start [this]
+    ;; Handlers and routes need to be associated to this at component
+    ;; start so that they can be referenced by api tests.
     (assoc this
-      :handlers (make-handlers (:database this))
+      :handlers (make-handlers (:database this) (:authorizer this) (:user-authorizer this))
       :routes (make-routes)))
   (stop [this] this)
 
@@ -366,4 +368,15 @@
         (merge {:uri-context ""}) ; specify defaults
         (s/validate {(s/optional-key :uri-context) s/Str})
         map->Api)
-   [:database]))
+   [:database :user-authorizer :authorizer]))
+
+(defrecord UserBasedAuthorizer []
+  Authorizer
+  (validate [this req] nil)
+
+  (satisfies-requirement? [this request user]
+    (= (-> request :route-params :user) (:cylon/user request))))
+
+(defn new-user-based-authorizer [& {:as opts}]
+  (->> opts
+       map->UserBasedAuthorizer))

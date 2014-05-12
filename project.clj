@@ -28,7 +28,7 @@
                  ;; for query string parsing
                  ;;[javax.servlet/servlet-api "2.5"]
                  [clj-time "0.7.0"]
-                 [liberator "0.11.0"]
+                 [liberator "0.11.0" :exclusions [org.clojure/tools.logging]]
                  [prismatic/schema "0.2.1"]
                  [clojurewerkz/scrypt     "1.1.0"]
 
@@ -38,7 +38,7 @@
                  [juxt.modular/clostache "0.1.0-SNAPSHOT"]
                  [juxt.modular/http-kit "0.4.0-SNAPSHOT"]
                  [juxt.modular/maker "0.1.0-SNAPSHOT"]
-                 [juxt.modular/menu "0.1.0-SNAPSHOT"]
+                 [juxt.modular/menu "0.1.0-SNAPSHOT" :exclusions [cylon]]
                  [juxt.modular/mqtt "0.1.0-SNAPSHOT"]
                  [juxt.modular/netty "0.1.0-SNAPSHOT"]
                  [juxt.modular/ring "0.4.0-SNAPSHOT"]
@@ -49,9 +49,20 @@
                  [hiccup "1.0.5"]
                  [garden "1.1.5"]
                  [markdown-clj "0.9.36"]
+                 ;;[cylon "0.2.0-SNAPSHOT"]
 
                  ;; Logging
-                 [com.taoensso/timbre "3.0.1"]
+
+                 ;; I tried but couldn't get timbre to talk to
+                 ;;.logging - plus I don't know how its global
+                 ;; atom plays with component
+                 [org.clojure/tools.logging "0.2.6"]
+                 [ch.qos.logback/logback-classic "1.0.7" :exclusions [org.slf4j/slf4j-api]]
+                 [org.slf4j/jul-to-slf4j "1.7.2"]
+                 [org.slf4j/jcl-over-slf4j "1.7.2"]
+                 [org.slf4j/log4j-over-slf4j "1.7.2"]
+
+                 ;;[com.taoensso/timbre "3.2.1"]
 
                  [camel-snake-kebab "0.1.4"]
 
@@ -74,7 +85,7 @@
 
   :profiles {:dev {:dependencies [[org.clojure/tools.namespace "0.2.4"]
                                   [clojurewerkz/machine_head "1.0.0-beta7"]]
-                   :source-paths ["dev/src/clojure" "src/cljs"]
+                   :source-paths ["dev/src/clojure" "src/cljs" "/home/malcolm/src/cylon/src"]
                    :resource-paths ["test/resources"]}
 
              :uberjar {:main azondi.main

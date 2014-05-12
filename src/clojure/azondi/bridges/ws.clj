@@ -1,5 +1,6 @@
 (ns azondi.bridges.ws
-  (:require [taoensso.timbre :as log]
+  (:require #_[taoensso.timbre :as log]
+            [clojure.tools.logging :as log]
             [com.stuartsierra.component :as component]
             [org.httpkit.server :refer [run-server with-channel send! on-close close]]
             [bidi.bidi :refer (make-handler)]

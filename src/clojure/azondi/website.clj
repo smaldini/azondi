@@ -48,20 +48,18 @@
                    (fn [req] {:body (html [:div
                                            [:h1 "Devices"]
                                            [:div#content [:p.loading "Loading..."]]])
-                              :cljs "azondi.main.devices_page()"
+                              :cljs (format "azondi.main.devices_page(\"%s\")" (:cylon/user req))
                               }))
 
      ::topics (wrap-template
                    (fn [req] {:body (html [:div
                                            [:h1 "Topics"]
                                            [:div#content [:p.loading "Loading..."]]])
-                              :cljs "azondi.main.topics_page()"
+                              :cljs (format "azondi.main.topics_page(%s)"
+                                            (when-let [user (:cylon/user req)]
+                                              (format "\"%s\"" user)
+                                              "null"))
                               }))
-     ::new-topic (wrap-template
-                  (fn [req] {:body (html [:div
-                                          [:h1 "New Topic"]
-                                          [:div#content [:p.loading "Loading..."]]])
-                             :cljs "azondi.main.new_topic_page()"}))
 
      ::test-card (wrap-template
                   (fn [req] {:body (html [:div
