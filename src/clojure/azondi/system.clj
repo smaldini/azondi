@@ -16,7 +16,7 @@
    [modular.clostache :refer (new-clostache-templater)]
    [modular.http-kit :refer (new-webserver)]
    [modular.maker :refer (make)]
-   [modular.menu :refer (new-menu-index new-bootstrap-menu MenuItems)]
+   [azondi.sidebar :refer (new-menu-index new-bootstrap-menu MenuItems)]
    [modular.netty :refer (new-netty-server)]
    [modular.netty.mqtt :refer (new-mqtt-decoder new-mqtt-encoder)]
    [modular.ring :refer (new-ring-binder RingBinding)]

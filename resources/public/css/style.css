@@ -29,11 +29,46 @@ body {
 		   margin-right: 50px;
 				}
 
+#sidebar{width:250px;
+	}
+
+/* make sidebar nav vertical */ 
+@media (min-width: 768px) {
+  .sidebar-nav .navbar .navbar-collapse {
+    padding: 0;
+    max-height: none;
+  }
+  .sidebar-nav .navbar ul {
+    float: none;
+    display: block;
+  }
+  .sidebar-nav .navbar li {
+    float: none;
+    display: block;
+  }
+  .sidebar-nav .navbar li a {
+    padding-top: 12px;
+    padding-bottom: 12px;
+  }
+}
 #header {width:auto;}
 
+#wrapper { min-height: 100%;
+    height: auto !important;
+    height: 100%;
+    margin: 0 auto -155px;}
+
 #logoarea {height:100px;}
+
 
 .footer-list {list-style-type:none}
 .footer-list > li {display:inline;
 		   padding: 10px 10px 10px 10px;}
 
+#footer {
+   background-color: #F5F5F5;
+   bottom: 0;
+   height: 60px;
+
+  width: 100%;
+}
