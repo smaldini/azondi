@@ -9,8 +9,9 @@
     </filter>
   </appender>
 
-  <logger name="modular" level="DEBUG"/>
+  <logger name="modular" level="INFO"/>
   <logger name="azondi" level="INFO"/>
+  <logger name="cylon" level="DEBUG"/>
 
   <root level="DEBUG">
     <appender-ref ref="CONSOLE"/>

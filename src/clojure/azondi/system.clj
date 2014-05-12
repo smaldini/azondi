@@ -23,11 +23,12 @@
    [modular.template :refer (new-template new-template-model-contributor)]
    [modular.wire-up :refer (autowire-dependencies-satisfying)]
    [cylon.impl.login-form :refer (new-login-form)]
-   [cylon.impl.password :refer (new-password-file new-user-domain)]
-   [cylon.impl.session :refer (new-atom-backed-session-store)]
+   [cylon.impl.user :refer (new-user-file new-default-user-domain)]
+   [cylon.impl.session :refer (new-cookie-authenticator new-atom-backed-session-store)]
    [cylon.impl.request :refer (new-auth-request-binding)]
    [cylon.impl.authentication :refer (new-static-authenticator)]
    [cylon.impl.authorization :refer (new-role-based-authorizer)]
+   [cylon.impl.pbkdf2 :refer (new-pbkdf2-password-hash)]
 
    ;; Custom components
    [azondi.transports.mqtt :refer (new-netty-mqtt-handler)]
@@ -121,16 +122,21 @@
             (new-event-service :async-pub sse-pub))
 
      ;; Security
-     ;; :protection-domain (make new-default-protection-system config :password-file :modular.maker/required)
-     #_:login-form #_(new-login-form)
-     #_:user-authenticator #_(new-user-domain)
-     #_:password-store #_(make new-password-file config
-                                 :password-file (io/file (System/getProperty "user.home")
-                                                         ".azondi-passwords.edn"))
-     #_:session-store #_(new-atom-backed-session-store)
+     :login-form (new-login-form)
+     #_:user-domain #_(new-default-user-domain)
+     #_:password-hash-algo #_(new-pbkdf2-password-hash)
+     #_:user-store #_(make new-user-file config
+                       :file (io/file (System/getProperty "user.home")
+                                      ".azondi-passwords.edn"))
+     :session-store (new-atom-backed-session-store)
      :auth-binding (new-auth-request-binding)
-     :authenticator (new-static-authenticator :user "alice")
+
+     ;; Use a static authenticator when you want to force login to be a particular user
+     ;;:authenticator (new-static-authenticator :user "alice")
+     :authenticator (new-cookie-authenticator)
+
      :user-authorizer (new-user-based-authorizer)
+     ;; This is a 'role' authorizer - would love to rename the key but it breaks things somewhere
      :authorizer (new-role-based-authorizer)
 
      :message-archiver (new-message-archiver))))

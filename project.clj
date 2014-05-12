@@ -28,7 +28,7 @@
                  ;; for query string parsing
                  ;;[javax.servlet/servlet-api "2.5"]
                  [clj-time "0.7.0"]
-                 [liberator "0.11.0"]
+                 [liberator "0.11.0" :exclusions [org.clojure/tools.logging]]
                  [prismatic/schema "0.2.1"]
                  [clojurewerkz/scrypt     "1.1.0"]
 
@@ -56,6 +56,7 @@
                  ;; I tried but couldn't get timbre to talk to
                  ;;.logging - plus I don't know how its global
                  ;; atom plays with component
+                 [org.clojure/tools.logging "0.2.6"]
                  [ch.qos.logback/logback-classic "1.0.7" :exclusions [org.slf4j/slf4j-api]]
                  [org.slf4j/jul-to-slf4j "1.7.2"]
                  [org.slf4j/jcl-over-slf4j "1.7.2"]

@@ -54,7 +54,10 @@
                    (fn [req] {:body (html [:div
                                            [:h1 "Topics"]
                                            [:div#content [:p.loading "Loading..."]]])
-                              :cljs (format "azondi.main.topics_page(\"%s\")" (:cylon/user req))
+                              :cljs (format "azondi.main.topics_page(%s)"
+                                            (when-let [user (:cylon/user req)]
+                                              (format "\"%s\"" user)
+                                              "null"))
                               }))
 
      ::test-card (wrap-template

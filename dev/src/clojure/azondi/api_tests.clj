@@ -22,7 +22,7 @@
     (assert h (str "No handler for " k))
     (str "http://localhost:" port "/api/1.0" (apply path-for routes k args))))
 
-(defn request [method uri & {:keys [data api-key expected]}]
+(defn request [method uri & {:keys [data api-key expected auth]}]
   (let [response
         @(http-request
           (merge
@@ -34,8 +34,8 @@
               "Accept" "application/json"}
              #_(when api-key
                  {"Authorization" (str "api-key " api-key)}))}
-           (when data
-             {:body (str (encode (->js data)))}))
+           (when auth {:basic-auth auth})
+           (when data {:body (str (encode (->js data)))}))
           identity)]
     (assert (:status response) (format "Failed to connect to %s!" uri))
     (when
@@ -53,18 +53,18 @@
   (is (not (get-user db "alice")))
   (let [uri (make-uri :azondi.api/user :user "alice")
         response (request :put uri :data {:user "alice"
+                                          :password "lewis"
                                           :name "Alice Cheung"
                                           :email "alice@example.org"
                                           })]
     (is (= (:status response) 201))
-    (is (contains? (:body response) :api-key))
-    (is (contains? (:body response) :password))
     ;; Do we have the user in the database?
     (is (get-user db "alice"))
 
     ;; Overwrite the user
     (let [response (request :put uri :expected 201
                             :data {:user "alice"
+                                   :password "shock"
                                    :name "Alice Cooper"
                                    :email "alice@another.com"
                                    })]
@@ -74,7 +74,7 @@
 
       (let [uri (make-uri :azondi.api/devices :user "alice")]
 
-        (let [response (request :post uri :data {})]
+        (let [response (request :post uri :data {} :auth ["alice" "shock"])]
 
           ;; This needs to return a client id and password in the result
           (is (= 201 (:status response)))
@@ -85,7 +85,7 @@
 
             ;; Find our devices
             (let [uri (make-uri :azondi.api/devices :user "alice")
-                  response (request :get uri)]
+                  response (request :get uri :auth ["alice" "shock"])]
 
               (is (contains? (:body response) :user))
               (is (contains? (:body response) :devices))
@@ -104,9 +104,17 @@
             ))
 
         ;; Create another device, this time with some attributes
-        (request :post uri :data {:name "iPhone" :description "MQTTitude on my old iPhone"})
-        (request :post uri :data {:name "S3 custom" :description "My own Android app"})
-        (request :post uri :data {:name "Arduino 1" :description "Some hack"})
+        (request :post uri
+                 :auth ["alice" "shock"]
+                 :data {:name "iPhone" :description "MQTTitude on my old iPhone"})
+
+        (request :post uri
+                 :auth ["alice" "shock"]
+                 :data {:name "S3 custom" :description "My own Android app"})
+
+        (request :post uri
+                 :auth ["alice" "shock"]
+                 :data {:name "Arduino 1" :description "Some hack"})
 
         ;; create and find topics
         (let [uri (make-uri :azondi.api/topics :user "alice")
@@ -116,13 +124,7 @@
           (request :post uri :data {:name "pollution" :unit "PM25"})
           (request :post uri :data {:name "pollution-E12"})
 
-          )
-
-        )))
-
-
-
-
+          ))))
 
   ;; TODO Test error scenarios here
   )

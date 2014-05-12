@@ -122,6 +122,7 @@
 (def new-user-schema
   {:user s/Str
    (s/optional-key :name) s/Str
+   :password s/Str
    :email s/Str
    })
 
@@ -151,15 +152,13 @@
            (when (get-user db user)
              (delete-user! db user))
 
-           (let [pw (generate-user-password 8)
-                 u (create-user! db name user email pw)
+           (let [u (create-user! db name user email password)
                  ;;_ (set-api-key uesrs user)
                  ;;api-key (get-api-key user)
                  ]
              ;; We create the api-key, in order to return. This is
              ;; really just to help with the tests. Is this appropriate?
-             {:response-body {:api-key "12345"
-                              :password pw}}
+             {:response-body {:api-key "12345"}}
              )
            )
    :handle-created (fn [{body :response-body}] body)

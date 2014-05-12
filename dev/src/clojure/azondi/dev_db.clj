@@ -21,8 +21,8 @@
   (stop [this] this)
 
   Datastore
-  (create-user! [this name user email pw]
-    (dosync (alter (-> this :database :users) assoc user {:user user :name name :email email :pw pw})))
+  (create-user! [this name user email password]
+    (dosync (alter (-> this :database :users) assoc user {:user user :name name :email email :password password})))
 
   (get-users [this]
     @(-> this :database :users))
@@ -33,10 +33,10 @@
   (delete-user! [this user]
     (dosync (alter (-> this :database :users) update-in [:users] dissoc user)))
 
-  (create-device! [this user pw data]
+  (create-device! [this user password data]
     (dosync
      (let [client-id (str (alter (-> this :database :last-client-id) inc))
-           device (merge data {:client-id client-id :user user :password pw})]
+           device (merge data {:client-id client-id :user user :password password})]
        (alter (-> this :database :devices) assoc client-id device)
        (dissoc device :user))))
 

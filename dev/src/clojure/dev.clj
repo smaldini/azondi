@@ -6,7 +6,7 @@
    [com.stuartsierra.component :as component]
    [clojure.tools.namespace.repl :refer (refresh refresh-all)]
    [azondi.dev-system :refer (new-dev-system)]
-   [cylon.password :as password]
+;;   [cylon.user :as user]
    [clojure.tools.logging :refer (infof)]
    env
    ))
@@ -44,10 +44,10 @@
 (defn set-env! [env]
   (alter-var-root #'env/env (constantly env)))
 
-(defn add-user! [uid pw]
-  (password/add-user!
+#_(defn add-user! [user password]
+  (user/add-user!
    (-> system :protection-domain)
-   uid pw))
+   user password))
 
 (println "Welcome developer!")
 (println "Please (set-env! <env>) if you don't want the default configuration")
