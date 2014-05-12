@@ -38,7 +38,6 @@
                  [juxt.modular/clostache "0.1.0-SNAPSHOT"]
                  [juxt.modular/http-kit "0.4.0-SNAPSHOT"]
                  [juxt.modular/maker "0.1.0-SNAPSHOT"]
-                 [juxt.modular/menu "0.1.0-SNAPSHOT" :exclusions [cylon]]
                  [juxt.modular/mqtt "0.1.0-SNAPSHOT"]
                  [juxt.modular/netty "0.1.0-SNAPSHOT"]
                  [juxt.modular/ring "0.4.0-SNAPSHOT"]
@@ -50,6 +49,7 @@
                  [garden "1.1.5"]
                  [markdown-clj "0.9.36"]
                  ;;[cylon "0.2.0-SNAPSHOT"]
+                 ;;[cylon "0.1.0"]
 
                  ;; Logging
 
