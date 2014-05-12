@@ -48,7 +48,7 @@
                  [hiccup "1.0.5"]
                  [garden "1.1.5"]
                  [markdown-clj "0.9.36"]
-                 ;;[cylon "0.2.0-SNAPSHOT"]
+                 [cylon "0.2.0-SNAPSHOT"]
                  ;;[cylon "0.1.0"]
 
                  ;; Logging
@@ -85,7 +85,8 @@
 
   :profiles {:dev {:dependencies [[org.clojure/tools.namespace "0.2.4"]
                                   [clojurewerkz/machine_head "1.0.0-beta7"]]
-                   :source-paths ["dev/src/clojure" "src/cljs" "/home/malcolm/src/cylon/src"]
+                   :source-paths ["dev/src/clojure" "src/cljs" ;;"/home/malcolm/src/cylon/src"
+                                  ]
                    :resource-paths ["test/resources"]}
 
              :uberjar {:main azondi.main
