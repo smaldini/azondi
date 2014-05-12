@@ -359,9 +359,10 @@
          [:tr
           [:th "Name"]
           [:th "Description"]
-          [:th "Unit of Measure"]]]
+          [:th "Unit of Measure"]
+          [:th "Topic ID"]]]
         [:tbody
-         (for [{:keys [name description unit]} (:topics app-state)]
+         (for [{:keys [name description unit topic-id]} (:topics app-state)]
            [:tr
             [:td
              [:a
@@ -385,12 +386,13 @@
                                      ;; component input values to nil,
                                      ;; so we merge in empty string
                                      ;; defaults!
-                                     (merge {:name "" :description "" :unit ""}
-                                            (select-keys body [:name :description :unit]))))))))}
+                                     (merge {:name "" :description "" :unit "" :topic-id ""}
+                                            (select-keys body [:name :description :unit :topic-id]))))))))}
               ;; We display the topic name as the link text
               name]]
             [:td description]
-            [:td unit]])]]))))
+            [:td unit]
+            [:td topic-id]])]]))))
 
 (defn update-topics-list! [user app-state]
   (let [ajax-send (chan)

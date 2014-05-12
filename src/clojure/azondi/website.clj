@@ -42,7 +42,8 @@
 
   (ring-handler-map [_]
     {::index (wrap-template (fn [req] {:body (md->html (io/resource "markdown/index.md"))}))
-
+     ::help (wrap-template (fn [req] {:body (md->html (io/resource "markdown/getting-started.md"))}))
+     ::about (wrap-template (fn [req] {:body (md->html (io/resource "markdown/about-us.md"))}))
      ::devices (wrap-template
                    (fn [req] {:body (html [:div
                                            [:h1 "Devices"]
@@ -79,7 +80,8 @@
           ["devices/" ::devices]
           ["topics/" ::topics]
           ["developer/" {"test-card" ::test-card}]
-
+          ["help/" ::help]
+          ["about" ::about]
           ]])
 
   (uri-context [_] "")
@@ -90,6 +92,7 @@
      {:label "Devices" :order "B1" :href ::devices :parent "My"}
      {:label "Topics" :order "B2" :href ::topics :parent "My"}
      {:label "Test Card" :order "T1" :href ::test-card :parent "Developer"}
+     {:label "Help" :order "H1" :href ::help}
      ]))
 
 (defn new-website []

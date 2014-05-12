@@ -267,7 +267,7 @@
                 (encode {:user user
                          :topics (->>
                                   (topics-by-owner db user)
-                                  (map #(select-keys % [:owner :description :name :unit :topic_id]))
+                                  (map #(select-keys % [:owner :description :name :unit :topic-id]))
                                   (map #(reduce-kv (fn [acc k v] (assoc acc (->camelCaseString k) v)) {} %))
                                   )}))
    :processable? (create-schema-check topic-attributes-schema)
@@ -276,7 +276,7 @@
             (println "body is" body)
             {:topic
              (let [name (:name body)
-                   topic-id (str user "/" name)]
+                   topic-id (str "users/" user "/" name)]
                (when (get-topic db topic-id)
                  (delete-topic! db topic-id))
                (create-topic! db {:name name
@@ -293,7 +293,7 @@
    :allowed-methods #{:get :put :delete}
    :known-content-type? #{"application/json"}
    :exists? (fn [{{{user :user topic-name :topic-name} :route-params} :request}]
-              (let [topic-id (str user "/" topic-name)]
+              (let [topic-id (str "users/" user "/" topic-name)]
                 (println "user is" user)
                 (println "topic name is" topic-name)
                 (println "get-user returns" (get-user db user))
