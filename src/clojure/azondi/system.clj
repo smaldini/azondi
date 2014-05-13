@@ -16,7 +16,6 @@
    [modular.clostache :refer (new-clostache-templater)]
    [modular.http-kit :refer (new-webserver)]
    [modular.maker :refer (make)]
-   [modular.menu :refer (new-menu-index new-side-menu MenuItems)]
    [modular.netty :refer (new-netty-server)]
    [modular.netty.mqtt :refer (new-mqtt-decoder new-mqtt-encoder)]
    [modular.ring :refer (new-ring-binder RingBinding)]
@@ -41,6 +40,7 @@
    [azondi.sse :refer (new-event-service)]
    [azondi.postgres :refer (new-database)]
    [azondi.api :refer (new-api new-user-based-authorizer)]
+   [azondi.sidemenu :refer (new-menu-index new-side-menu MenuItems)]
    ))
 
 (defn ^:private read-file
@@ -106,9 +106,9 @@
      :menu-index (make new-menu-index)
      :bootstrap-menu (make new-side-menu)
      :web-meta (make new-template-model-contributor config
-                     :org "OpenSensors.IO"
+                     :org "opensensors.IO"
                      :title "Azondi"
-                     :description "OpenSensors.IO MQTT broker"
+                     :description "opensensors.IO MQTT broker"
                      :app-name "Azondi"
                      :home-href "/")
      :cljs-core (new-cljs-module :name :cljs :mains ['cljs.core] :dependencies #{})

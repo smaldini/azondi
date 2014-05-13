@@ -4,7 +4,7 @@
    [bidi.bidi :refer (->Redirect ->ResourcesMaybe)]
    [modular.bidi :refer (WebService)]
    [modular.template :refer (wrap-template)]
-   [modular.menu :refer (MenuItems)]
+   [azondi.sidemenu :refer (MenuItems)]
    [garden.core :refer (css)]
    [garden.units :refer (pt em px)]
    [garden.color :refer (rgb)]
@@ -44,6 +44,7 @@
     {::index (wrap-template (fn [req] {:body (md->html (io/resource "markdown/index.md"))}))
      ::help (wrap-template (fn [req] {:body (md->html (io/resource "markdown/getting-started.md"))}))
      ::about (wrap-template (fn [req] {:body (md->html (io/resource "markdown/about-us.md"))}))
+     ::terms (wrap-template (fn [req] {:body (md->html (io/resource "markdown/terms.md"))}))
      ::devices (wrap-template
                    (fn [req] {:body (html [:div
                                            [:h1 "Devices"]
@@ -92,6 +93,7 @@
           ["help/" ::help]
           ["about" ::about]
           ["reset-password" ::reset-password]
+          ["terms" ::terms]
           ]])
 
   (uri-context [_] "")
@@ -131,7 +133,7 @@
       :parent "Account"
       :visible? (fn [ctx] (-> ctx :request :cylon/user))}
 
-     {:label "Reset Password"
+     #_{:label "Reset Password"
       :order "C2"
       :target ::reset-password
       :parent "Account"

@@ -1,16 +1,15 @@
 body {
-  font-family: 'Open Sans', sans-serif;
+  font-family: 'Montserrat', 'Open Sans', sans-serif;
 
-  font-size: 18px;  
+  font-size: 20px;  
   line-height: 1.428571429;
-  color: #2f575d;
   background-color: #white;
   margin-top: auto;
   margin-bottom: auto;
  
 }
 
-.jumbotron {background-color: #28363D;
+.jumbotron {background-color: black;
 	    border-color: #141b1e;
 	    overflow: visible;
 	    height: 200px;
@@ -19,10 +18,10 @@ body {
 	    top:0px;}
 
 .jumbotron h1 {text-align: center;
-              font-size: 60px;
+              font-size: 50px;
               color: white;
               font-weight:normal;
-              font-weight:100;
+              font-weight:50;
               text-shadow:0 0 50px #0af, 0 0 3px #fff;}
 
 .container-narrow {margin-left: 50px;
