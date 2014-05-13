@@ -4,7 +4,7 @@
    [bidi.bidi :refer (->Redirect ->ResourcesMaybe)]
    [modular.bidi :refer (WebService)]
    [modular.template :refer (wrap-template)]
-   [azondi.sidebar :refer (MenuItems)]
+   [modular.menu :refer (MenuItems)]
    [garden.core :refer (css)]
    [garden.units :refer (pt em px)]
    [garden.color :refer (rgb)]
@@ -75,7 +75,7 @@
                              }))
 
 
-     
+
      ::styles styles})
 
   (routes [_]
@@ -95,12 +95,37 @@
   (uri-context [_] "")
 
   MenuItems
-  (menu-items [_ context]
-    [{:label "Devices" :order "B1" :href ::devices }
-     {:label "Topics" :order "B2" :href ::topics}
-     {:label "Test Card" :order "T1" :href ::test-card}
-     {:label "Getting Started" :order "C1" :href ::help :parent "Account"}
-     {:label "Reset Password" :order "C2" :href ::reset-password :parent "Account"}
+  (menu-items [this]
+    [
+     {:label "Devices"
+      :order "B1"
+      :target ::devices
+      :visible? (fn [ctx] (-> ctx :request :cylon/user))}
+
+     {:label "Topics"
+      :order "B2"
+      :target ::topics
+      :visible? (fn [ctx] (-> ctx :request :cylon/user))}
+
+     {:label "Test Card"
+      :order "T1"
+      :target ::test-card
+      }
+
+     ;; We need these somewhere, not sure where though ;)
+     {:label "Login"
+      :order "L1"
+      :target [:login-form :login]
+      :visible? (fn [ctx] (nil? (-> ctx :request :cylon/user)))}
+
+     {:label "Logout"
+      :order "L2"
+      :target [:login-form :logout]
+      :visible? (fn [ctx] (-> ctx :request :cylon/user))}
+
+     {:label "Getting Started" :order "C1" :target ::help :parent "Account"}
+     {:label "Reset Password" :order "C2" :target ::reset-password :parent "Account"}
+
      ]))
 
 (defn new-website []

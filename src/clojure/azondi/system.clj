@@ -8,7 +8,7 @@
    [clojure.string :as str]
    [clojure.tools.reader.reader-types :refer (indexing-push-back-reader)]
    [clojure.core.async :as async]
-   [clojure.tools.logging :refer (infof)]
+   [clojure.tools.logging :refer :all]
 
    ;; Pre-baked components
    [modular.bidi :refer (new-router WebService)]
@@ -16,11 +16,11 @@
    [modular.clostache :refer (new-clostache-templater)]
    [modular.http-kit :refer (new-webserver)]
    [modular.maker :refer (make)]
-   [azondi.sidebar :refer (new-menu-index new-bootstrap-menu MenuItems)]
+   [modular.menu :refer (new-menu-index new-bootstrap-menu MenuItems)]
    [modular.netty :refer (new-netty-server)]
    [modular.netty.mqtt :refer (new-mqtt-decoder new-mqtt-encoder)]
    [modular.ring :refer (new-ring-binder RingBinding)]
-   [modular.template :refer (new-template new-template-model-contributor)]
+   [modular.template :refer (new-template new-template-model-contributor wrap-template)]
    [modular.wire-up :refer (autowire-dependencies-satisfying)]
    [cylon.impl.login-form :refer (new-login-form)]
    [cylon.impl.user :refer (new-user-file new-default-user-domain)]
@@ -29,6 +29,8 @@
    [cylon.impl.authentication :refer (new-static-authenticator)]
    [cylon.impl.authorization :refer (new-role-based-authorizer)]
    [cylon.impl.pbkdf2 :refer (new-pbkdf2-password-hash)]
+
+
 
    ;; Custom components
    [azondi.transports.mqtt :refer (new-netty-mqtt-handler)]
@@ -122,12 +124,13 @@
             (new-event-service :async-pub sse-pub))
 
      ;; Security
-     :login-form (new-login-form)
+     :login-form (new-login-form :middleware wrap-template)
+
      #_:user-domain #_(new-default-user-domain)
      #_:password-hash-algo #_(new-pbkdf2-password-hash)
      #_:user-store #_(make new-user-file config
-                       :file (io/file (System/getProperty "user.home")
-                                      ".azondi-passwords.edn"))
+                           :file (io/file (System/getProperty "user.home")
+                                          ".azondi-passwords.edn"))
      :session-store (new-atom-backed-session-store)
      :auth-binding (new-auth-request-binding)
 

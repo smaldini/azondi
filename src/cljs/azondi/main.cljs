@@ -58,44 +58,46 @@
       (html
        [:div
         [:p "user: " (:user app-state)]
-        [:table
-         [:thead
-          [:tr
-           [:th "Client id"]
-           [:th "Name"]
-           [:th "Description"]]]
-         [:tbody
-          (for [{:keys [client-id name description]} (:devices app-state)]
-            [:tr {:style {:background (if (= client-id (get-in app-state [:device :client-id])) "#ff0" "white")}}
-             [:td.numeric
-              [:a
-               {:onClick ; if we click on one of the devices
-                (fn [ev]
-                  (.preventDefault ev) ; don't follow the link
-                  (let [ajax-send (chan)
-                        ajax-recv (ajaj< ajax-send
-                                         :method :get
-                                         :uri (str "/api/1.0/users/" (:user @app-state) "/devices/" client-id)
-                                         :content {})]
-                    (go
-                      (>! ajax-send {}) ; Trigger a 'GET' of the latest device details
-                      (let [{:keys [status body] :as response} (<! ajax-recv)]
-                        (when (= status 200)
-                          ;; Update the device in the app-state. This
-                          ;; causes the device details component to
-                          ;; refresh.
-                          (om/update! app-state :device
-                                      ;; We must avoid setting controlled
-                                      ;; component input values to nil,
-                                      ;; so we merge in empty string
-                                      ;; defaults!
-                                      (merge {:name "" :description ""}
-                                             (select-keys body [:client-id :name :description]))))))))}
-               ;; We display the client-id as the link text
-               client-id]]
+        (let [devices (:devices app-state)]
+          (when (not-empty devices)
+            [:table
+             [:thead
+              [:tr
+               [:th "Client id"]
+               [:th "Name"]
+               [:th "Description"]]]
+             [:tbody
+              (for [{:keys [client-id name description]} devices]
+                [:tr {:style {:background (if (= client-id (get-in app-state [:device :client-id])) "#ff0" "white")}}
+                 [:td.numeric
+                  [:a
+                   {:onClick ; if we click on one of the devices
+                    (fn [ev]
+                      (.preventDefault ev) ; don't follow the link
+                      (let [ajax-send (chan)
+                            ajax-recv (ajaj< ajax-send
+                                             :method :get
+                                             :uri (str "/api/1.0/users/" (:user @app-state) "/devices/" client-id)
+                                             :content {})]
+                        (go
+                          (>! ajax-send {}) ; Trigger a 'GET' of the latest device details
+                          (let [{:keys [status body] :as response} (<! ajax-recv)]
+                            (when (= status 200)
+                              ;; Update the device in the app-state. This
+                              ;; causes the device details component to
+                              ;; refresh.
+                              (om/update! app-state :device
+                                          ;; We must avoid setting controlled
+                                          ;; component input values to nil,
+                                          ;; so we merge in empty string
+                                          ;; defaults!
+                                          (merge {:name "" :description ""}
+                                                 (select-keys body [:client-id :name :description]))))))))}
+                   ;; We display the client-id as the link text
+                   client-id]]
 
-             [:td name]
-             [:td description]])]]]))))
+                 [:td name]
+                 [:td description]])]]))]))))
 
 (defn update-devices-list! [user app-state]
   (let [ajax-send (chan)
