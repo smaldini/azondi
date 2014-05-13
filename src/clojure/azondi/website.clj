@@ -85,7 +85,9 @@
           ["index" ::index]
           ["css/style.css" ::styles]
           ["devices/" ::devices]
+          ["devices" (->Redirect 307 ::devices)]
           ["topics/" ::topics]
+          ["topics" (->Redirect 307 ::topics)]
           ["developer/" {"test-card" ::test-card}]
           ["help/" ::help]
           ["about" ::about]
@@ -123,8 +125,17 @@
       :target [:login-form :logout]
       :visible? (fn [ctx] (-> ctx :request :cylon/user))}
 
-     {:label "Getting Started" :order "C1" :target ::help :parent "Account"}
-     {:label "Reset Password" :order "C2" :target ::reset-password :parent "Account"}
+     {:label "Getting Started"
+      :order "C1"
+      :target ::help
+      :parent "Account"
+      :visible? (fn [ctx] (-> ctx :request :cylon/user))}
+
+     {:label "Reset Password"
+      :order "C2"
+      :target ::reset-password
+      :parent "Account"
+      :visible? (fn [ctx] (-> ctx :request :cylon/user))}
 
      ]))
 

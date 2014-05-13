@@ -16,7 +16,7 @@
    [modular.clostache :refer (new-clostache-templater)]
    [modular.http-kit :refer (new-webserver)]
    [modular.maker :refer (make)]
-   [modular.menu :refer (new-menu-index new-bootstrap-menu MenuItems)]
+   [modular.menu :refer (new-menu-index new-side-menu MenuItems)]
    [modular.netty :refer (new-netty-server)]
    [modular.netty.mqtt :refer (new-mqtt-decoder new-mqtt-encoder)]
    [modular.ring :refer (new-ring-binder RingBinding)]
@@ -104,7 +104,7 @@
      :html-template (make new-template config :template "templates/page.html.mustache")
      :clostache (make new-clostache-templater)
      :menu-index (make new-menu-index)
-     :bootstrap-menu (make new-bootstrap-menu)
+     :bootstrap-menu (make new-side-menu)
      :web-meta (make new-template-model-contributor config
                      :org "OpenSensors.IO"
                      :title "Azondi"

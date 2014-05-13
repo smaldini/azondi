@@ -60,8 +60,6 @@
      (alter (-> this :database :devices) update-in [client-id] assoc :password p)))
 
   (allowed-device? [this client-id user p]
-    (println "Real creds" (select-keys (-> this :database :devices deref (get client-id)) [:user :password]))
-    (println "Attempted creds" {:user user :password p})
     (= (select-keys
         (-> this :database :devices deref (get client-id))
         [:user :password])

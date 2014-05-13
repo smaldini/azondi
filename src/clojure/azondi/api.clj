@@ -184,7 +184,6 @@
   {:available-media-types #{"application/json"}
    :allowed-methods #{:get :post}
    :handle-ok (fn [{{{user :user} :route-params :as req} :request}]
-                (println "Cylon user is:" (:cylon/user req))
                 (encode {:user user
                          :devices (->>
                                    (devices-by-owner db user)
@@ -224,13 +223,8 @@
    :handle-unauthorized (fn [_] (encode {:error "Unauthorized"}))
 
    :exists? (fn [{{{user :user client-id :client-id} :route-params} :request}]
-              (println "user is" user)
-              (println "client id is" client-id)
-              (println "get-user returns" (get-user db user))
-              (println "get-device returns" (get-device db client-id))
               (when (and (get-user db user)
                          (get-device db client-id))
-                (println "Returning context")
                 {:user user
                  :client-id client-id}))
 
@@ -293,13 +287,8 @@
    :known-content-type? #{"application/json"}
    :exists? (fn [{{{user :user topic-name :topic-name} :route-params} :request}]
               (let [topic-id (str "users/" user "/" topic-name)]
-                (println "user is" user)
-                (println "topic name is" topic-name)
-                (println "get-user returns" (get-user db user))
-                (println "get-topic returns" (get-topic db topic-id))
                 (when (and (get-user db user)
                            (get-topic db topic-id))
-                  (println "Returning context")
                   {:user user
                    :topic-id topic-id})))
 
