@@ -108,6 +108,12 @@
 (defn users-resource [db]
   {:allowed-methods #{:get}
    :available-media-types #{"text/html" "application/json"}
+
+   ;; Only allow local access
+   :allowed?
+   (fn [{{:keys [remote-addr request-method]} :request}]
+     (= remote-addr "127.0.0.1"))
+
    :handle-ok
    (fn [{{mt :media-type} :representation {routes :modular.bidi/routes :as req} :request}]
      (case mt
@@ -128,6 +134,13 @@
 (defn user-resource [db]
   {:available-media-types #{"application/json" "text/html"}
    :allowed-methods #{:put :get}
+
+   ;; We only allow local access
+   :allowed?
+   (fn [{{:keys [remote-addr request-method]} :request}]
+     (or (= request-method :get)
+         (= remote-addr "127.0.0.1")))
+
    :known-content-type? #{"application/json"}
    :processable? (create-schema-check new-user-schema)
    :handle-unprocessable-entity handle-unprocessable-entity
@@ -135,7 +148,7 @@
    :exists? (fn [{{{user :user} :route-params} :request}]
               {::user (get-user db user)})
 
-   :handle-ok (fn [{user ::user {media-type :media-type} :representation}]
+   :handle-ok (fn [{user ::user {media-type :media-type} :representation req :request}]
                 (case media-type
                   "application/json" user
                   "text/html" (html
