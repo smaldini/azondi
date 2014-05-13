@@ -48,9 +48,21 @@
        (html
         (apply concat
                (for [[parent items] menu]
-                 (for [{:keys [href order label args]} items]
-                   (if (not (= label "Home"))
-                     [:li [:a {:href (apply path-for routes href args)} label]])))))})))
+                 (let [listitems
+                       (for [{:keys [href order label args]} items]
+                         [:li [:a {:href (apply path-for routes href args)} label]])]
+
+                   (if parent
+                     (list
+                      [:li [:a {:data-toggle "collapse"
+                                :data-parent "#accordion"
+                                :href (str "#" parent)
+                                :class "collapsed"
+                                } parent]]
+                      [:div {:id (str parent) :class "collapse out"}
+                       [:ul listitems]])
+                     listitems
+                     )))))})))
 
 (defn new-bootstrap-menu []
   (component/using (->SideMenu) [:menu-index]))

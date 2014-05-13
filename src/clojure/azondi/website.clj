@@ -67,6 +67,15 @@
                              :cljs "azondi.main.test_card()"
                              }))
 
+     ;;for now it will be a test card
+     ::reset-password (wrap-template
+                       (fn [req] {:body (html [:div
+                                          [:div#content [:p.loading "Loading..."]]])
+                             :cljs "azondi.main.test_card()"
+                             }))
+
+
+     
      ::styles styles})
 
   (routes [_]
@@ -80,17 +89,18 @@
           ["developer/" {"test-card" ::test-card}]
           ["help/" ::help]
           ["about" ::about]
+          ["reset-password" ::reset-password]
           ]])
 
   (uri-context [_] "")
 
   MenuItems
   (menu-items [_ context]
-    [{:label "Home" :order "A1" :href ::index}
-     {:label "Devices" :order "B1" :href ::devices :parent "My"}
-     {:label "Topics" :order "B2" :href ::topics :parent "My"}
-     {:label "Test Card" :order "T1" :href ::test-card :parent "Developer"}
-     {:label "Help" :order "H1" :href ::help}
+    [{:label "Devices" :order "B1" :href ::devices }
+     {:label "Topics" :order "B2" :href ::topics}
+     {:label "Test Card" :order "T1" :href ::test-card}
+     {:label "Getting Started" :order "C1" :href ::help :parent "Account"}
+     {:label "Reset Password" :order "C2" :href ::reset-password :parent "Account"}
      ]))
 
 (defn new-website []
