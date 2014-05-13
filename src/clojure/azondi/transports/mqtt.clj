@@ -138,7 +138,7 @@
   ;;  :dup false
   ;;  }
 
-  (go (>!! (:debug-ch handler-state) {:message "Connected" :client-id client-id}))
+  (go (>!! (:debug-ch handler-state) {:message (str "Connection request from " (.remoteAddress (.channel ctx))) :client-id client-id}))
 
   (cond
    (not (supported-protocol? protocol-name protocol-version))
@@ -169,11 +169,7 @@
 
    :otherwise
    (do
-     (go (>!! (:debug-ch handler-state) {:message (rand-nth [
-                                                             "Great! connection accepted!"
-                                                             "Yay!"
-                                                             "It worked!"
-                                                             "You're in!"]) :client-id client-id}))
+     (go (>!! (:debug-ch handler-state) {:message "Accepting connectoin" :client-id client-id}))
      (accept-connection ctx msg handler-state))))
 
 ;;
