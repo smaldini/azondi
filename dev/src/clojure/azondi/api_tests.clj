@@ -2,14 +2,11 @@
   (:require
    [com.stuartsierra.component :as component]
    [clojure.test :refer :all]
-   [org.httpkit.client :refer (request) :rename {request http-request}]
-   [cheshire.core :refer (encode decode)]
-   [clojure.pprint :refer (pprint)]
+   [cheshire.core :refer (decode)]
    [bidi.bidi :refer (path-for)]
-   [azondi.api :refer (->js ->clj) :as api]
    [azondi.db :refer (get-user)]
    [azondi.system :refer (config)]
-   ))
+   [azondi.http :refer (request)]))
 
 ;; This is to set the API handlers and routes - they are set by le-web.api.api-starter.APITests
 (def db nil)
@@ -22,38 +19,12 @@
     (assert h (str "No handler for " k))
     (str "http://localhost:" port "/api/1.0" (apply path-for routes k args))))
 
-(defn request [method uri & {:keys [data api-key expected auth]}]
-  (let [response
-        @(http-request
-          (merge
-           {:method method
-            :url uri
-            :headers
-            (merge
-             {"Content-Type" "application/json"
-              "Accept" "application/json"}
-             #_(when api-key
-                 {"Authorization" (str "api-key " api-key)}))}
-           (when auth {:basic-auth auth})
-           (when data {:body (str (encode (->js data)))}))
-          identity)]
-    (assert (:status response) (format "Failed to connect to %s!" uri))
-    (when
-        (if expected
-          (not= (:status response) expected)
-          (>= (:status response) 400))
-      (println "Error status returned on HTTP request")
-      (pprint response)
-      (throw (ex-info (format "Unexpected status, response status is %d with body %s" (:status response) (pr-str (:body response))) {})))
-    (update-in response [:body] (comp ->clj decode))))
-
 
 (deftest devices
   ;; Create Alice
   (is (not (get-user db "alice")))
   (let [uri (make-uri :azondi.api/user :user "alice")
-        response (request :put uri :data {:user "alice"
-                                          :password "lewis"
+        response (request :put uri :data {:password "lewis"
                                           :name "Alice Cheung"
                                           :email "alice@example.org"
                                           })]
@@ -63,8 +34,7 @@
 
     ;; Overwrite the user
     (let [response (request :put uri :expected 201
-                            :data {:user "alice"
-                                   :password "shock"
+                            :data {:password "shock"
                                    :name "Alice Cooper"
                                    :email "alice@another.com"
                                    })]

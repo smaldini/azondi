@@ -7,6 +7,7 @@
    [azondi.api-tests :refer (new-api-tests)]
    [azondi.db :refer (Datastore get-user)]
    [azondi.dev-db :refer (new-inmemory-datastore)]
+   [azondi.seed :refer (new-seed-data)]
    [cylon.user :refer (UserDomain)]
    [cylon.impl.authentication :refer (new-http-basic-authenticator new-composite-disjunctive-authenticator)]
    [cylon.impl.session :refer (new-cookie-authenticator)]))
@@ -31,6 +32,7 @@
          (->
           (configurable-system-map (config))
           (assoc :api-tests (azondi.api-tests/new-api-tests)
+                 :seed (new-seed-data)
                  :database (new-inmemory-datastore)
                  :user-domain (new-dev-user-domain)
 

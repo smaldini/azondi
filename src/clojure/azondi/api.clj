@@ -120,8 +120,7 @@
        ))})
 
 (def new-user-schema
-  {:user s/Str
-   (s/optional-key :name) s/Str
+  {(s/optional-key :name) s/Str
    :password s/Str
    :email s/Str
    })

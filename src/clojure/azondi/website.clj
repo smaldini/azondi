@@ -109,7 +109,7 @@
       :target ::topics
       :visible? (fn [ctx] (-> ctx :request :cylon/user))}
 
-     {:label "Test Card"
+     #_{:label "Test Card"
       :order "T1"
       :target ::test-card
       }
