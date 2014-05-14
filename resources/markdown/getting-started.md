@@ -10,14 +10,14 @@ topics are published with an open data licence.
 
 Topics are the way that your messages are routed and grouped. Thing of
 it as the twitter hash tag equivalent but your things. Those interested in
-messages you publish can 'listen' to your topics. The way you group
+messages you publish can 'listen' to messages sent to your topics. The way you group
 your topics is entirely up to you but we recommend you group devices
 publishing similar messages together for the sake of clarity, i.e. temp sensor would publish
-to the */users/foo/temprature* topic.
+to the `/users/foo/temperature` topic.
 
 opensensors allows you free reign in managing your topics, you can
 create and publish to any number of public topics under the
-*/users/'your id'/* hierarchy.
+`/users/<your-id>/*` hierarchy.
 
 
 # Register Devices
@@ -35,8 +35,7 @@ each connection. At any given time, there can only be one instance of a connecti
 # Send messages
 
 To connect and send a message to opensensors you will require your username,
-device password and client id. opensensors assumes and assigns a topic
-id using a pattern users/'user-id'/'topic' for each user.
+device password and client id. opensensors assumes and assigns a topic using a pattern `users/<user-id>/<topic>` for each user.
 
 If you have any queries or feature requests do not hesitate to send an
 email on support@opensensors.IO
