@@ -48,8 +48,3 @@
   (user/add-user!
    (-> system :protection-domain)
    user password))
-
-(println "Welcome developer!")
-(println "Please (set-env! <env>) if you don't want the default configuration")
-
-(infof "Starting Azondi")

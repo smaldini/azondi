@@ -9,7 +9,8 @@
    [garden.units :refer (pt em px)]
    [garden.color :refer (rgb)]
    [markdown.core :as md]
-   [hiccup.core :refer (html)]))
+   [hiccup.core :refer (html)]
+   ))
 
 (defn md->html
   "Reads a markdown file/resource and returns an HTML string"
@@ -146,3 +147,28 @@
 
 (defn new-website []
   (->Website))
+
+(defn render-custom-login-form [requested-uri action login-status]
+  ;; If login status is :failed, you can generated a banner thing
+  (html [:form {:method "POST"
+                :style "border: 1px dotted #555"
+                :action action}
+         (when (not-empty requested-uri)
+           [:input {:type "hidden" :name :requested-uri :value requested-uri}])
+
+         [:p "Login status: " login-status]
+         [:p "Requested URI: " requested-uri]
+
+         (when requested-uri
+           ;; If requested-uri is not nil, you should add it as a hidden field.
+           [:input {:type "hidden" :name :requested-uri :value requested-uri}])
+
+         [:p "Hey, I'm a custom login form in " [:code "azondi/website.clj"]]
+         [:div
+          [:label {:for "username"} "Username"]
+          [:input {:id "username" :name "username" :type "input"}]]
+         [:div
+          [:label {:for "password"} "Password"]
+          [:input {:id "password" :name "password" :type "password"}]]
+         [:input {:type "submit" :value "Login"}]
+         ]))

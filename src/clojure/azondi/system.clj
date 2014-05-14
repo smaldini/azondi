@@ -22,7 +22,7 @@
    [modular.ring :refer (new-ring-binder RingBinding)]
    [modular.template :refer (new-template new-template-model-contributor wrap-template)]
    [modular.wire-up :refer (autowire-dependencies-satisfying)]
-   [cylon.impl.login-form :refer (new-login-form)]
+   [cylon.impl.login-form :refer (new-login-form LoginFormRenderer)]
    [cylon.impl.user :refer (new-user-file new-default-user-domain)]
    [cylon.impl.session :refer (new-cookie-authenticator new-atom-backed-session-store)]
    [cylon.impl.request :refer (new-auth-request-binding)]
@@ -36,7 +36,7 @@
    [azondi.reactor :refer (new-reactor)]
    [azondi.bridges.ws :refer (new-websocket-bridge)]
    [azondi.data.messages :refer (new-message-archiver)]
-   [azondi.website :refer (new-website)]
+   [azondi.website :refer (new-website render-custom-login-form)]
    [azondi.sse :refer (new-event-service)]
    [azondi.postgres :refer (new-database)]
    [azondi.api :refer (new-api new-user-based-authorizer)]
@@ -126,7 +126,12 @@
             (new-event-service :async-pub sse-pub))
 
      ;; Security
-     :login-form (new-login-form :middleware wrap-template)
+     :login-form (new-login-form
+                  :renderer
+                  (reify LoginFormRenderer
+                    (render-login-form [_ request requested-uri action login-status]
+                      (render-custom-login-form requested-uri action login-status)))
+                  :middleware wrap-template)
 
      #_:user-domain #_(new-default-user-domain)
      #_:password-hash-algo #_(new-pbkdf2-password-hash)

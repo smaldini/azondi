@@ -5,3 +5,6 @@
   env)
 
 (def env nil)
+
+(println "Welcome developer!")
+(println "Please (set-env! <env>) if you don't want the default configuration")
