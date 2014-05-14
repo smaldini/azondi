@@ -150,25 +150,20 @@
 
 (defn render-custom-login-form [requested-uri action login-status]
   ;; If login status is :failed, you can generated a banner thing
-  (html [:form {:method "POST"
-                :style "border: 1px dotted #555"
-                :action action}
+  (html [:form.form-set {:method "POST"
+                         :action action
+                         :id "sign-in-form"}
          (when (not-empty requested-uri)
            [:input {:type "hidden" :name :requested-uri :value requested-uri}])
-
-         [:p "Login status: " login-status]
-         [:p "Requested URI: " requested-uri]
-
+         [:h2 "Sign In"]
          (when requested-uri
            ;; If requested-uri is not nil, you should add it as a hidden field.
            [:input {:type "hidden" :name :requested-uri :value requested-uri}])
-
-         [:p "Hey, I'm a custom login form in " [:code "azondi/website.clj"]]
-         [:div
-          [:label {:for "username"} "Username"]
-          [:input {:id "username" :name "username" :type "input"}]]
-         [:div
-          [:label {:for "password"} "Password"]
-          [:input {:id "password" :name "password" :type "password"}]]
-         [:input {:type "submit" :value "Login"}]
+         (when login-status
+           [:p "foo"]
+           [:div.alert.alert-warning
+            [:button.close {:type "button" :data-dismiss "alert"} "x"]"Incorrect Login Details"])
+         [:input.form-control {:id "username" :name "username" :type "input" :placeholder "user id"}]
+         [:input.form-control {:id "password" :name "password" :type "password" :placeholder "password"}]
+         [:button {:class "btn btn-lg btn-primary pull-right" :type "submit"} "Sign In"]
          ]))

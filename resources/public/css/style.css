@@ -83,6 +83,12 @@ margin-left: 30px;
    
   }
 
+#sign-in-form {width:30%;
+	       padding: 20px;
+	       border: 1px solid rgba(0, 0, 0, 0.1);
+	       height: 250px;}
+#sign-in-form * {margin: 10px;}
+#sign-in-form input {width: 80%;}
 
 
 .footer-list {list-style-type:none}
