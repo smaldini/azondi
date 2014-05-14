@@ -3,7 +3,7 @@ opensensors uses [MQTT](http://mqtt.org/) and assumes that devices
 have been configured to send MQTT messages. Currently we only support qos0 quality of service.
 
 # Open Data
-Please remember that public topics are viewable by anyone. Public 
+Please remember that public topics are viewable by anyone. Public
 topics are published with an open data licence.
 
 # Topics
@@ -15,7 +15,7 @@ your topics is entirely up to you but we recommend you group devices
 publishing similar messages together for the sake of clarity, i.e. temp sensor would publish
 to the */users/foo/temprature* topic.
 
-opensensors allows you to free reign in managing your topics, you can
+opensensors allows you free reign in managing your topics, you can
 create and publish to any number of public topics under the
 */users/'your id'/* hierarchy.
 
