@@ -60,17 +60,16 @@
 
       <div id="header">
 	<div class="jumbotron">
-	  <a href="{{web-meta.home-href}}">
+	  <div id="logoarea" class="vcenter">
 	    <h1>opensensors.IO <sup>beta</sup></h1>
-	    <div id="logoarea" class="vcenter">
-	      <svg viewBox="0 20 1000 100">
-		<circle cx="400" cy="50" fill="red" opacity="1.0" r="1">
-		  <animate attributeName="r" begin="1s"
-			   calcmode="linear" dur="1s" values="15; 4; 2; 1"></animate>
-		</circle>
-	      </svg>
-	    </div>
-	</a></div>
+	    <svg viewBox="0 20 1000 100" height="50">
+	      <circle cx="400" cy="50" fill="red" opacity="1.0" r="1">
+		<animate attributeName="r" begin="1s"
+		         calcmode="linear" dur="1s" values="15; 4; 2; 1"></animate>
+	      </circle>
+	    </svg>
+	  </div>
+	</div>
       </div>
 
       <div class="row">

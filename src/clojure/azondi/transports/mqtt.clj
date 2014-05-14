@@ -138,7 +138,7 @@
   ;;  :dup false
   ;;  }
 
-  (go (>!! (:debug-ch handler-state) {:message "Connected" :client-id client-id}))
+  (go (>!! (:debug-ch handler-state) {:message (str "Connection attempt from " (.remoteAddress (.channel ctx))) :client-id client-id}))
 
   (cond
    (not (supported-protocol? protocol-name protocol-version))
@@ -158,7 +158,7 @@
    (do
      (warnf "Device authentication failed, rejecting connection")
      (go (>!! (:debug-ch handler-state) {:client-id client-id
-                                         :message "Please check username/password"}))
+                                         :message "Rejecting connection, check username/password"}))
      (reject-connection ctx :bad-username-or-password))
 
    ;; TODO: check known devices table, too
@@ -169,11 +169,7 @@
 
    :otherwise
    (do
-     (go (>!! (:debug-ch handler-state) {:message (rand-nth [
-                                                             "Great! connection accepted!"
-                                                             "Yay!"
-                                                             "It worked!"
-                                                             "You're in!"]) :client-id client-id}))
+     (go (>!! (:debug-ch handler-state) {:message "Accepting connection" :client-id client-id}))
      (accept-connection ctx msg handler-state))))
 
 ;;
@@ -299,25 +295,35 @@
   ;;  :qos 1,
   ;;  :retain false}
   (let [{:keys [username]} (get @connections-by-ctx ctx)]
-    (if (.startsWith topic (str "/users/" username "/"))
-      (let [{:keys [client-id]} (get @connections-by-ctx ctx)
-            f (case qos
-                0 handle-publish-with-qos0
-                1 handle-publish-with-qos1
-                2 handle-publish-with-qos2)]
+    (let [{:keys [client-id]} (get @connections-by-ctx ctx)
+          f (case qos
+              0 handle-publish-with-qos0
+              1 handle-publish-with-qos1
+              2 handle-publish-with-qos2)]
+
+      (if (.startsWith topic (str "/users/" username "/"))
+
         (if (valid-payload? payload)
           (do
+            (go (>!! (:debug-ch handler-state)
+                     {:client-id client-id
+                      :message (str "Publishing message on topic: " topic)}))
             (f ctx msg handler-state)
             (mr/notify reactor topic {:device_id client-id
-                                      :payload   payload
-                                      :content_type  "application/json"}))
+                                      :payload payload
+                                      :content_type "application/json"}))
           (do
             (warnf "Rejecting client %s for publishing a message %d in size to topic %s" client-id (alength payload) topic)
-            (abort ctx))))
-      (let [state (get @connections-by-ctx ctx)
-            peer  (peer-of ctx)]
-        (warnf "Dropping connection %s (client id: %s), unauthorized to publish to %s" peer (:client-id state) topic)
-        (disconnect-client ctx)))))
+            (abort ctx)))
+
+        ;; Not allowed to publish to this topic
+        (let [state (get @connections-by-ctx ctx)
+              peer  (peer-of ctx)]
+          (warnf "Dropping connection %s (client id: %s), unauthorized to publish to %s" peer (:client-id state) topic)
+          (go (>!! (:debug-ch handler-state)
+                   {:client-id client-id
+                    :message (str "Client is not allowed to publish a message on topic: " topic)}))
+          (disconnect-client ctx))))))
 
 ;;
 ;; PINGREQ

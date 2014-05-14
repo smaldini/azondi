@@ -29,18 +29,15 @@
 
 (defn init []
   (let [svg (sel1 "#logoarea svg")]
-    (doseq [n (range 80)]               ; number of circles
+    (doseq [n (range 50)]               ; number of circles
       (let [x (rand-int 1000)]          ; width of line
         (let [anim (make-animate)
               el (node [:circle {:cx x :cy 50 :r 1 :style (random-color)} anim])]
 
           (go-loop []                ; create a go block for each circle
-
--                   (<! (timeout (rand-int 8000))) ; wait for some random time
-
--                   (.beginElement anim)           ; flash!
-
--                   (recur))
+                   (<! (timeout (rand-int 10000))) ; wait for some random time
+                   (.beginElement anim)           ; flash!
+                   (recur))
 
           (append! svg el))))))
 

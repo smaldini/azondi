@@ -302,6 +302,8 @@
 ;;;;
              (str (:text msg) "\r\n"))]
 
+          [:button.btn {:onClick (fn [ev] (om/update! app-state [:device :messages] []))} "Clear"]
+
           [:h4 "Charting"]
           [:p "An example chart, plotting the messages"]
           (om/build chart-component (-> app-state :device :messages))
