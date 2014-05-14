@@ -24,6 +24,7 @@ body {
               font-weight:50;
               text-shadow:0 0 50px #0af, 0 0 3px #fff;}
 
+#logoarea {height:100px;}
 .container-narrow {margin-left: 50px;
 		   margin-right: 50px;
 				}
@@ -51,10 +52,15 @@ body {
 }
 #header {width:auto;}
 
-#wrap {margin-bottom: 100px;
-		      }
+#wrap {margin-bottom: 100px;}
 
-#logoarea {height:100px;}
+.tbl {width: 80%;}
+.tbl > thead {background-color: #F6F6F6;
+    border-bottom: 1px solid #DDDDDD;
+    color: #555555;
+    line-height: 50px;}
+
+
 
 
 .navbar-nav > li:hover {background-color:#00CC00;}

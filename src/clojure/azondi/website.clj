@@ -135,8 +135,8 @@
      {:label "Getting Started"
       :order "C1"
       :target ::help
-      :parent "Account"
-      :visible? (fn [ctx] (-> ctx :request :cylon/user))}
+      :visible? (fn [ctx] (-> ctx :request :cylon/user))
+      :location :navbar}
 
      #_{:label "Reset Password"
       :order "C2"

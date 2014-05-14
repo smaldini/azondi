@@ -60,7 +60,7 @@
         [:p "user: " (:user app-state)]
         (let [devices (:devices app-state)]
           (when (not-empty devices)
-            [:table
+            [:table.table.table-hover.table-condensed.tbl
              [:thead
               [:tr
                [:th "Client id"]
@@ -361,7 +361,7 @@
     om/IRender
     (render [this]
       (html
-       [:table
+       [:table..table.table-hover.table-condensed.tbl
         [:thead
          [:tr
           [:th "Name"]
