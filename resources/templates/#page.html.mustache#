@@ -72,7 +72,10 @@
 	    {{! Menuitems are <component-key>.menu }}
                 {{{sidebar-menu.menu}}}
  
-          
+            <div class="navbar navbar-default" role="navigation">
+	      
+              <!--/.nav-collapse -->
+            </div>
 	    
           </div>
         </div>
