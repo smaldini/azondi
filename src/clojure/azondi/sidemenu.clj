@@ -57,3 +57,31 @@
 
 (defn new-side-menu []
   (component/using (->SideMenu) [:menu-index]))
+
+(defrecord NavMenu []
+  TemplateModel
+  (template-model [this {{routes :modular.bidi/routes :as req} :request}]
+    (let [menu (menu-items (:nav-index this))]
+      {:navmenu
+       (html
+        (apply concat
+               (for [[parent items] menu]
+                 (let [listitems
+                       (remove nil?
+                               (for [{:keys [target order label args visible?] :or {visible? (constantly true)} :as ctx} items]
+                                 (when (visible? (-> ctx
+                                                     (assoc :request req)
+                                                     (dissoc :visible?)))
+                                   [:li [:a {:href (apply path-for routes target args)} label]])))]
+
+                   (if (and parent (not-empty listitems))
+                     (list
+                      [:li.dropdown]
+                      [:div {:id (str parent) :class "collapse out"}
+                       [:a.dropdown-toggle {:data-toggle "dropdown"} parent [:b.caret]]
+                       [:ul.dropdown-menu listitems]])
+                     listitems
+                     )))))})))
+
+(defn new-nav-menu []
+  (component/using (->NavMenu) [:menu-index]))

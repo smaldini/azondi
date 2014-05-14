@@ -41,6 +41,7 @@
    [azondi.postgres :refer (new-database)]
    [azondi.api :refer (new-api new-user-based-authorizer)]
    [azondi.sidemenu :refer (new-menu-index new-side-menu MenuItems)]
+   [azondi.sidemenu :refer (new-menu-index new-nav-menu MenuItems)]
    ))
 
 (defn ^:private read-file
@@ -105,6 +106,7 @@
      :clostache (make new-clostache-templater)
      :menu-index (make new-menu-index)
      :bootstrap-menu (make new-side-menu)
+     :nav-menu (make new-nav-menu)
      :web-meta (make new-template-model-contributor config
                      :org "opensensors.IO"
                      :title "Azondi"
@@ -157,11 +159,14 @@
                     :cljs-builder :main-cljs-builder
                     :bootstrap-menu :bootstrap-menu}
     :main-cljs-builder [:cljs-core :cljs-main :cljs-logo]
-    :bootstrap-menu [:menu-index]}
+    ;;:nav-bar-index [:menu-index :label]
+    :bootstrap-menu [:menu-index]
+    :nav-menu [:menu-index]}
 
    (autowire-dependencies-satisfying system-map :router WebService)
    (autowire-dependencies-satisfying system-map :ring-binder RingBinding)
-   (autowire-dependencies-satisfying system-map :menu-index MenuItems)))
+   ;;(autowire-dependencies-satisfying system-map :menu-index MenuItems)
+   ))
 
 (defn new-prod-system []
   (let [s-map (-> (configurable-system-map (config))

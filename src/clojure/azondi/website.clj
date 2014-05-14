@@ -45,6 +45,7 @@
      ::help (wrap-template (fn [req] {:body (md->html (io/resource "markdown/getting-started.md"))}))
      ::about (wrap-template (fn [req] {:body (md->html (io/resource "markdown/about-us.md"))}))
      ::terms (wrap-template (fn [req] {:body (md->html (io/resource "markdown/terms.md"))}))
+     ::services (wrap-template (fn [req] {:body (md->html (io/resource "markdown/services.md"))}))
      ::devices (wrap-template
                    (fn [req] {:body (html [:div
                                            [:h1 "Devices"]
@@ -94,6 +95,7 @@
           ["about" ::about]
           ["reset-password" ::reset-password]
           ["terms" ::terms]
+          ["services" ::services]
           ]])
 
   (uri-context [_] "")
@@ -104,7 +106,8 @@
      {:label "Devices"
       :order "B1"
       :target ::devices
-      :visible? (fn [ctx] (-> ctx :request :cylon/user))}
+      :visible? (fn [ctx] (-> ctx :request :cylon/user))
+      :location :sidebar}
 
      {:label "Topics"
       :order "B2"
@@ -120,12 +123,14 @@
      {:label "Login"
       :order "L1"
       :target [:login-form :login]
-      :visible? (fn [ctx] (nil? (-> ctx :request :cylon/user)))}
+      :visible? (fn [ctx] (nil? (-> ctx :request :cylon/user)))
+      :location :navbar}
 
      {:label "Logout"
       :order "L2"
       :target [:login-form :logout]
-      :visible? (fn [ctx] (-> ctx :request :cylon/user))}
+      :visible? (fn [ctx] (-> ctx :request :cylon/user))
+      :location :navbar}
 
      {:label "Getting Started"
       :order "C1"
@@ -137,9 +142,7 @@
       :order "C2"
       :target ::reset-password
       :parent "Account"
-      :visible? (fn [ctx] (-> ctx :request :cylon/user))}
-
-     ]))
+      :visible? (fn [ctx] (-> ctx :request :cylon/user))}]))
 
 (defn new-website []
   (->Website))

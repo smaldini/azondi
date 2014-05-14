@@ -8,5 +8,3 @@ When possible we encourage that communal data should be made available as real t
 
 We aim to give you the tools to build the projects in the city space
 and make it as easy as possible to get started.
-
-If you would like to know more contact us on email at hello@opensensors.IO or check our blog for news about what we are up to, blog.opensensors.io
