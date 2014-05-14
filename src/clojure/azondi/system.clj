@@ -153,6 +153,7 @@
     :mqtt-handler {:db :database}
     :mqtt-server [:mqtt-handler :mqtt-decoder :mqtt-encoder]
     :ws [:reactor :database]
+
     :html-template {:templater :clostache,
                     :web-meta :web-meta,
                     :cljs-builder :main-cljs-builder,
