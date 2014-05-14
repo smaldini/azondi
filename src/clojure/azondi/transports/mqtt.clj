@@ -138,7 +138,7 @@
   ;;  :dup false
   ;;  }
 
-  (go (>!! (:debug-ch handler-state) {:message (str "Connection request from " (.remoteAddress (.channel ctx))) :client-id client-id}))
+  (go (>!! (:debug-ch handler-state) {:message (str "Connection attempt from " (.remoteAddress (.channel ctx))) :client-id client-id}))
 
   (cond
    (not (supported-protocol? protocol-name protocol-version))
@@ -158,7 +158,7 @@
    (do
      (warnf "Device authentication failed, rejecting connection")
      (go (>!! (:debug-ch handler-state) {:client-id client-id
-                                         :message "Please check username/password"}))
+                                         :message "Rejecting connection, check username/password"}))
      (reject-connection ctx :bad-username-or-password))
 
    ;; TODO: check known devices table, too
