@@ -53,7 +53,7 @@
                                    [:li.side-menu-item [:a {:href (apply path-for routes target args)} label]])))]
                   
                    (list
-                    [:div.navbar-default.navbar {:role "navigation"}
+                    [:div.navbar-default.navbar.sbar {:role "navigation"}
                      [:div.navbar-header
                       [:button {:type "button"
                                 :class "navbar-toggle"

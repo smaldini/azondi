@@ -37,6 +37,7 @@ body {
     .sidebar-nav .navbar .navbar-collapse {
     padding: 0;
     max-height: none;
+   
   }
   .sidebar-nav .navbar ul {
     float: none;
@@ -53,7 +54,9 @@ body {
   
 }
 #header {width:auto;}
-
+.sbar {background-color: white;
+      border-color: white;
+      } 
 #wrap {margin-bottom: 100px;
        margin-left: 20px;
        margin-right: 20px;
@@ -65,14 +68,18 @@ body {
     color: #555555;
     line-height: 50px;}
 
+.side-menu-item li {color: #777777;
+		   margin-left: 30px
+		  padding:20px;
+		   }
+
 .side-menu-item {padding: 10px;}
 .side-menu-item a {color: #777777;
-		   margin-left: 30px;
-		   
-		  } 
-.sidebar-nav .navbar li:hover {
-    background-color:#00CC00;
-    
+margin-left: 30px;
+
+} 
+.navbar li:hover {
+    background-color:#00CC00;  
    
   }
 
