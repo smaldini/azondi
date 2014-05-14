@@ -39,6 +39,7 @@
    [azondi.website :refer (new-website render-custom-login-form)]
    [azondi.sse :refer (new-event-service)]
    [azondi.postgres :refer (new-database)]
+   [azondi.data.cassandra :as cass]
    [azondi.api :refer (new-api new-user-based-authorizer)]
    ))
 
@@ -176,7 +177,8 @@
 
 (defn new-prod-system []
   (let [s-map (-> (configurable-system-map (config))
-                  (assoc :database (new-database (get config :postgres))))
+                  (assoc :database (new-database (get (config) :postgres))
+                         :cassandra (cass/new-database (get (config) :cassandra {:keyspace "opensensors" :hosts ["127.0.0.1"]}))))
         d-map (new-dependency-map s-map)]
 
     (component/system-using s-map d-map)))
