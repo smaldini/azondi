@@ -16,6 +16,7 @@
    [modular.clostache :refer (new-clostache-templater)]
    [modular.http-kit :refer (new-webserver)]
    [modular.maker :refer (make)]
+   
    [modular.netty :refer (new-netty-server)]
    [modular.netty.mqtt :refer (new-mqtt-decoder new-mqtt-encoder)]
    [modular.ring :refer (new-ring-binder RingBinding)]
@@ -29,10 +30,10 @@
    [cylon.impl.authorization :refer (new-role-based-authorizer)]
    [cylon.impl.pbkdf2 :refer (new-pbkdf2-password-hash)]
 
-
-
    ;; Custom components
    [azondi.transports.mqtt :refer (new-netty-mqtt-handler)]
+   [azondi.sidemenu :refer (new-menu-index new-side-menu new-nav-menu MenuItems)]
+   ;;[azondi.sidemenu :refer (new-na)]
    [azondi.reactor :refer (new-reactor)]
    [azondi.bridges.ws :refer (new-websocket-bridge)]
    [azondi.data.messages :refer (new-message-archiver)]
@@ -40,8 +41,6 @@
    [azondi.sse :refer (new-event-service)]
    [azondi.postgres :refer (new-database)]
    [azondi.api :refer (new-api new-user-based-authorizer)]
-   [azondi.sidemenu :refer (new-menu-index new-side-menu MenuItems)]
-   [azondi.sidemenu :refer (new-menu-index new-nav-menu MenuItems)]
    ))
 
 (defn ^:private read-file
@@ -105,12 +104,14 @@
      :html-template (make new-template config :template "templates/page.html.mustache")
      :clostache (make new-clostache-templater)
      :menu-index (make new-menu-index)
+     :nav-index (make new-menu-index)
+     
      :bootstrap-menu (make new-side-menu)
      :nav-menu (make new-nav-menu)
      :web-meta (make new-template-model-contributor config
-                     :org "opensensors.IO"
+                     :org "OpenSensors.IO"
                      :title "Azondi"
-                     :description "opensensors.IO MQTT broker"
+                     :description "OpenSensors.IO MQTT broker"
                      :app-name "Azondi"
                      :home-href "/")
      :cljs-core (new-cljs-module :name :cljs :mains ['cljs.core] :dependencies #{})
@@ -159,14 +160,13 @@
                     :cljs-builder :main-cljs-builder
                     :bootstrap-menu :bootstrap-menu}
     :main-cljs-builder [:cljs-core :cljs-main :cljs-logo]
-    ;;:nav-bar-index [:menu-index :label]
     :bootstrap-menu [:menu-index]
-    :nav-menu [:menu-index]}
+    :nav-menu [:nav-index]}
 
    (autowire-dependencies-satisfying system-map :router WebService)
    (autowire-dependencies-satisfying system-map :ring-binder RingBinding)
    ;;(autowire-dependencies-satisfying system-map :menu-index MenuItems)
-   ))
+   (autowire-dependencies-satisfying system-map :nav-index MenuItems)))
 
 (defn new-prod-system []
   (let [s-map (-> (configurable-system-map (config))

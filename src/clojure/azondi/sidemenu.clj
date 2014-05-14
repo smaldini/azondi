@@ -8,11 +8,24 @@
    [schema.core :as s]))
 
 (defprotocol MenuItems
-  (menu-items [_]))
+  (menu-items [_])
+  (nav-items [_]))
 
 (defrecord MenuIndex []
   MenuItems
   (menu-items [this]
+    (->> this
+         vals
+         (filter (partial satisfies? MenuItems))
+         (mapcat menu-items)
+         (remove nil?)
+;; (filter (partial show-menu-item? (:request context)))
+         (sort-by :order)
+         (group-by :parent)
+         seq
+         (sort-by (comp nil? first))))
+
+  (nav-items [this]
     (->> this
          vals
          (filter (partial satisfies? MenuItems))
@@ -61,7 +74,7 @@
 (defrecord NavMenu []
   TemplateModel
   (template-model [this {{routes :modular.bidi/routes :as req} :request}]
-    (let [menu (menu-items (:nav-index this))]
+    (let [menu (nav-items (:nav-index this))]
       {:navmenu
        (html
         (apply concat
@@ -84,4 +97,4 @@
                      )))))})))
 
 (defn new-nav-menu []
-  (component/using (->NavMenu) [:menu-index]))
+  (component/using (->NavMenu) [:nav-index]))

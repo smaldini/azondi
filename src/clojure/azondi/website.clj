@@ -119,13 +119,12 @@
       :target ::test-card
       }
 
-     ;; We need these somewhere, not sure where though ;)
      {:label "Login"
       :order "L1"
       :target [:login-form :login]
       :visible? (fn [ctx] (nil? (-> ctx :request :cylon/user)))
       :location :navbar}
-
+     
      {:label "Logout"
       :order "L2"
       :target [:login-form :logout]
@@ -142,7 +141,15 @@
       :order "C2"
       :target ::reset-password
       :parent "Account"
-      :visible? (fn [ctx] (-> ctx :request :cylon/user))}]))
+        :visible? (fn [ctx] (-> ctx :request :cylon/user))}])
+
+  (nav-items [this]
+     ;; We need these somewhere, not sure where though ;)
+     {:label "Login"
+      :order "L1"
+      :target [:login-form :login]
+      :visible? (fn [ctx] (nil? (-> ctx :request :cylon/user)))
+      :location :navbar}))
 
 (defn new-website []
   (->Website))
