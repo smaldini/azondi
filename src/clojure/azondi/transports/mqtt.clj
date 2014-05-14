@@ -169,7 +169,7 @@
 
    :otherwise
    (do
-     (go (>!! (:debug-ch handler-state) {:message "Accepting connectoin" :client-id client-id}))
+     (go (>!! (:debug-ch handler-state) {:message "Accepting connection" :client-id client-id}))
      (accept-connection ctx msg handler-state))))
 
 ;;
