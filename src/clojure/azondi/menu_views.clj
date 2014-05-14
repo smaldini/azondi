@@ -54,7 +54,7 @@
                   
                    (list
                     [:div.navbar-default.navbar.sbar {:role "navigation"}
-                     [:div.navbar-header
+                     [:div.navbar-header.sbar
                       [:button {:type "button"
                                 :class "navbar-toggle"
                                 :data-toggle="collapse"
