@@ -158,15 +158,16 @@
     :html-template {:templater :clostache
                     :web-meta :web-meta
                     :cljs-builder :main-cljs-builder
-                    :bootstrap-menu :bootstrap-menu}
+                    :bootstrap-menu :bootstrap-menu
+                    :nav-menu :nav-menu}
     :main-cljs-builder [:cljs-core :cljs-main :cljs-logo]
-    :bootstrap-menu [:menu-index]
     :nav-menu [:nav-index]}
 
    (autowire-dependencies-satisfying system-map :router WebService)
    (autowire-dependencies-satisfying system-map :ring-binder RingBinding)
-   ;;(autowire-dependencies-satisfying system-map :menu-index MenuItems)
-   (autowire-dependencies-satisfying system-map :nav-index MenuItems)))
+   (autowire-dependencies-satisfying system-map :menu-index MenuItems)
+   ;;(autowire-dependencies-satisfying system-map :nav-index MenuItems)
+   ))
 
 (defn new-prod-system []
   (let [s-map (-> (configurable-system-map (config))
