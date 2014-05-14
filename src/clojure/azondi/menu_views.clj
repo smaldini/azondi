@@ -50,19 +50,31 @@
                                  (when (visible? (-> ctx
                                                      (assoc :request req)
                                                      (dissoc :visible?)))
-                                   [:li [:a {:href (apply path-for routes target args)} label]])))]
-
-                   (if (and parent (not-empty listitems))
-                     (list
-                      [:li [:a {:data-toggle "collapse"
-                                :data-parent "#accordion"
-                                :href (str "#" parent)
-                                :class "collapsed"
-                                } parent]]
-                      [:div {:id (str parent) :class "collapse out"}
-                       [:ul listitems]])
-                     listitems
-                     )))))})))
+                                   [:li.side-menu-item [:a {:href (apply path-for routes target args)} label]])))]
+                   
+                   (list [:div.navbar-header
+                          [:button {:type "button"
+                                    :class "navbar-toggle"
+                                    :data-toggle="collapse"
+                                    :data-target=".sidebar-navbar-collapse"}
+                           [:span.sr-only "Toggle Navigation"]
+                           [:span.icon-bar]
+                           [:span.icon-bar]
+                           [:span.icon-bar]
+                           [:span.icon-bar]]
+                          [:span {:class "visible-xs navbar-brand"} "Menu"]]
+                         
+                         (if (and parent (not-empty listitems))
+                           (list
+                            [:li [:a {:data-toggle "collapse"
+                                      :data-parent "#accordion"
+                                      :href (str "#" parent)
+                                      :class "collapsed"
+                                      } parent]]
+                            [:div {:id (str parent) :class "collapse out"}
+                             [:ul listitems]])
+                           listitems
+                           )) ))))})))
 
 (defn new-sidebar-menu []
   (component/using (->SidebarMenu) [:menu-index]))

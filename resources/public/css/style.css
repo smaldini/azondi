@@ -24,16 +24,17 @@ body {
               font-weight:50;
               text-shadow:0 0 50px #0af, 0 0 3px #fff;}
 
+.navbar {margin-bottom: 0px;}
+
 #logoarea {height:100px;}
 .container-narrow {margin-left: 50px;
-		   margin-right: 50px;
-				}
+		   margin-right: 50px;}
 
-#sidebar{width:200px;}
+#sidebar{width:20px;}
 
 /* make sidebar nav vertical */ 
 @media (min-width: 768px) {
-  .sidebar-nav .navbar .navbar-collapse {
+    .sidebar-nav .navbar .navbar-collapse {
     padding: 0;
     max-height: none;
   }
@@ -49,10 +50,14 @@ body {
     padding-top: 12px;
     padding-bottom: 12px;
   }
+  
 }
 #header {width:auto;}
 
-#wrap {margin-bottom: 100px;}
+#wrap {margin-bottom: 100px;
+       margin-left: 20px;
+       margin-right: 20px;
+       }
 
 .tbl {width: 80%;}
 .tbl > thead {background-color: #F6F6F6;
@@ -60,10 +65,18 @@ body {
     color: #555555;
     line-height: 50px;}
 
+.side-menu-item {padding: 10px;}
+.side-menu-item a {color: #777777;
+		   margin-left: 30px;
+		   
+		  } 
+.sidebar-nav .navbar li:hover {
+    background-color:#00CC00;
+    
+   
+  }
 
 
-
-.navbar-nav > li:hover {background-color:#00CC00;}
 
 .footer-list {list-style-type:none}
 .footer-list > li {display:inline;

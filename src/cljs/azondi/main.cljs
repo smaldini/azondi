@@ -361,7 +361,7 @@
     om/IRender
     (render [this]
       (html
-       [:table..table.table-hover.table-condensed.tbl
+       [:table.table.table-hover.table-condensed.tbl
         [:thead
          [:tr
           [:th "Name"]
