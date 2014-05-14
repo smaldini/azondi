@@ -255,8 +255,6 @@
   [^ChannelHandlerContext publisher-ctx
    {:keys [topic qos payload] :as msg}
    handler-state]
-  (println "msg is" msg)
-  (println "handler-state is" (keys handler-state))
   (let [subs (tr/matching-vals @subscriptions topic)]
     (doseq [{:keys [^ChannelHandlerContext ctx topic qos]} subs]
       (.submit dispatch-pool
