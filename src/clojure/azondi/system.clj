@@ -16,7 +16,7 @@
    [modular.clostache :refer (new-clostache-templater)]
    [modular.http-kit :refer (new-webserver)]
    [modular.maker :refer (make)]
-   
+   [modular.menu :refer (new-menu-index MenuItems)]
    [modular.netty :refer (new-netty-server)]
    [modular.netty.mqtt :refer (new-mqtt-decoder new-mqtt-encoder)]
    [modular.ring :refer (new-ring-binder RingBinding)]
@@ -32,8 +32,7 @@
 
    ;; Custom components
    [azondi.transports.mqtt :refer (new-netty-mqtt-handler)]
-   [azondi.sidemenu :refer (new-menu-index new-side-menu new-nav-menu MenuItems)]
-   ;;[azondi.sidemenu :refer (new-na)]
+   [azondi.menu-views :refer (new-sidebar-menu new-navbar-menu)]
    [azondi.reactor :refer (new-reactor)]
    [azondi.bridges.ws :refer (new-websocket-bridge)]
    [azondi.data.messages :refer (new-message-archiver)]
@@ -104,10 +103,10 @@
      :html-template (make new-template config :template "templates/page.html.mustache")
      :clostache (make new-clostache-templater)
      :menu-index (make new-menu-index)
-     :nav-index (make new-menu-index)
-     
-     :bootstrap-menu (make new-side-menu)
-     :nav-menu (make new-nav-menu)
+
+     :navbar-menu (make new-navbar-menu)
+     :sidebar-menu (make new-sidebar-menu)
+
      :web-meta (make new-template-model-contributor config
                      :org "OpenSensors.IO"
                      :title "Azondi"
@@ -151,22 +150,23 @@
   (->
    {:webserver [:ring-binder]
     :ring-binder {:ring-handler :router}
-;;    :auth-binding {:authorizer :role-authorizer}
     :mqtt-handler {:db :database}
     :mqtt-server [:mqtt-handler :mqtt-decoder :mqtt-encoder]
     :ws [:reactor :database]
-    :html-template {:templater :clostache
-                    :web-meta :web-meta
-                    :cljs-builder :main-cljs-builder
-                    :bootstrap-menu :bootstrap-menu}
+    :html-template {:templater :clostache,
+                    :web-meta :web-meta,
+                    :cljs-builder :main-cljs-builder,
+                    :navbar-menu :navbar-menu,
+                    :sidebar-menu :sidebar-menu}
     :main-cljs-builder [:cljs-core :cljs-main :cljs-logo]
-    :bootstrap-menu [:menu-index]
-    :nav-menu [:nav-index]}
+
+    ;; Both these components share the menu-index, but they filter on the :location key in each menu-item
+    :navbar-menu [:menu-index]
+    :sidebar-menu [:menu-index]}
 
    (autowire-dependencies-satisfying system-map :router WebService)
    (autowire-dependencies-satisfying system-map :ring-binder RingBinding)
-   ;;(autowire-dependencies-satisfying system-map :menu-index MenuItems)
-   (autowire-dependencies-satisfying system-map :nav-index MenuItems)))
+   (autowire-dependencies-satisfying system-map :menu-index MenuItems)))
 
 (defn new-prod-system []
   (let [s-map (-> (configurable-system-map (config))

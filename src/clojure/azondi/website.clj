@@ -4,7 +4,7 @@
    [bidi.bidi :refer (->Redirect ->ResourcesMaybe)]
    [modular.bidi :refer (WebService)]
    [modular.template :refer (wrap-template)]
-   [azondi.sidemenu :refer (MenuItems)]
+   [modular.menu :refer (MenuItems)]
    [garden.core :refer (css)]
    [garden.units :refer (pt em px)]
    [garden.color :refer (rgb)]
@@ -112,7 +112,8 @@
      {:label "Topics"
       :order "B2"
       :target ::topics
-      :visible? (fn [ctx] (-> ctx :request :cylon/user))}
+      :visible? (fn [ctx] (-> ctx :request :cylon/user))
+      :location :sidebar}
 
      #_{:label "Test Card"
       :order "T1"
@@ -124,7 +125,7 @@
       :target [:login-form :login]
       :visible? (fn [ctx] (nil? (-> ctx :request :cylon/user)))
       :location :navbar}
-     
+
      {:label "Logout"
       :order "L2"
       :target [:login-form :logout]
@@ -141,15 +142,7 @@
       :order "C2"
       :target ::reset-password
       :parent "Account"
-        :visible? (fn [ctx] (-> ctx :request :cylon/user))}])
-
-  (nav-items [this]
-     ;; We need these somewhere, not sure where though ;)
-     {:label "Login"
-      :order "L1"
-      :target [:login-form :login]
-      :visible? (fn [ctx] (nil? (-> ctx :request :cylon/user)))
-      :location :navbar}))
+        :visible? (fn [ctx] (-> ctx :request :cylon/user))}]))
 
 (defn new-website []
   (->Website))

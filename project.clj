@@ -39,6 +39,7 @@
                  [juxt.modular/http-kit "0.4.0-SNAPSHOT"]
                  [juxt.modular/maker "0.1.0-SNAPSHOT"]
                  [juxt.modular/mqtt "0.1.0-SNAPSHOT"]
+                 [juxt.modular/menu "0.1.0-SNAPSHOT"]
                  [juxt.modular/netty "0.1.0-SNAPSHOT"]
                  [juxt.modular/ring "0.4.0-SNAPSHOT"]
                  [juxt.modular/template "0.1.0-SNAPSHOT"]
