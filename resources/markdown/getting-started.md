@@ -1,7 +1,7 @@
 # Getting Started with opensensors.IO
 
 opensensors uses [MQTT](http://mqtt.org/) and assumes that devices
-have been configured to send MQTT messages. Currently we support qos0 message persistence.
+have been configured to send MQTT messages. Currently we only support qos0 quality of service.
 
 # Open Data
 Please remember that public topics are viewable by anyone. Any public
