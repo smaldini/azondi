@@ -44,7 +44,7 @@
           (configurable-system-map (config))
           (assoc :api-tests (azondi.api-tests/new-api-tests)
                  :seed (new-seed-data)
-                 
+
                  :database (new-database (get (config) :postgres))
                  :user-domain (new-prod-user-domain)
                  :cassandra (cass/new-database (get (config) :cassandra {:keyspace "opensensors" :hosts ["127.0.0.1"]}))
@@ -57,7 +57,7 @@
                  :cookie-authenticator (new-cookie-authenticator)
                  :basic-authenticator (new-http-basic-authenticator)
                  :authenticator (new-composite-disjunctive-authenticator
-                  :cookie-authenticator :basic-authenticator)
+                                 :cookie-authenticator :basic-authenticator)
                  ))
                        d-map (new-dependency-map s-map)]
                    (component/system-using s-map d-map))
@@ -78,7 +78,7 @@
                  :cookie-authenticator (new-cookie-authenticator)
                  :basic-authenticator (new-http-basic-authenticator)
                  :authenticator (new-composite-disjunctive-authenticator
-                  :cookie-authenticator :basic-authenticator)
+                                 :cookie-authenticator :basic-authenticator)
                  ))
 
          d-map (new-dependency-map s-map)]
