@@ -51,7 +51,10 @@
                    (fn [req] {:body (html [:div
                                            [:h1 "Devices"]
                                            [:div#content [:p.loading "Loading..."]]])
-                              :cljs (format "azondi.main.devices_page(\"%s\")" (:cylon/user req))
+                              :cljs (format "azondi.main.devices_page(%s)"
+                                            (if-let [user (:cylon/user req)]
+                                              (format "\"%s\"" user)
+                                              "null"))
                               }))
 
      ::topics (wrap-template
@@ -59,7 +62,7 @@
                                            [:h1 "Topics"]
                                            [:div#content [:p.loading "Loading..."]]])
                               :cljs (format "azondi.main.topics_page(%s)"
-                                            (when-let [user (:cylon/user req)]
+                                            (if-let [user (:cylon/user req)]
                                               (format "\"%s\"" user)
                                               "null"))
                               }))
