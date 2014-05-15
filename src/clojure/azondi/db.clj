@@ -8,7 +8,7 @@
   (get-user [_ user])
   (delete-user! [_ user])
   (devices-by-owner [_ user])
-  (create-device! [_ user pw data])
+  (create-device! [_ user pw])
   (get-device [_ client-id])
   (delete-device! [_ client-id])
   (set-device-password! [_ client-id p])

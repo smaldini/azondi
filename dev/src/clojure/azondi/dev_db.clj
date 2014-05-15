@@ -33,10 +33,10 @@
   (delete-user! [this user]
     (dosync (alter (-> this :database :users) update-in [:users] dissoc user)))
 
-  (create-device! [this user password data]
+  (create-device! [this user password]
     (dosync
      (let [client-id (str (alter (-> this :database :last-client-id) inc))
-           device (merge data {:client-id client-id :user user :password password})]
+           device (merge {} {:client-id client-id :user user :password password})]
        (alter (-> this :database :devices) assoc client-id device)
        (dissoc device :user))))
 

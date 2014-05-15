@@ -41,12 +41,11 @@
     (let [devices (j/query (conn this) [(format "SELECT * from devices WHERE owner_user_id = '%s';" user)])]
       (map #(assoc % :client-id (:client_id %)) devices)))
 
-  (create-device! [this user pwd data]
+  (create-device! [this user pwd]
     (let [p (sc/encrypt pwd)
-          d (-> data
+          d (-> {}
                 (assoc :owner_user_id user)
-                (assoc :device_password_hash p)
-                (dissoc :password))
+                (assoc :device_password_hash p))
           new-device (first (j/insert! (conn this) :devices d))]
       (assoc new-device :client-id (:client_id new-device))
       ))

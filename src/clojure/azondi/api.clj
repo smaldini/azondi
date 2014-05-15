@@ -212,7 +212,7 @@
              (let [p (generate-device-password)]
                (when (get-device db client-id)
                  (delete-device! db client-id))
-               (-> (create-device! db user p body)
+               (-> (create-device! db user p)
                    (assoc :password p)))})
 
    :handle-created (fn [{device :device}] (->js device))
