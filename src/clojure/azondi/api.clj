@@ -17,7 +17,6 @@
    [azondi.db :refer (get-users get-user delete-user! create-user! devices-by-owner get-device delete-device! create-device! patch-device! topics-by-owner get-topic delete-topic! create-topic! patch-topic! set-device-password!)]
    [hiccup.core :refer (html)]
    [clojure.walk :refer (postwalk)]
-   [cylon.authorization :refer (restrict-handler Authorizer)]
    liberator.representation
    ))
 
@@ -192,9 +191,18 @@
         random-char (fn [] (nth valid-chars (rand (count valid-chars))))]
     (apply str (take 8 (repeatedly random-char)))))
 
+(defn same-user
+  "Ensure a resource can only be accessed by the user who owns the
+  object (device, topic, etc.)"
+  [{request :request}]
+  ;; Fortunately, this is a very simple algorithm
+  (= (-> request :route-params :user)
+     (:cylon/user request)))
+
 (defn devices-resource [db]
   {:available-media-types #{"application/json"}
    :allowed-methods #{:get :post}
+   :allowed? same-user
    :handle-ok (fn [{{{user :user} :route-params :as req} :request}]
                 (encode {:user user
                          :devices (->>
@@ -222,6 +230,7 @@
 (defn device-resource [db]
   {:available-media-types #{"application/json"}
    :allowed-methods #{:get :put :delete}
+   :allowed? same-user
    :known-content-type? #{"application/json"}
 
    #_:authorized? #_(fn [{{{user :user} :route-params headers :headers :as req} :request}]
@@ -249,6 +258,7 @@
 (defn reset-device-password-resource [db]
   {:available-media-types #{"application/json"}
    :allowed-methods #{:post}
+   :allowed? same-user
    :post! (fn [{{{:keys [client-id]} :route-params} :request}]
             (let [p (generate-device-password)]
               (set-device-password! db client-id p)
@@ -264,6 +274,7 @@
 (defn topics-resource [db]
   {:available-media-types #{"application/json"}
    :allowed-methods #{:get :post}
+   :allowed? same-user
    :handle-ok (fn [{{{user :user} :route-params} :request}]
                 (encode {:user user
                          :topics (->>
@@ -291,6 +302,7 @@
 (defn topic-resource [db]
   {:available-media-types #{"application/json"}
    :allowed-methods #{:get :put :delete}
+   :allowed? same-user
    :known-content-type? #{"application/json"}
    :exists? (fn [{{{user :user topic-name :topic-name} :route-params} :request}]
               (let [topic-id (str "users/" user "/" topic-name)]
@@ -313,17 +325,21 @@
 
 ;; WebService
 
-(defn make-handlers [db auth user-auth]
+(defn make-handlers [db]
   {::welcome (resource (welcome-resource))
+
+   ;; Don't worry, these resources are self-protecting and are limited
+   ;; to localhost accessors only. Eventually, however, these will use
+   ;; of the given authorizer to restrict by 'admin' role.
    ::users (resource (users-resource db))
    ::user (resource (user-resource db))
-   ::devices (-> (resource (devices-resource db))
-                 (restrict-handler user-auth :user))
+
+   ;; These all have to be restricted
+   ::devices (resource (devices-resource db))
    ::device (resource (device-resource db))
    ::reset-device-password (resource (reset-device-password-resource db))
    ::topics (resource (topics-resource db))
-   ::topic (resource (topic-resource db))
-   })
+   ::topic (resource (topic-resource db))})
 
 (defn make-routes
   "This function returns the bidi route structure for the API. It should
@@ -349,7 +365,7 @@
     ;; Handlers and routes need to be associated to this at component
     ;; start so that they can be referenced by api tests.
     (assoc this
-      :handlers (make-handlers (:database this) (:authorizer this) (:user-authorizer this))
+      :handlers (make-handlers (:database this))
       :routes (make-routes)))
   (stop [this] this)
 
@@ -364,15 +380,4 @@
         (merge {:uri-context ""}) ; specify defaults
         (s/validate {(s/optional-key :uri-context) s/Str})
         map->Api)
-   [:database :user-authorizer :authorizer]))
-
-(defrecord UserBasedAuthorizer []
-  Authorizer
-  (validate [this req] nil)
-
-  (satisfies-requirement? [this request user]
-    (= (-> request :route-params :user) (:cylon/user request))))
-
-(defn new-user-based-authorizer [& {:as opts}]
-  (->> opts
-       map->UserBasedAuthorizer))
+   [:database]))

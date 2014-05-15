@@ -50,7 +50,6 @@
                  [garden "1.1.5"]
                  [markdown-clj "0.9.36"]
                  [cylon "0.2.0-SNAPSHOT"]
-                 ;;[cylon "0.1.0"]
 
                  ;; Logging
 

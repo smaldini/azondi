@@ -1,6 +1,8 @@
 (ns azondi.website
   (:require
    [clojure.java.io :as io]
+   [clojure.tools.logging :refer :all]
+   [com.stuartsierra.component :as component]
    [bidi.bidi :refer (->Redirect ->ResourcesMaybe)]
    [modular.bidi :refer (WebService)]
    [modular.template :refer (wrap-template)]
@@ -10,6 +12,9 @@
    [garden.color :refer (rgb)]
    [markdown.core :as md]
    [hiccup.core :refer (html)]
+   [cylon.restricted :refer (authorized?)]
+   [cylon.authorization :refer (restrict-handler)]
+   [cylon.impl.authorization :refer (new-logged-in-authorizer)]
    ))
 
 (defn md->html
@@ -39,50 +44,75 @@
 
 (defrecord Website []
 
+  component/Lifecycle
+  (start [this]
+    (assoc this
+      :handlers
+      (let [logged-in (new-logged-in-authorizer)]
+        {::index
+         (-> (fn [req] {:body (md->html (io/resource "markdown/index.md"))})
+             wrap-template)
+
+         ::help
+         (-> (fn [req] {:body (md->html (io/resource "markdown/getting-started.md"))})
+             wrap-template)
+
+         ::about
+         (-> (fn [req] {:body (md->html (io/resource "markdown/about-us.md"))})
+             wrap-template)
+
+         ::terms
+         (-> (fn [req] {:body (md->html (io/resource "markdown/terms.md"))})
+             wrap-template)
+
+         ::services
+         (-> (fn [req] {:body (md->html (io/resource "markdown/services.md"))})
+             wrap-template)
+
+         ::devices
+         (-> (fn [req] {:body (html [:div
+                                     [:h1 "Devices"]
+                                     [:div#content [:p.loading "Loading..."]]])
+                        :cljs (format "azondi.main.devices_page(%s)"
+                                      (if-let [user (:cylon/user req)]
+                                        (format "\"%s\"" user)
+                                        "null"))})
+             wrap-template
+             (restrict-handler logged-in nil))
+
+         ::topics
+         (-> (fn [req] {:body (html [:div
+                                     [:h1 "Topics"]
+                                     [:div#content [:p.loading "Loading..."]]])
+                        :cljs (format "azondi.main.topics_page(%s)"
+                                      (if-let [user (:cylon/user req)]
+                                        (format "\"%s\"" user)
+                                        "null"))})
+             wrap-template
+             (restrict-handler logged-in nil))
+
+         ::test-card
+         (->
+          (fn [req] {:body (html [:div
+                                  [:div#content [:p.loading "Loading..."]]])
+                     :cljs "azondi.main.test_card()"})
+          wrap-template
+          ;; TODO: Restrict to internal developer accounts
+          )
+
+         ;;for now it will be a test card
+         ::reset-password (wrap-template
+                           (fn [req] {:body (html [:div
+                                                   [:div#content [:p.loading "Loading..."]]])
+                                      :cljs "azondi.main.test_card()"
+                                      }))
+
+         ::styles styles})))
+  (stop [this] this)
+
   WebService
 
-  (ring-handler-map [_]
-    {::index (wrap-template (fn [req] {:body (md->html (io/resource "markdown/index.md"))}))
-     ::help (wrap-template (fn [req] {:body (md->html (io/resource "markdown/getting-started.md"))}))
-     ::about (wrap-template (fn [req] {:body (md->html (io/resource "markdown/about-us.md"))}))
-     ::terms (wrap-template (fn [req] {:body (md->html (io/resource "markdown/terms.md"))}))
-     ::services (wrap-template (fn [req] {:body (md->html (io/resource "markdown/services.md"))}))
-     ::devices (wrap-template
-                   (fn [req] {:body (html [:div
-                                           [:h1 "Devices"]
-                                           [:div#content [:p.loading "Loading..."]]])
-                              :cljs (format "azondi.main.devices_page(%s)"
-                                            (if-let [user (:cylon/user req)]
-                                              (format "\"%s\"" user)
-                                              "null"))
-                              }))
-
-     ::topics (wrap-template
-                   (fn [req] {:body (html [:div
-                                           [:h1 "Topics"]
-                                           [:div#content [:p.loading "Loading..."]]])
-                              :cljs (format "azondi.main.topics_page(%s)"
-                                            (if-let [user (:cylon/user req)]
-                                              (format "\"%s\"" user)
-                                              "null"))
-                              }))
-
-     ::test-card (wrap-template
-                  (fn [req] {:body (html [:div
-                                          [:div#content [:p.loading "Loading..."]]])
-                             :cljs "azondi.main.test_card()"
-                             }))
-
-     ;;for now it will be a test card
-     ::reset-password (wrap-template
-                       (fn [req] {:body (html [:div
-                                          [:div#content [:p.loading "Loading..."]]])
-                             :cljs "azondi.main.test_card()"
-                             }))
-
-
-
-     ::styles styles})
+  (ring-handler-map [this] (:handlers this))
 
   (routes [_]
     ["/" [["" (->Redirect 307 ::index)]
@@ -110,19 +140,19 @@
      {:label "Devices"
       :order "B1"
       :target ::devices
-      :visible? (fn [ctx] (-> ctx :request :cylon/user))
+      :visible? (fn [{req :request}] (authorized? (-> this :handlers ::devices) req))
       :location :sidebar}
 
      {:label "Topics"
       :order "B2"
       :target ::topics
-      :visible? (fn [ctx] (-> ctx :request :cylon/user))
+      :visible? (fn [{req :request}] (authorized? (-> this :handlers ::topics) req))
       :location :sidebar}
 
      #_{:label "Test Card"
-      :order "T1"
-      :target ::test-card
-      }
+        :order "T1"
+        :target ::test-card
+        }
 
      {:label "Login"
       :order "L1"
@@ -143,9 +173,9 @@
       :location :navbar}
 
      #_{:label "Reset Password"
-      :order "C2"
-      :target ::reset-password
-      :parent "Account"
+        :order "C2"
+        :target ::reset-password
+        :parent "Account"
         :visible? (fn [ctx] (-> ctx :request :cylon/user))}]))
 
 (defn new-website []

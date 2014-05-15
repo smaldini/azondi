@@ -27,7 +27,6 @@
    [cylon.impl.session :refer (new-cookie-authenticator new-atom-backed-session-store)]
    [cylon.impl.request :refer (new-auth-request-binding)]
    [cylon.impl.authentication :refer (new-static-authenticator)]
-   [cylon.impl.authorization :refer (new-role-based-authorizer)]
    [cylon.impl.pbkdf2 :refer (new-pbkdf2-password-hash)]
 
    ;; Custom components
@@ -40,7 +39,7 @@
    [azondi.sse :refer (new-event-service)]
    [azondi.postgres :refer (new-database)]
    [azondi.data.cassandra :as cass]
-   [azondi.api :refer (new-api new-user-based-authorizer)]
+   [azondi.api :refer (new-api)]
    ))
 
 (defn ^:private read-file
@@ -145,10 +144,6 @@
      ;; Use a static authenticator when you want to force login to be a particular user
      ;;:authenticator (new-static-authenticator :user "alice")
      :authenticator (new-cookie-authenticator)
-
-     :user-authorizer (new-user-based-authorizer)
-     ;; This is a 'role' authorizer - would love to rename the key but it breaks things somewhere
-     :authorizer (new-role-based-authorizer)
 
      :message-archiver (new-message-archiver))))
 

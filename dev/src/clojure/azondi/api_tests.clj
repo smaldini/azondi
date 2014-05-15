@@ -88,11 +88,15 @@
 
         ;; create and find topics
         (let [uri (make-uri :azondi.api/topics :user "alice")
-              response (request :get uri)]
+              response (request :get uri :auth ["alice" "shock"])]
           (is (contains? (:body response) :user))
           (is (contains? (:body response) :topics))
-          (request :post uri :data {:name "pollution" :unit "PM25"})
-          (request :post uri :data {:name "pollution-E12"})
+          (request :post uri
+                   :auth ["alice" "shock"]
+                   :data {:name "pollution" :unit "PM25"})
+          (request :post uri
+                   :auth ["alice" "shock"]
+                   :data {:name "pollution-E12"})
 
           ))))
 

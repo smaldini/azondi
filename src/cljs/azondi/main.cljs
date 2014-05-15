@@ -168,7 +168,7 @@
                                       (case (:type message)
                                         :open {:text "Debugger connected"}
                                         :error {:text (do
-                                                        (.dir js/console (:event message))
+                                                        (println (pr-str message))
                                                         "ERROR")}
                                         {:text (get-in message [:message :message])}))))
             (recur)))
@@ -483,7 +483,7 @@
                                       (case (:type message)
                                         :open "Debugger connected"
                                         :error (do
-                                                 (.dir js/console (:event message))
+                                                 (println (pr-str message))
                                                  "ERROR")
                                         (get-in message [:message :message])))))
             (recur)))
@@ -498,7 +498,7 @@
             new-name (get-in next-props [:topic :name])]
         (when (not= old-name new-name)
           (connect-topic-debugger owner new-name
-                            (om/get-state owner :debugger-events) ))))
+                                  (om/get-state owner :debugger-events)))))
     om/IRender
     (render [this]
       (html
@@ -601,7 +601,7 @@
 (defn ^:export topics-page [user]
   (swap! app-model assoc :user user)
   (om/root topics-page-component app-model {:target (. js/document (getElementById "content"))})
-  (om/root ankha/inspector app-model {:target (. js/document (getElementById "ankha"))})
+  ;;(om/root ankha/inspector app-model {:target (. js/document (getElementById "ankha"))})
   )
 
 (defn test-card-page-component [app-state owner]
