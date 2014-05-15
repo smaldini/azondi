@@ -47,7 +47,9 @@
                 (assoc :owner_user_id user)
                 (assoc :device_password_hash p))
           new-device (first (j/insert! (conn this) :devices d))]
-      (assoc new-device :client-id (:client_id new-device))
+      (-> (assoc new-device :client-id (:client_id new-device))
+          (dissoc :device_password_hash)
+          (dissoc :created_on))
       ))
 
   (get-device [this client-id]

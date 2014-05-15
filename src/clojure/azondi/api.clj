@@ -207,18 +207,13 @@
    :processable? (create-schema-check device-attributes-schema)
    :handle-unprocessable-entity handle-unprocessable-entity
 
-   :post! (fn [{body :body {{user :user client-id :client-id} :route-params} :request}]
+   :post! (fn [{body :body {{user :user} :route-params} :request}]
             {:device
              (let [p (generate-device-password)]
-               (when (get-device db client-id)
-                 (delete-device! db client-id))
                (-> (create-device! db user p)
                    (assoc :password p)))})
 
-   :handle-created (fn [{device :device}] (->js device))
-
-
-})
+   :handle-created (fn [{device :device}] (->js device))})
 
 (defn extract-api-key [req]
   (when-let [auth (get (:headers req) "authorization")]

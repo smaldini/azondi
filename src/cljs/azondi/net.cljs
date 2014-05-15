@@ -57,6 +57,7 @@
                                    status (.getStatus xhrio)
                                    body (parse-response-body xhrio)]
                                (go
+                                 
                                  (>! out {:status status :body body})))))
             (.setTimeoutInterval (:timeout m))
             (.send (:uri m)
