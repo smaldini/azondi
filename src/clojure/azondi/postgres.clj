@@ -38,7 +38,8 @@
     (j/delete! (conn this) :users [(format "id = '%s'" user)]))
 
   (devices-by-owner [this user]
-    (j/query (conn this) [(format "SELECT * from devices WHERE owner = '%s';" user)]))
+    (let [devices (j/query (conn this) [(format "SELECT * from devices WHERE owner_user_id = '%s';" user)])]
+      (map #(assoc % :client-id (:client_id %)) devices)))
 
   (create-device! [this user pwd data]
     (let [p (sc/encrypt pwd)
@@ -49,7 +50,11 @@
       (j/insert! (conn this) :devices d)))
 
   (get-device [this client-id]
-    (first (j/query (conn this) [(format "SELECT * from devices where client_id = '%s' ;" client-id)])))
+    (let [device
+          (first (j/query (conn this) [(format "SELECT * from devices where client_id = '%s' ;" client-id)]))]
+      ;;; short term solution for postgres not allowing :client-id but we do 
+      (-> (assoc device :client-id (:client_id device))
+          (dissoc :device_password_hash))))
 
   (delete-device! [this client-id]
     (j/delete! (conn this) :devices [(format  "client_id = '%s'" client-id)]))
@@ -64,7 +69,7 @@
            (sc/verify p (:password device)))))
 
   (patch-device! [this client-id data]
-    (j/update! (conn this) :devices data [(format "client_id = '%s'") client-id]))
+    (j/update! (conn this) :devices data [(format "client_id = '%s'" client-id)]))
 
   (topics-by-owner [this user]
     (j/query (conn this) :topics [(format "Select * from topics where owner_user_id = '%s';" user)]))
