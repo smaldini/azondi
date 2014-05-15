@@ -46,8 +46,10 @@
           d (-> data
                 (assoc :owner_user_id user)
                 (assoc :device_password_hash p)
-                (dissoc :password))]
-      (j/insert! (conn this) :devices d)))
+                (dissoc :password))
+          new-device (first (j/insert! (conn this) :devices d))]
+      (assoc new-device :client-id (:client_id new-device))
+      ))
 
   (get-device [this client-id]
     (let [device
