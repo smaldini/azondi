@@ -199,7 +199,7 @@
             [:button.close {:type "button" :data-dismiss "alert"} "x"]"Incorrect Login Details"])
 
          (for [{:keys [id name type placeholder]} fields]
-           [:input.form-control {:id id :name name :type type :placeholder placeholder}])
+           [:input.form-control {:id id :name name :type type :placeholder id}])
 
          [:button {:class "btn btn-lg btn-primary pull-right" :type "submit"} "Sign In"]
          ]))

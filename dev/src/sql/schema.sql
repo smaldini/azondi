@@ -45,16 +45,16 @@ ALTER TABLE devices ADD CONSTRAINT devices_owner_fk FOREIGN KEY (owner_user_id) 
 CREATE TABLE IF NOT EXISTS topics (unit text,
        	     	    	   name text,
                            description text,
-                           topic_id text PRIMARY KEY,
+                           topic text PRIMARY KEY,
                            public boolean,
-			   owner_user_id text,
+			   owner text,
                            created_on timestamp default current_timestamp);
 			   
-CREATE UNIQUE INDEX topics_id_idx ON topics(topic_id)
-CREATE INDEX topics_owner_idx ON topics(owner_user_id);
-CREATE UNIQUE INDEX topics_id_owner_idx ON topics(topic_id, owner_user_id);
+CREATE UNIQUE INDEX topics_id_idx ON topics(topic)
+CREATE INDEX topics_owner_idx ON topics(owner);
+CREATE UNIQUE INDEX topics_id_owner_idx ON topics(topic, owner);
 CREATE INDEX topics_created_on_idx ON topics(created_on);
-ALTER TABLE topics ADD CONSTRAINT topics_owner_fk FOREIGN KEY (owner_user_id) REFERENCES users (id);
+ALTER TABLE topics ADD CONSTRAINT topics_owner_fk FOREIGN KEY (owner) REFERENCES users (id);
 
 CREATE TABLE IF NOT EXISTS subscriptions (user_id text NOT NULL,
                            topic text NOT NULL,

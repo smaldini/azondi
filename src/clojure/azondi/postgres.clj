@@ -67,31 +67,32 @@
 
   (allowed-device? [this client-id user p]
     (let [device (first (j/query (conn this) [(format "Select * from devices where client_id = '%s';" client-id)]))]
-      (and (= (:owner_user_id device) user)
+      (and (= (:owner_user_device) user)
            (sc/verify p (:password device)))))
 
   (patch-device! [this client-id data]
     (j/update! (conn this) :devices data [(format "client_id = '%s'" client-id)]))
 
   (topics-by-owner [this user]
-    (clj->psql (-> (j/query (conn this) [(format "Select * from topics where owner_user_id = '%s';" user)])
-                   (dissoc :created_on))))
+    (clj->psql (j/query (conn this) [(format "Select * from topics where owner = '%s';" user)])))
 
   (create-topic! [this topic]
     (let [t (clj->psql (merge topic {:public true}))]
       (psql->clj (-> (j/insert! (conn this) :topics t)
-                     (dissoc :created_on)))))
+                     first
+                     (dissoc :created_on))
+                 )))
 
   (get-topic [this topic-id]
     (psql->clj
-     (-> (first (j/query (conn this) [(format "Select * from topics where topic_id = '%s';" topic-id)]))
-         (dissoc :created_on))))
+     (-> (-> (first (j/query (conn this) [(format "Select * from topics where topic = '%s';" topic-id)]))
+             (dissoc :created_on)))))
 
   (delete-topic! [this topic-id]
-    (j/delete! (conn this) :topics [(format  "topic_id = '%s'" topic-id)]))
+    (j/delete! (conn this) :topics [(format  "topic = '%s'" topic-id)]))
 
   (patch-topic! [this topic-id data]
-    (j/update! (conn this) :topics data [(format "topic_id = '%s'") topic-id]))
+    (j/update! (conn this) :topics data [(format "topic = '%s'" topic-id)]))
   ) 
 
 (defn new-database
