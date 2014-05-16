@@ -181,7 +181,9 @@
 (defn new-website []
   (->Website))
 
-(defn render-custom-login-form [requested-uri action login-status]
+
+
+(defn render-custom-login-form [{:keys [requested-uri action login-status fields]}]
   ;; If login status is :failed, you can generated a banner thing
   (html [:form.form-set {:method "POST"
                          :action action
@@ -193,10 +195,11 @@
            ;; If requested-uri is not nil, you should add it as a hidden field.
            [:input {:type "hidden" :name :requested-uri :value requested-uri}])
          (when login-status
-           [:p "foo"]
            [:div.alert.alert-warning
             [:button.close {:type "button" :data-dismiss "alert"} "x"]"Incorrect Login Details"])
-         [:input.form-control {:id "username" :name "username" :type "input" :placeholder "user id"}]
-         [:input.form-control {:id "password" :name "password" :type "password" :placeholder "password"}]
+
+         (for [{:keys [id name type placeholder]} fields]
+           [:input.form-control {:id id :name name :type type :placeholder placeholder}])
+
          [:button {:class "btn btn-lg btn-primary pull-right" :type "submit"} "Sign In"]
          ]))

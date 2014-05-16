@@ -129,8 +129,8 @@
      :login-form (new-login-form
                   :renderer
                   (reify LoginFormRenderer
-                    (render-login-form [_ request requested-uri action login-status]
-                      (render-custom-login-form requested-uri action login-status)))
+                    (render-login-form [_ request attrs]
+                      (render-custom-login-form attrs)))
                   :middleware wrap-template)
 
      #_:user-domain #_(new-default-user-domain)
