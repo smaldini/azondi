@@ -39,7 +39,7 @@
   "Create a development system"
   [& [env]]
   (cond
-   (= env "dev") (let [s-map
+   (= env "prod") (let [s-map
          (->
           (configurable-system-map (config))
           (assoc :api-tests (azondi.api-tests/new-api-tests)
