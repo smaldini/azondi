@@ -5,10 +5,18 @@
             [com.stuartsierra.component :as component]
             [clojure.java.jdbc :as j]
             [azondi.db :refer (Datastore)]
-            [azondi.passwords :as sc]))
+            [azondi.passwords :as sc]
+            [azondi.helpers :refer (process-maps)]
+            [camel-snake-kebab :as csk]))
 
 (defn conn [this]
   (get-in this [:connection]))
+
+(defn clj->psql [mp]
+  (process-maps mp csk/->snake_case))
+
+(defn psql->clj [mp]
+  (process-maps mp csk/->kebab-case))
 
 (defrecord Database [host port dbname user password]
   component/Lifecycle
@@ -38,26 +46,17 @@
     (j/delete! (conn this) :users [(format "id = '%s'" user)]))
 
   (devices-by-owner [this user]
-    (let [devices (j/query (conn this) [(format "SELECT * from devices WHERE owner_user_id = '%s';" user)])]
-      (map #(assoc % :client-id (:client_id %)) devices)))
+    (psql->clj (j/query (conn this) [(format "SELECT * from devices WHERE owner_user_id = '%s';" user)])))
 
   (create-device! [this user pwd]
-    (let [p (sc/encrypt pwd)
-          d (-> {}
-                (assoc :owner_user_id user)
-                (assoc :device_password_hash p))
-          new-device (first (j/insert! (conn this) :devices d))]
-      (-> (assoc new-device :client-id (:client_id new-device))
-          (dissoc :device_password_hash)
-          (dissoc :created_on))
-      ))
+    (let [data {:owner_user_id user :device_password_hash (sc/encrypt pwd)}]
+      (psql->clj (-> (first (j/insert! (conn this) :devices data))
+                     (dissoc :device_password_hash)
+                     (dissoc :created_on)))))
 
   (get-device [this client-id]
-    (let [device
-          (first (j/query (conn this) [(format "SELECT * from devices where client_id = '%s' ;" client-id)]))]
-      ;;; short term solution for postgres not allowing :client-id but we do 
-      (-> (assoc device :client-id (:client_id device))
-          (dissoc :device_password_hash))))
+    (psql->clj (-> (first (j/query (conn this) [(format "SELECT * from devices where client_id = '%s' ;" client-id)]))
+                   (dissoc :device_password_hash))))
 
   (delete-device! [this client-id]
     (j/delete! (conn this) :devices [(format  "client_id = '%s'" client-id)]))
@@ -75,13 +74,18 @@
     (j/update! (conn this) :devices data [(format "client_id = '%s'" client-id)]))
 
   (topics-by-owner [this user]
-    (j/query (conn this) :topics [(format "Select * from topics where owner_user_id = '%s';" user)]))
+    (clj->psql (-> (j/query (conn this) [(format "Select * from topics where owner_user_id = '%s';" user)])
+                   (dissoc :created_on))))
 
   (create-topic! [this topic]
-    (j/insert! (conn this) :topics topic))
+    (let [t (clj->psql (merge topic {:public true}))]
+      (psql->clj (-> (j/insert! (conn this) :topics t)
+                     (dissoc :created_on)))))
 
   (get-topic [this topic-id]
-    (first (j/query (conn this) [(format "Select * from topics where topic_id = '%s';" topic-id)])))
+    (psql->clj
+     (-> (first (j/query (conn this) [(format "Select * from topics where topic_id = '%s';" topic-id)]))
+         (dissoc :created_on))))
 
   (delete-topic! [this topic-id]
     (j/delete! (conn this) :topics [(format  "topic_id = '%s'" topic-id)]))
