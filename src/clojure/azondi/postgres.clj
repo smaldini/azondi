@@ -68,7 +68,7 @@
   (allowed-device? [this client-id user p]
     (let [device (first (j/query (conn this) [(format "Select * from devices where client_id = '%s';" client-id)]))]
       (and (= (:owner_user_id device) user)
-           (sc/verify p (:password device)))))
+           (sc/verify p (:device_password_hash device)))))
 
   (patch-device! [this client-id data]
     (j/update! (conn this) :devices data [(format "client_id = '%s'" client-id)]))
