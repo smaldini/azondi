@@ -23,10 +23,11 @@
 
 (def app-model
   (atom {:user "nobody"
-         :devices []
-         :topics []
-         :device nil
-         :topic nil
+         :devices [] ; All the devices
+         :device nil ; The current device
+         :topics [] ; All the topics
+         :topic nil ; The current topic
+         :new-topic-name nil ; The candidate suffix for a new topic
          :test-card {:messages []}}))
 
 ;; TODO The styling of this table component needs a lot of work
@@ -268,8 +269,6 @@
             [:div.controls
              [:input.btn {:name "action" :type "submit" :value "Reset"}]]]]
 
-
-
           (when-let [password (-> app-state :device :password)]
             (list
              [:h3 "Password"]
@@ -364,12 +363,12 @@
        [:table.table.table-hover.table-condensed.tbl
         [:thead
          [:tr
-          [:th "Name"]
+          [:th "Topic"]
           [:th "Description"]
-          [:th "Unit of Measure"]
-          [:th "Topic ID"]]]
+          [:th "Unit of Measure"]]]
+
         [:tbody
-         (for [{:keys [name description unit topic-id]} (:topics app-state)]
+         (for [{:keys [topic description unit]} (:topics app-state)]
            [:tr
             [:td
              [:a
@@ -397,9 +396,10 @@
                                             (select-keys body [:name :description :unit :topic-id]))))))))}
               ;; We display the topic name as the link text
               name]]
+            [:td topic]
             [:td description]
             [:td unit]
-            [:td topic-id]])]]))))
+            ])]]))))
 
 (defn update-topics-list! [user app-state]
   (let [ajax-send (chan)
@@ -423,12 +423,11 @@
          (fn [ev]
            (.preventDefault ev)
            (let [ajax-send (chan)
-                 ajax-recv (ajaj< ajax-send :method :post)]
+                 ajax-recv (ajaj< ajax-send :method :put)]
              (go
                (>! ajax-send
-                   {:uri (str "/api/1.0/users/" (:user @app-state) "/topics/")
-                    :content {:name (get-in @app-state [:topic :name])
-                              :description (or (get-in @app-state [:topic :description]) "")
+                   {:uri (str "/api/1.0/users/" (:user @app-state) "/topics/" (:new-topic-name @app-state))
+                    :content {:description (or (get-in @app-state [:topic :description]) "")
                               :unit (or (get-in @app-state [:topic :unit]) "")}
                               })
                (update-topics-list! (:user @app-state) app-state)
@@ -444,11 +443,11 @@
          [:div.controls
           [:input {:id "name"
                    :type "text"
-                   :placeholder "Name of New Topic"
+                   :placeholder "Name of new topic"
                    :onChange
                    (fn [e]
                      (let [value (.-value (.-target e))]
-                       (om/update! app-state [:topic :name] value)))}]]
+                       (om/update! app-state [:new-topic-name] value)))}]]
          [:div.controls
 
           [:input.btn.btn-primary {:type "submit" :value "Create topic"}]]]]))))

@@ -68,25 +68,20 @@
   (topics-by-owner [this user]
     (filter (comp (partial = user) :owner) (vals @(-> this :database :topics))))
 
-  ;; {:topics {:topic-name topic-name name :description description :owner user :unit measure :topic_id topic_id}}
   (create-topic! [this topic]
     (dosync
-     (alter (-> this :database :topics) assoc (:topic-id topic) topic)))
+     (alter (-> this :database :topics) assoc (:topic topic) topic)))
 
-  (get-topic [this topic-id]
-    (-> this :database :topics deref (get topic-id)))
+  (get-topic [this topic]
+    (-> this :database :topics deref (get topic)))
 
-  (delete-topic! [this topic-id]
+  (delete-topic! [this topic]
     (dosync
-     (alter (-> this :database :topics) dissoc topic-id)))
+     (alter (-> this :database :topics) dissoc topic)))
 
-  (patch-topic! [this topic-id data]
+  (patch-topic! [this topic data]
     (dosync
-     (alter (-> this :database :topics) update-in [topic-id] merge data))
-    )
-
-
-  )
+     (alter (-> this :database :topics) update-in [topic] merge data))))
 
 (defn new-inmemory-datastore []
   (->InmemoryDatastore))

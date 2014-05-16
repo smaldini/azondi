@@ -87,16 +87,71 @@
                  :data {:name "Arduino 1" :description "Some hack"})
 
         ;; create and find topics
-        (let [uri (make-uri :azondi.api/topics :user "alice")
-              response (request :get uri :auth ["alice" "shock"])]
-          (is (contains? (:body response) :user))
-          (is (contains? (:body response) :topics))
-          (request :post uri
-                   :auth ["alice" "shock"]
-                   :data {:name "pollution" :unit "PM25"})
-          (request :post uri
-                   :auth ["alice" "shock"]
-                   :data {:name "pollution-E12"})
+        (let [topics-uri (make-uri :azondi.api/topics :user "alice")
+              response (request :get topics-uri :auth ["alice" "shock"])]
+
+          (let [topic-uri (make-uri :azondi.api/topic :user "alice" :topic-name "pollution")]
+
+            (is (contains? (:body response) :user))
+            (is (contains? (:body response) :topics))
+
+            ;; Create a topic
+            (request :put topic-uri
+                     :auth ["alice" "shock"]
+                     :data {})
+
+            (let [topics-response (request :get topics-uri :auth ["alice" "shock"])]
+              (is (contains? (:body response) :topics))
+              (is (= (-> topics-response :body :topics count) 1))
+              )
+
+            ;; Get the newly created topic
+            (let [topic-response (request :get topic-uri :auth ["alice" "shock"])]
+              (is (= (:body topic-response)
+                     {:owner "alice",
+                      :topic "users/alice/pollution",})))
+
+            ;; Patch the topic
+            (request :put topic-uri
+                     :auth ["alice" "shock"]
+                     :data {:unit "PM25"
+                            :description "Forgot the description!"})
+
+            (let [topic-response (request :get topic-uri :auth ["alice" "shock"])]
+              (is (= (:body topic-response)
+                     {:owner "alice",
+                      :topic "users/alice/pollution",
+                      :unit "PM25",
+                      :description "Forgot the description!"
+                      })))
+
+            (request :put topic-uri
+                     :auth ["alice" "shock"]
+                     :data {:unit "PM25"
+                            :description "Dangerous atmospheric particulate matter"})
+
+            (let [topic-response (request :get topic-uri :auth ["alice" "shock"])]
+              (is (= (:body topic-response)
+                     {:owner "alice",
+                      :topic "users/alice/pollution",
+                      :unit "PM25",
+                      :description "Dangerous atmospheric particulate matter"
+                      })))
+
+            (let [topic-response (request :get topic-uri :auth ["alice" "shock"])]
+              (is (= (:body topic-response)
+                     {:owner "alice",
+                      :topic "users/alice/pollution",
+                      :description "Dangerous atmospheric particulate matter",
+                      :unit "PM25"})))
+
+            (request :delete topic-uri :auth ["alice" "shock"])
+
+            (let [topics-response (request :get topics-uri :auth ["alice" "shock"])]
+              (is (= (-> topics-response :body :topics count) 0))
+              )
+
+            )
 
           ))))
 

@@ -196,8 +196,9 @@
   object (device, topic, etc.)"
   [{request :request}]
   ;; Fortunately, this is a very simple algorithm
-  (= (-> request :route-params :user)
-     (:cylon/user request)))
+  (when (not-empty (-> request :route-params :user))
+    (= (-> request :route-params :user)
+       (:cylon/user request))))
 
 (defn devices-resource [db]
   {:available-media-types #{"application/json"}
@@ -233,9 +234,6 @@
    :allowed? same-user
    :known-content-type? #{"application/json"}
 
-   #_:authorized? #_(fn [{{{user :user} :route-params headers :headers :as req} :request}]
-                      (= (extract-api-key req) (get-api-key user)))
-
    :handle-unauthorized (fn [_] (encode {:error "Unauthorized"}))
 
    :exists? (fn [{{{user :user client-id :client-id} :route-params} :request}]
@@ -263,41 +261,22 @@
             (let [p (generate-device-password)]
               (set-device-password! db client-id p)
               {:password p}))
-   :handle-created (fn [{password :password}] {:password password})
-})
+   :handle-created (fn [{password :password}] {:password password})})
 
 (def topic-attributes-schema
-  {(s/required-key :name) s/Str
-   (s/optional-key :unit) s/Str
+  {(s/optional-key :unit) s/Str
    (s/optional-key :description) s/Str})
 
 (defn topics-resource [db]
   {:available-media-types #{"application/json"}
-   :allowed-methods #{:get :post}
+   :allowed-methods #{:get}
    :allowed? same-user
    :handle-ok (fn [{{{user :user} :route-params} :request}]
                 (encode {:user user
                          :topics (->>
                                   (topics-by-owner db user)
                                   (map #(select-keys % [:owner :description :name :unit :topic-id]))
-                                  (map #(reduce-kv (fn [acc k v] (assoc acc (->camelCaseString k) v)) {} %))
-                                  )}))
-   :processable? (create-schema-check topic-attributes-schema)
-   :handle-unprocessable-entity handle-unprocessable-entity
-   :post! (fn [{body :body {{user :user} :route-params} :request}]
-            {:topic
-             (let [name (:name body)
-                   topic-id (str "users/" user "/" name)]
-               (when (get-topic db topic-id)
-                 (delete-topic! db topic-id))
-               (create-topic! db {:name name
-                                  :owner user
-                                  :unit (:unit body)
-                                  :description (:description body)
-                                  :topic-id topic-id}))})
-
-   :handle-created (fn [{topic :topic}] (->js topic))
-   })
+                                  (map #(reduce-kv (fn [acc k v] (assoc acc (->camelCaseString k) v)) {} %)))}))})
 
 (defn topic-resource [db]
   {:available-media-types #{"application/json"}
@@ -305,23 +284,29 @@
    :allowed? same-user
    :known-content-type? #{"application/json"}
    :exists? (fn [{{{user :user topic-name :topic-name} :route-params} :request}]
-              (let [topic-id (str "users/" user "/" topic-name)]
-                (when (and (get-user db user)
-                           (get-topic db topic-id))
-                  {:user user
-                   :topic-id topic-id})))
+              (let [topic (str "users/" user "/" topic-name)
+                    existing (get-topic db topic)]
+                [existing
+                 {:existing existing
+                  :topic topic}]))
 
-   :processable? (create-schema-check device-attributes-schema)
+   :processable? (create-schema-check topic-attributes-schema)
    :handle-unprocessable-entity handle-unprocessable-entity
 
-   :put! (fn [{topic-id :topic-id body :body}] (patch-topic! db topic-id body))
-   :delete! (fn [{topic-id :topic-id}] (delete-topic! db topic-id))
+   :put! (fn [{topic :topic
+               existing :existing
+               body :body
+               {{user :user} :route-params} :request}]
+           (if existing
+             (patch-topic! db topic (assoc body :owner user))
+             (create-topic! db (assoc body :topic topic :owner user))
 
-   :handle-ok (fn [{topic-id :topic-id}] (get-topic db topic-id))
-   :handle-created (fn [_] {:message "Patched"})
+             ))
 
-})
+   :delete! (fn [{topic :topic}] (delete-topic! db topic))
 
+   :handle-ok (fn [{topic :topic existing :existing}] existing)
+   :handle-created (fn [_] {:message "Patched"})})
 
 ;; WebService
 
