@@ -567,14 +567,6 @@
             [:div.controls
              [:input.btn {:name "action" :type "submit" :value "Apply"}]]]]
 
-
-          [:h4 "Events"]
-          [:p "We will show all messages to this topic here"]
-          [:pre
-           (for [msg (-> app-state :topic :messages)]
-;;;;
-             (str msg "\r\n"))]
-
           [:form.form-horizontal
            {:onSubmit
             (fn [ev]
