@@ -109,7 +109,7 @@
             (let [topic-response (request :get topic-uri :auth ["alice" "shock"])]
               (is (= (:body topic-response)
                      {:owner "alice",
-                      :topic "users/alice/pollution",})))
+                      :topic "/users/alice/pollution",})))
 
             ;; Patch the topic
             (request :put topic-uri
@@ -120,7 +120,7 @@
             (let [topic-response (request :get topic-uri :auth ["alice" "shock"])]
               (is (= (:body topic-response)
                      {:owner "alice",
-                      :topic "users/alice/pollution",
+                      :topic "/users/alice/pollution",
                       :unit "PM25",
                       :description "Forgot the description!"
                       })))
@@ -133,7 +133,7 @@
             (let [topic-response (request :get topic-uri :auth ["alice" "shock"])]
               (is (= (:body topic-response)
                      {:owner "alice",
-                      :topic "users/alice/pollution",
+                      :topic "/users/alice/pollution",
                       :unit "PM25",
                       :description "Dangerous atmospheric particulate matter"
                       })))
@@ -141,7 +141,7 @@
             (let [topic-response (request :get topic-uri :auth ["alice" "shock"])]
               (is (= (:body topic-response)
                      {:owner "alice",
-                      :topic "users/alice/pollution",
+                      :topic "/users/alice/pollution",
                       :description "Dangerous atmospheric particulate matter",
                       :unit "PM25"})))
 

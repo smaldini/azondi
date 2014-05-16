@@ -6,7 +6,6 @@
    [cljs.core.async :refer [<! >! chan put! sliding-buffer close! pipe map< filter< mult tap map> timeout]]
    [om.core :as om :include-macros true]
    [sablono.core :as html :refer-macros [html]]
-   [ankha.core :as ankha]
    [azondi.net :refer (ajaj< listen-sse)]
    [goog.events :as events]
    [chord.client :refer [ws-ch]]
@@ -24,9 +23,12 @@
 (def app-model
   (atom {:user "nobody"
          :devices [] ; All the devices
-         :device nil ; The current device
+         :device nil ; The current device detail
+
          :topics [] ; All the topics
-         :topic nil ; The current topic
+         :topic nil ; The current topic detail
+
+         :topic-detail nil ; the current details
          :new-topic-name nil ; The candidate suffix for a new topic
          :test-card {:messages []}}))
 
@@ -339,7 +341,6 @@
 (defn ^:export devices-page [user]
   (swap! app-model assoc :user user)
   (om/root devices-page-component app-model {:target (. js/document (getElementById "content"))})
-  ;;(om/root ankha/inspector app-model {:target (. js/document (getElementById "ankha"))})
   )
 
 (defn topics-list-component
@@ -375,28 +376,30 @@
               {:onClick              ; if we click on one of the topics
                (fn [ev]
                  (.preventDefault ev)   ; don't follow the link
-                 (let [ajax-send (chan)
+                 (println "Getting topic detail for" topic)
+                 (let [uri (str "/api/1.0/users/" (:user @app-state) "/topics/" (subs topic (count (str "/users/" (:user @app-state) "/"))))
+                       ajax-send (chan)
                        ajax-recv (ajaj< ajax-send
                                         :method :get
-                                        :uri (str "/api/1.0/users/" (:user @app-state) "/topics/" name)
+                                        :uri uri
                                         :content {})]
                    (go
                      (>! ajax-send {}) ; Trigger a 'GET' of the latest topic details
                      (let [{:keys [status body] :as response} (<! ajax-recv)]
+
                        (when (= status 200)
                          ;; Update the device in the app-state. This
                          ;; causes the device details component to
                          ;; refresh.
+                         (println "body returned is" body)
                          (om/update! app-state :topic
                                      ;; We must avoid setting controlled
                                      ;; component input values to nil,
                                      ;; so we merge in empty string
                                      ;; defaults!
-                                     (merge {:name "" :description "" :unit "" :topic-id ""}
-                                            (select-keys body [:name :description :unit :topic-id]))))))))}
-              ;; We display the topic name as the link text
-              name]]
-            [:td topic]
+                                     (merge {:name "" :description "" :unit "" :topic ""}
+                                            (select-keys body [:name :description :unit :topic]))))))))}
+              topic]]
             [:td description]
             [:td unit]
             ])]]))))
@@ -430,15 +433,13 @@
                     :content {:description (or (get-in @app-state [:topic :description]) "")
                               :unit (or (get-in @app-state [:topic :unit]) "")}
                               })
-               (update-topics-list! (:user @app-state) app-state)
+
                (let [{:keys [status body]} (<! ajax-recv)]
+                 (println "Response to creating topic is" [status body])
+                 ;; TODO: Update topic detail
+                 )
+               (update-topics-list! (:user @app-state) app-state))))}
 
-                 (when (= status 201)
-                   ;; Add the device to the list
-                   (om/transact! app-state :topics #(conj % body))
-
-                   ;; Set the current device to this new one
-                   (om/update! app-state [:topic] body))))))}
         [:div.control-group
          [:div.controls
           [:input {:id "name"
@@ -447,10 +448,11 @@
                    :onChange
                    (fn [e]
                      (let [value (.-value (.-target e))]
-                       (om/update! app-state [:new-topic-name] value)))}]]
+                       (om/update! app-state [:new-topic-name] value)))}]
+          (when (not-empty (:new-topic-name app-state)) [:p "Topic will be created as " [:code (str "/users/" (:user app-state) "/" (:new-topic-name app-state))]])]
          [:div.controls
 
-          [:input.btn.btn-primary {:type "submit" :value "Create topic"}]]]]))))
+          [:input.btn.btn-primary {:type "submit" :value "Create user topic"}]]]]))))
 
 ;; TODO This could be rewritten in terms of connect-device-debugger
 (defn connect-topic-debugger
@@ -493,47 +495,50 @@
     (will-update [this next-props next-state]
       ;; If the client-id changes, we must reconnect the debugger to the
       ;; corresponding device
-      (let [old-name (get-in app-state [:topic :name])
-            new-name (get-in next-props [:topic :name])]
-        (when (not= old-name new-name)
-          (connect-topic-debugger owner new-name
+      (let [old-topic (get-in app-state [:topic :topic])
+            new-topic (get-in next-props [:topic :topic])]
+        (when (not= old-topic new-topic)
+          ;; TODO uncomment this
+          #_(connect-topic-debugger owner new-topic
                                   (om/get-state owner :debugger-events)))))
     om/IRender
     (render [this]
       (html
-       (let [name (get-in app-state [:topic :name])]
+       (let [topic (get-in app-state [:topic :topic])]
          [:div
-          [:h2
-           (str "Topic: " name)]
           [:form.form-horizontal
            {:onSubmit (fn [ev]
                         (.preventDefault ev)
                         (let [ajax-send (chan)
                               ajax-recv (ajaj< ajax-send :method :put)]
-                          (if-let [name (get-in @app-state [:topic :name])]
-                            (go
-                              (>! ajax-send
-                                  {:uri (str "/api/1.0/users/" (:user @app-state) "/topics/" name)
-                                   :content {:description (or (get-in @app-state [:topic :description]) "")
-                                             :unit (or (get-in @app-state [:topic :unit]) "")
-                                             }})
-                              (let [response (<! ajax-recv)]
-                                (println "Response to PUT is" response)
-                                )
-                              ;; Having PUT, let's update the devices list
-                              (update-topics-list! (:user @app-state) app-state)))))}
+                          (when-let [topic (get-in @app-state [:topic :topic])]
+                            (let [uri (str "/api/1.0/users/" (:user @app-state) "/topics/"  (subs topic (count (str "/users/" (:user @app-state) "/"))))]
+                              (println "PUT to topic detail uri:" uri)
+                              (go
+                                (>! ajax-send
+                                    {:uri uri
+                                     :content {:description (or (get-in @app-state [:topic :description]) "")
+                                               :unit (or (get-in @app-state [:topic :unit]) "")
+                                               }})
+                                (let [response (<! ajax-recv)]
+                                  (println "Response to PUT is" response)
+                                  )
+                                ;; Having PUT, let's update the devices list
+                                (update-topics-list! (:user @app-state) app-state))))))}
 
            [:div.control-group
-            [:label.control-label "Name"]
+            [:label.control-label "Topic"]
             [:div.controls
-             [:input {:name "name"
+             [:input {:name "topic"
+                      :style {:width "60%"}
                       :type "text"
-                      :value (get-in app-state [:topic :name]) :editable false :disabled true}]]]
+                      :value (get-in app-state [:topic :topic]) :editable false :disabled true}]]]
 
            [:div.control-group
             [:label.control-label "Description"]
             [:div.controls
-             [:input {:name "description" :style {:width "60%"}
+             [:input {:name "description"
+                      :style {:width "60%"}
                       :type "text"
                       :value (get-in app-state [:topic :description])
                       :onChange
@@ -545,7 +550,8 @@
            [:div.control-group
             [:label.control-label "Unit"]
             [:div.controls
-             [:input {:name "unit" :style {:width "60%"}
+             [:input {:name "unit"
+                      :style {:width "60%"}
                       :type "text"
                       :value (get-in app-state [:topic :unit])
                       :onChange
@@ -573,14 +579,15 @@
               (.preventDefault ev)
               (let [ajax-send (chan)
                     ajax-recv (ajaj< ajax-send :method :delete)]
-                (if-let [name (get-in @app-state [:topic :name])]
+                (if-let [topic (get-in @app-state [:topic :topic])]
                   (go
                     (>! ajax-send
-                        {:uri (str "/api/1.0/users/" (:user @app-state) "/topics/" name)})
+                        {:uri (str "/api/1.0/users/" (:user @app-state) "/topics/"  (subs topic (count (str "/users/" (:user @app-state) "/"))))})
                     (let [{:keys [status body]} (<! ajax-recv)]
                       (when (= status 204)
                         (om/update! app-state [:topic] nil)
-                        (om/transact! app-state [:topics] (fn [topics] (remove #(= (:name %) name) topics)))))))))}
+                        (om/transact! app-state [:topics] (fn [topics] (remove #(= (:name %) name) topics))))))))
+              (update-topics-list! (:user @app-state) app-state))}
            [:h3 "Delete topic"]
            [:p "This will delete the topic permanently."]
            [:input.btn.btn-danger {:name "action" :type "submit" :value "Delete topic"}]]])))))
@@ -600,7 +607,6 @@
 (defn ^:export topics-page [user]
   (swap! app-model assoc :user user)
   (om/root topics-page-component app-model {:target (. js/document (getElementById "content"))})
-  ;;(om/root ankha/inspector app-model {:target (. js/document (getElementById "ankha"))})
   )
 
 (defn test-card-page-component [app-state owner]

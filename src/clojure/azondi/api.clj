@@ -4,6 +4,7 @@
    ;; where resources are linked together using hyperlinks. Without
    ;; bidi, construction of these hyperlinks becomes increasingly
    ;; cumbersome and brittle.
+   [clojure.tools.logging :refer :all]
    [bidi.bidi :as bidi :refer (path-for ->Redirect)]
    [modular.bidi :refer (WebService)]
    [liberator.core :refer (resource)]
@@ -13,7 +14,7 @@
    [clojure.edn :as edn]
    [cheshire.core :refer (decode decode-stream encode)]
    [schema.core :as s]
-   [camel-snake-kebab :as csk :refer (->kebab-case-keyword ->camelCaseString)]
+   [camel-snake-kebab :refer (->kebab-case-keyword ->camelCaseString)]
    [azondi.db :refer (get-users get-user delete-user! create-user! devices-by-owner get-device delete-device! create-device! patch-device! topics-by-owner get-topic delete-topic! create-topic! patch-topic! set-device-password!)]
    [hiccup.core :refer (html)]
    [clojure.walk :refer (postwalk)]
@@ -272,11 +273,14 @@
    :allowed-methods #{:get}
    :allowed? same-user
    :handle-ok (fn [{{{user :user} :route-params} :request}]
-                (encode {:user user
-                         :topics (->>
-                                  (topics-by-owner db user)
-                                  (map #(select-keys % [:owner :description :name :unit :topic-id]))
-                                  (map #(reduce-kv (fn [acc k v] (assoc acc (->camelCaseString k) v)) {} %)))}))})
+                (let [body
+                      {:user user
+                       :topics (->>
+                                (topics-by-owner db user)
+                                (map #(select-keys % [:owner :description :name :unit :topic]))
+                                (map #(reduce-kv (fn [acc k v] (assoc acc (->camelCaseString k) v)) {} %)))}]
+                  (infof "GET TOPICS RETURNING: %s" body)
+                  (encode body)))})
 
 (defn topic-resource [db]
   {:available-media-types #{"application/json"}
@@ -284,7 +288,7 @@
    :allowed? same-user
    :known-content-type? #{"application/json"}
    :exists? (fn [{{{user :user topic-name :topic-name} :route-params} :request}]
-              (let [topic (str "users/" user "/" topic-name)
+              (let [topic (str "/users/" user "/" topic-name)
                     existing (get-topic db topic)]
                 [existing
                  {:existing existing
@@ -297,9 +301,14 @@
                existing :existing
                body :body
                {{user :user} :route-params} :request}]
-           (if existing
-             (patch-topic! db topic (assoc body :owner user))
-             (create-topic! db (assoc body :topic topic :owner user))
+           (if-not existing
+
+             (do
+               (infof "TOPIC CREATING: new is %s" (assoc body :topic topic :owner user))
+               (create-topic! db (assoc body :topic topic :owner user)))
+             (do
+               (infof "TOPIC PATCHING: existing is %s, new is " existing (assoc body :owner user))
+               (patch-topic! db topic (assoc body :owner user)))
 
              ))
 
