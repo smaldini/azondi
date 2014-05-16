@@ -18,7 +18,9 @@
 
 ;; This would eventually be opensensors.io, or probably
 ;; configurable. It's only used for the mosquitto curl examples.
-(def hostname "localhost")
+(def hostname (let [a (.createElement js/document "a")]
+                (set! (.-href a) (.-URL js/document))
+                (.-hostname a)))
 
 (def app-model
   (atom {:user "nobody"
