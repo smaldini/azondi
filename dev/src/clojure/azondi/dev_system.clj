@@ -28,9 +28,11 @@
 (defrecord ProdUserDomain []
   UserDomain
   (verify-user [this uid password]
-    (infof "Verifying user: %s against password %s" uid password)
-    (infof "User in database is: %s" (get-user (:database this) uid))
-    (pwd/verify password (:password_hash (get-user (:database this) uid)))))
+    (let [user (get-user (:database this) uid)]
+      (infof "Verifying user: %s against password %s" uid password)
+      (infof "User in database is: %s" user)
+      (and (not (nil? user))
+           (pwd/verify password (:password_hash user uid))))))
 
 (defn new-prod-user-domain []
   (component/using (->ProdUserDomain) [:database]))
