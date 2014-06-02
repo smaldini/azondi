@@ -13,35 +13,35 @@
    #_[azondi.system :refer (config)]
    ))
 
-(defn make-uri [routes port k & args]
-  (str "http://localhost:" port "/api/1.0" (apply path-for routes k args)))
+(defn make-uri [route]
+  (str "http://localhost:" 3000 "/api/1.0" route))
 
-(defn seed-data! [routes port]
-  (request :put (make-uri routes port :azondi.api/user :user "yods")
+(defn seed-data! []
+  (request :put (make-uri "/users/yods/")
            :data {:password "password"
                   :name "Yodit Stanton"
                   :email "yodit@atomicdatalabs.com"})
 
-  (request :post (make-uri routes port :azondi.api/devices :user "yods")
+  (request :post (make-uri "/users/yods/devices/")
            :auth ["yods" "password"]
            :data {:name "Arduino 1" :description "Some arduino lying around"}
            :data {:name "Arduino 2" :description "A broken arduino"}
            :data {:name "Pollution sensor" :description ""})
 
-  (request :put (make-uri routes port :azondi.api/user :user "malcolm")
+  (request :put (make-uri "/users/malcolm/")
            :data {:password "password"
                   :name "Malcolm Sparks"
                   :email "malcolm@juxt.pro"})
 
-  (request :post (make-uri routes port :azondi.api/devices :user "malcolm")
+  (request :post (make-uri "/users/malcolm/devices/")
            :auth ["malcolm" "password"]
            :data {:name "S3-1" :description "MQTTitude on Samsung Galaxy S3"})
 
-  (request :post (make-uri routes port :azondi.api/devices :user "malcolm")
+  (request :post (make-uri "/users/malcolm/devices/")
            :auth ["malcolm" "password"]
            :data {:name "S3-2" :description "MQTTitude (test) on Samsung Galaxy S3"})
 
-  (request :put (make-uri routes port :azondi.api/user :user "mk")
+  (request :put (make-uri "/users/mk/" :user "mk")
            :data {:password "password"
                   :name "Michael Klishin"
                   :email "michael@opensensors.io"}))
@@ -49,13 +49,11 @@
 (defrecord SeedData []
   component/Lifecycle
   (start [this]
-    (let [routes (get-in this [:api :routes])
-          port (get-in this [:webserver :port])]
-      (try
-        (seed-data! routes port)
-        (catch Exception e (errorf e "Error seeding data")))
-      this
-      ))
+    (try
+      (seed-data!)
+      (catch Exception e (errorf e "Error seeding data")))
+    this
+      )
   (stop [this] this))
 
 (defn new-seed-data []

@@ -5,11 +5,9 @@
    ;; bidi, construction of these hyperlinks becomes increasingly
    ;; cumbersome and brittle.
    [clojure.tools.logging :refer :all]
-   [bidi.bidi :as bidi :refer (path-for ->Redirect)]
-   [modular.bidi :refer (WebService)]
+   [bidi.bidi :as bidi :refer (path-for ->Redirect make-handler)]
    [liberator.core :refer (resource)]
    [com.stuartsierra.component :as component]
-
    [clojure.java.io :as io]
    [clojure.edn :as edn]
    [cheshire.core :refer (decode decode-stream encode)]
@@ -18,6 +16,7 @@
    [azondi.db :refer (get-users get-user delete-user! create-user! devices-by-owner get-device delete-device! create-device! patch-device! topics-by-owner get-topic delete-topic! create-topic! patch-topic! set-device-password!)]
    [hiccup.core :refer (html)]
    [clojure.walk :refer (postwalk)]
+   [org.httpkit.server :refer (run-server)]
    liberator.representation
    ))
 
@@ -110,8 +109,8 @@
    :available-media-types #{"text/html" "application/json"}
 
    ;; Only allow local access
-   :allowed?
-   (fn [{{:keys [remote-addr request-method]} :request}]
+   #_:allowed?
+   #_(fn [{{:keys [remote-addr request-method]} :request}]
      (= remote-addr "127.0.0.1"))
 
    :handle-ok
@@ -136,17 +135,21 @@
    :allowed-methods #{:put :get}
 
    ;; We only allow local access
-   :allowed?
-   (fn [{{:keys [remote-addr request-method]} :request}]
+   #_:allowed?
+   #_(fn [{{:keys [remote-addr request-method]} :request}]
      (or (= request-method :get)
-         (= remote-addr "127.0.0.1")))
+         ;;(= remote-addr "127.0.0.1")
+         ))
 
    :known-content-type? #{"application/json"}
    :processable? (create-schema-check new-user-schema)
    :handle-unprocessable-entity handle-unprocessable-entity
 
-   :exists? (fn [{{{user :user} :route-params} :request}]
-              {::user (get-user db user)})
+   :exists? (fn [{{{user :user} :route-params} :request}
+                 ]
+                {::user (get-user db user)}
+                ;;{::user {:db (get-user db user) :user (str user)}}
+                 )
 
    :handle-ok (fn [{user ::user {media-type :media-type} :representation req :request}]
                 (case media-type
@@ -192,7 +195,7 @@
         random-char (fn [] (nth valid-chars (rand (count valid-chars))))]
     (apply str (take 8 (repeatedly random-char)))))
 
-(defn same-user
+#_(defn same-user
   "Ensure a resource can only be accessed by the user who owns the
   object (device, topic, etc.)"
   [{request :request}]
@@ -204,7 +207,7 @@
 (defn devices-resource [db]
   {:available-media-types #{"application/json"}
    :allowed-methods #{:get :post}
-   :allowed? same-user
+   ;;:allowed? same-user
    :handle-ok (fn [{{{user :user} :route-params :as req} :request}]
                 (encode {:user user
                          :devices (->>
@@ -232,7 +235,7 @@
 (defn device-resource [db]
   {:available-media-types #{"application/json"}
    :allowed-methods #{:get :put :delete}
-   :allowed? same-user
+   ;;:allowed? same-user
    :known-content-type? #{"application/json"}
 
    :handle-unauthorized (fn [_] (encode {:error "Unauthorized"}))
@@ -257,7 +260,7 @@
 (defn reset-device-password-resource [db]
   {:available-media-types #{"application/json"}
    :allowed-methods #{:post}
-   :allowed? same-user
+   ;;:allowed? same-user
    :post! (fn [{{{:keys [client-id]} :route-params} :request}]
             (let [p (generate-device-password)]
               (set-device-password! db client-id p)
@@ -271,7 +274,7 @@
 (defn topics-resource [db]
   {:available-media-types #{"application/json"}
    :allowed-methods #{:get}
-   :allowed? same-user
+   ;;:allowed? same-user
    :handle-ok (fn [{{{user :user} :route-params} :request}]
                 (let [body
                       {:user user
@@ -285,7 +288,7 @@
 (defn topic-resource [db]
   {:available-media-types #{"application/json"}
    :allowed-methods #{:get :put :delete}
-   :allowed? same-user
+   ;;:allowed? same-user
    :known-content-type? #{"application/json"}
    :exists? (fn [{{{user :user topic-name :topic-name} :route-params} :request}]
               (let [topic (str "/users/" user "/" topic-name)
@@ -317,61 +320,33 @@
    :handle-ok (fn [{topic :topic existing :existing}] existing)
    :handle-created (fn [_] {:message "Patched"})})
 
-;; WebService
+(defn routes [db uri-context]
+  [uri-context {"" (resource (welcome-resource))
+                               "/" (->Redirect 307 "")
+                               "/users" (->Redirect 307 "/users/")
+                               "/users/" (resource (users-resource db))
+                               ["/users/" :user] {"" (resource (user-resource db))
+                                                  "/devices/"  (resource (devices-resource db))
+                                                  "/devices" (->Redirect 307 "/devices/")
+                                                  ["/devices/" :client-id] (resource (device-resource db))
+                                                  ["/devices/" :client-id "/reset-password"] (resource (reset-device-password-resource db))
+                                                  "/topics" (->Redirect 307 (resource (topics-resource db)))
+                                                  "/topics/" (resource (topics-resource db))
+                                                  ["/topics/" :topic-name] (resource (topic-resource db))}}])
 
-(defn make-handlers [db]
-  {::welcome (resource (welcome-resource))
-
-   ;; Don't worry, these resources are self-protecting and are limited
-   ;; to localhost accessors only. Eventually, however, these will use
-   ;; of the given authorizer to restrict by 'admin' role.
-   ::users (resource (users-resource db))
-   ::user (resource (user-resource db))
-
-   ;; These all have to be restricted
-   ::devices (resource (devices-resource db))
-   ::device (resource (device-resource db))
-   ::reset-device-password (resource (reset-device-password-resource db))
-   ::topics (resource (topics-resource db))
-   ::topic (resource (topic-resource db))})
-
-(defn make-routes
-  "This function returns the bidi route structure for the API. It should
-  be indented beautifully to read like a site-map."
-  []
-  [""
-   {"" ::welcome
-    "/" (->Redirect 307 ::welcome)
-    "/users" (->Redirect 307 ::users)
-    "/users/" ::users
-    ["/users/" :user] {"" ::user
-                       "/devices" (->Redirect 307 ::devices)
-                       "/devices/" ::devices
-                       ["/devices/" :client-id] ::device
-                       ["/devices/" :client-id "/reset-password"] ::reset-device-password
-                       "/topics" (->Redirect 307 ::topics)
-                       "/topics/" ::topics
-                       ["/topics/" :topic-name] ::topic} }])
-
-(defrecord Api [uri-context]
+(defrecord Api []
   component/Lifecycle
   (start [this]
-    ;; Handlers and routes need to be associated to this at component
-    ;; start so that they can be referenced by api tests.
-    (assoc this
-      :handlers (make-handlers (:database this))
-      :routes (make-routes)))
-  (stop [this] this)
-
-  WebService
-  (ring-handler-map [this] (:handlers this))
-  (routes [this] (:routes this))
-  (uri-context [this] uri-context))
+    (let [routes (routes (:database this) "/api/1.0")
+          api (run-server (make-handler routes) {:port 3000})]
+      (assoc this
+        :api api
+        :routes routes)))
+  (stop [this]
+    (when-let [api (:api this)]
+      (api (:database this) "/api/1.0")
+      (dissoc this :api))))
 
 (defn new-api [& {:as opts}]
-  (component/using
-   (->> opts
-        (merge {:uri-context ""}) ; specify defaults
-        (s/validate {(s/optional-key :uri-context) s/Str})
-        map->Api)
-   [:database]))
+  (component/using (->Api)
+                   [:database]))

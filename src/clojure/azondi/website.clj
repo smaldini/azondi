@@ -6,7 +6,7 @@
    [bidi.bidi :refer (->Redirect ->ResourcesMaybe)]
    [modular.bidi :refer (WebService)]
    [modular.template :refer (wrap-template)]
-   [modular.menu :refer (MenuItems)]
+  ;; [modular.menu :refer (MenuItems)]
    [garden.core :refer (css)]
    [garden.units :refer (pt em px)]
    [garden.color :refer (rgb)]
@@ -42,7 +42,7 @@
                        :padding-top (em 1)
                        }])})
 
-(defrecord Website []
+#_(defrecord Website []
 
   component/Lifecycle
   (start [this]
@@ -178,7 +178,7 @@
         :parent "Account"
         :visible? (fn [ctx] (-> ctx :request :cylon/user))}]))
 
-(defn new-website []
+#_(defn new-website []
   (->Website))
 
 

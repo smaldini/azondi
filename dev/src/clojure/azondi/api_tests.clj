@@ -14,17 +14,15 @@
 (def handlers nil)
 (def port nil)
 
-(defn make-uri [k & args]
-  (let [h (get handlers k)]
-    (assert h (str "No handler for " k))
-    (str "http://localhost:" port "/api/1.0" (apply path-for routes k args))))
+(defn make-uri [route]
+  (str "http://localhost:" 3000 "/api/1.0" route))
 
 
 (deftest devices
   ;; Create Alice
   (is (not (get-user db "alice")))
-  (let [uri (make-uri :azondi.api/user :user "alice")
-        response (request :put uri :data {:password "lewis"
+  (let [uri (make-uri "/users/alice")
+        response (request :put "http://localhost:3000/api/1.0/users/alice" :data {:password "lewis"
                                           :name "Alice Cheung"
                                           :email "alice@example.org"
                                           })]
@@ -42,7 +40,7 @@
       (is (not= (:email (get-user db "alice")) "alice@example.org"))
       (is (= (:email (get-user db "alice")) "alice@another.com"))
 
-      (let [uri (make-uri :azondi.api/devices :user "alice")]
+      (let [uri (make-uri "/users/alice/devices/")]
 
         (let [response (request :post uri :data {} :auth ["alice" "shock"])]
 
@@ -54,7 +52,7 @@
           (let [password (-> response :body :password)]
 
             ;; Find our devices
-            (let [uri (make-uri :azondi.api/devices :user "alice")
+            (let [uri (make-uri "/users/alice/devices/")
                   response (request :get uri :auth ["alice" "shock"])]
 
               (is (contains? (:body response) :user))
@@ -87,10 +85,10 @@
                  :data {:name "Arduino 1" :description "Some hack"})
 
         ;; create and find topics
-        (let [topics-uri (make-uri :azondi.api/topics :user "alice")
+        (let [topics-uri (make-uri "/users/alice/topics/")
               response (request :get topics-uri :auth ["alice" "shock"])]
 
-          (let [topic-uri (make-uri :azondi.api/topic :user "alice" :topic-name "pollution")]
+          (let [topic-uri (make-uri "/users/alice/topics/pollution")]
 
             (is (contains? (:body response) :user))
             (is (contains? (:body response) :topics))
@@ -145,8 +143,9 @@
                       :description "Dangerous atmospheric particulate matter",
                       :unit "PM25"})))
 
-            (request :delete topic-uri :auth ["alice" "shock"])
+           (request :delete topic-uri :auth ["alice" "shock"])
 
+            
             (let [topics-response (request :get topics-uri :auth ["alice" "shock"])]
               (is (= (-> topics-response :body :topics count) 0))
               )
@@ -165,11 +164,13 @@
     (let [handlers (get-in this [:api :handlers])
           routes (get-in this [:api :routes])
           db (get-in this [:database])
-          port (get-in this [:webserver :port])]
+          ;;port (get-in this [:webserver :port])
+          ]
       (alter-var-root #'handlers (constantly handlers))
       (alter-var-root #'routes (constantly routes))
       (alter-var-root #'db (constantly db))
-      (alter-var-root #'port (constantly port)))
+      ;;(alter-var-root #'port (constantly port))
+      )
 
     (clojure.test/run-tests 'azondi.api-tests)
     this)
