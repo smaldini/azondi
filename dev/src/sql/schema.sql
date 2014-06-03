@@ -50,7 +50,7 @@ CREATE TABLE IF NOT EXISTS topics (unit text,
 			   owner text,
                            created_on timestamp default current_timestamp);
 			   
-CREATE UNIQUE INDEX topics_id_idx ON topics(topic)
+CREATE UNIQUE INDEX topics_id_idx ON topics(topic);
 CREATE INDEX topics_owner_idx ON topics(owner);
 CREATE UNIQUE INDEX topics_id_owner_idx ON topics(topic, owner);
 CREATE INDEX topics_created_on_idx ON topics(created_on);
