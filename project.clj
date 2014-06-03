@@ -34,23 +34,23 @@
                  [clojurewerkz/scrypt     "1.1.0"]
 
                  ;; Pre-built components supplied by modular
-                 [juxt.modular/bidi "0.4.0-SNAPSHOT" :exclusions [bidi]]
-                 [juxt.modular/cljs "0.4.0-SNAPSHOT"]
-                 [juxt.modular/clostache "0.1.0-SNAPSHOT"]
-                 [juxt.modular/http-kit "0.4.0-SNAPSHOT"]
-                 [juxt.modular/maker "0.1.0-SNAPSHOT"]
-                 [juxt.modular/mqtt "0.1.0-SNAPSHOT"]
-                 [juxt.modular/menu "0.1.0-SNAPSHOT"]
-                 [juxt.modular/netty "0.1.0-SNAPSHOT"]
-                 [juxt.modular/ring "0.4.0-SNAPSHOT"]
-                 [juxt.modular/template "0.1.0-SNAPSHOT"]
-                 [juxt.modular/wire-up "0.1.0-SNAPSHOT"]
+                 [juxt.modular/bidi "0.4.0" :exclusions [bidi]]
+                 [juxt.modular/cljs "0.4.0"]
+                 [juxt.modular/clostache "0.1.0"]
+                 [juxt.modular/http-kit "0.4.0"]
+                 [juxt.modular/maker "0.1.0"]
+                 [juxt.modular/mqtt "0.1.0"]
+                 [juxt.modular/menu "0.1.0"]
+                 [juxt.modular/netty "0.1.0"]
+                 [juxt.modular/ring "0.4.0"]
+                 [juxt.modular/template "0.1.0"]
+                 [juxt.modular/wire-up "0.1.0"]
 
                  [bidi "1.10.3"]
                  [hiccup "1.0.5"]
                  [garden "1.1.5"]
                  [markdown-clj "0.9.36"]
-                 [cylon "0.2.0-SNAPSHOT"]
+                 [cylon "0.2.0"]
 
                  ;; Logging
 
