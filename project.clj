@@ -24,6 +24,7 @@
                  ;; Database
                  [org.clojure/java.jdbc "0.3.3"]
                  [postgresql/postgresql "8.4-702.jdbc4"]
+                 [clojurewerkz/cassaforte "2.0.0-beta1"]
 
                  ;; for query string parsing
                  ;;[javax.servlet/servlet-api "2.5"]
