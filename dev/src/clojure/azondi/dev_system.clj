@@ -41,15 +41,16 @@
   "Create a development system"
   [& [env]]
   (cond
-   (= env "prod") (let [s-map
+   (= env "prod") (let [c     (config)
+                        s-map
          (->
-          (configurable-system-map (config))
+          (configurable-system-map c)
           (assoc :api-tests (azondi.api-tests/new-api-tests)
                  :seed (new-seed-data)
 
-                 :database (new-database (get (config) :postgres))
+                 :database (new-database (get c :postgres))
                  :user-domain (new-prod-user-domain)
-                 :cassandra (cass/new-database (get (config) :cassandra {:keyspace "opensensors" :hosts ["127.0.0.1"]}))
+                 :cassandra (cass/new-database (get c :cassandra))
 
                  ;; We are going to use a combination of basic and
                  ;; cookie authentication. The basic authentication is
@@ -59,8 +60,7 @@
                  :cookie-authenticator (new-cookie-authenticator)
                  :basic-authenticator (new-http-basic-authenticator)
                  :authenticator (new-composite-disjunctive-authenticator
-                                 :cookie-authenticator :basic-authenticator)
-                 ))
+                                 :cookie-authenticator :basic-authenticator)))
                        d-map (new-dependency-map s-map)]
                    (component/system-using s-map d-map))
    :else
