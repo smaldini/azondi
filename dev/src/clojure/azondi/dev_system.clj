@@ -64,12 +64,14 @@
                        d-map (new-dependency-map s-map)]
                    (component/system-using s-map d-map))
    :else
-   (let [s-map
+   (let [c     (config)
+         s-map
          (->
-          (configurable-system-map (config))
+          (configurable-system-map c)
           (assoc :api-tests (azondi.api-tests/new-api-tests)
                  :seed (new-seed-data)
                  :database (new-inmemory-datastore)
+                 :cassandra (cass/new-database (get c :cassandra))
                  :user-domain (new-dev-user-domain)
 
                  ;; We are going to use a combination of basic and
