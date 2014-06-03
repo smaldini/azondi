@@ -24,7 +24,7 @@ CREATE TABLE IF NOT EXISTS api_keys (api text,
 -- Devices
 --
 
-CREATE TABLE IF NOT EXISTS devices (client_id SERIAL PRIMARY KEY,
+CREATE TABLE IF NOT EXISTS devices (client_id bigserial PRIMARY KEY,
                                     name text,
 				    description text,
                                     owner_user_id text,
