@@ -19,7 +19,7 @@
                  ;; Back-end
                  [clojurewerkz/triennium  "1.0.0-beta2"]
                  [cheshire                "5.3.1"]
-                 [clojurewerkz/meltdown   "1.0.0-beta12"]
+                 [clojurewerkz/meltdown   "1.0.0"]
 
                  ;; Database
                  [org.clojure/java.jdbc "0.3.3"]
