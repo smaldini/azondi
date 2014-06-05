@@ -45,7 +45,9 @@ INSERT INTO devices (name, owner_user_id, device_password_hash)
 DELETE FROM topics;
 
 INSERT INTO topics (unit, name, topic, public, owner)
-            VALUES ('PM10', 'pm10', 'yods/dusty/pm10', true, 'yods');
+            VALUES ('PM10', 'pm10', '/users/yods/pm10-1', true, 'yods');
+INSERT INTO topics (unit, name, topic, public, owner)
+            VALUES ('PM10', 'pm10', '/users/yods/pm10-2', true, 'yods');
 
 
 --
