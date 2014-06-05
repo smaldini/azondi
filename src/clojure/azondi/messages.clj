@@ -1,4 +1,4 @@
-(ns azondi.data.messages
+(ns azondi.messages
   "Stores messages for time series charting and analysis"
   (:require
             [clojurewerkz.meltdown.reactor :as mr]

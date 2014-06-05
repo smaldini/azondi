@@ -34,11 +34,11 @@
    [azondi.menu-views :refer (new-sidebar-menu new-navbar-menu)]
    [azondi.reactor :refer (new-reactor)]
    [azondi.bridges.ws :refer (new-websocket-bridge)]
-   [azondi.data.messages :refer (new-message-archiver)]
+   [azondi.messages :refer (new-message-archiver)]
    [azondi.website :refer (new-website render-custom-login-form)]
    [azondi.sse :refer (new-event-service)]
    [azondi.postgres :refer (new-database)]
-   [azondi.data.cassandra :as cass]
+   [azondi.cassandra :as cass]
    [azondi.api :refer (new-api)]
    ))
 

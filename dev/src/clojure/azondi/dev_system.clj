@@ -13,7 +13,7 @@
    [cylon.impl.session :refer (new-cookie-authenticator)]
    [azondi.postgres :refer (new-database)]
    [azondi.passwords :as pwd]
-   [azondi.data.cassandra :as cass]))
+   [azondi.cassandra :as cass]))
 
 (defrecord DevUserDomain []
   UserDomain
