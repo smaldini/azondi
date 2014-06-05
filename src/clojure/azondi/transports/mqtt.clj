@@ -138,7 +138,7 @@
   ;;  :dup false
   ;;  }
 
-  (go (>!! (:debug-ch handler-state) {:message (str "Connection attempt from " (.remoteAddress (.channel ctx))) :client-id client-id}))
+  (go (>!! (:debug-ch handler-state) {:message (format "Connection attempt from %, client id: %s" (peer-of ctx) client-id) :client-id client-id}))
 
   (cond
    (not (supported-protocol? protocol-name protocol-version))
