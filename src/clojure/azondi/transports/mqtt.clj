@@ -205,7 +205,8 @@
   ;;  :retain false}
   (let [{:keys [client-id username]} (get @connections-by-ctx ctx)]
     (if-let [public? (every? (fn [^String topic]
-                               (tp/exists-and-public? database username topic)))]
+                               (tp/exists-and-public? database username topic))
+                             topics)]
       (do
         (dosync
          (alter subscriptions record-subscribers ctx topics)
