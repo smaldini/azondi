@@ -70,7 +70,9 @@
           (configurable-system-map c)
           (assoc :api-tests (azondi.api-tests/new-api-tests)
                  :seed (new-seed-data)
-                 :database (new-inmemory-datastore)
+                 :database (if (System/getenv "USE_POSTGRESQL")
+                             (new-database (get c :postgres))
+                             (new-inmemory-datastore))
                  :cassandra (cass/new-database (get c :cassandra))
                  :user-domain (new-dev-user-domain)
 
