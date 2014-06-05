@@ -204,7 +204,7 @@
   ;;  ;; not used per MQTT v3.1 spec (section 3.8)
   ;;  :retain false}
   (let [{:keys [client-id username]} (get @connections-by-ctx ctx)]
-    (if-let [public? (every? (fn [^String topic]
+    (if-let [public? (every? (fn [[^String topic _]]
                                (tp/exists-and-public? database username topic))
                              topics)]
       (do
