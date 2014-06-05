@@ -8,8 +8,8 @@
   component/Lifecycle
   (start [this]
     (let [conn (cc/connect hosts)]
-      (cql/use-keyspace keyspace)
-      this))
+      (cql/use-keyspace conn keyspace)
+      (assoc this :session conn)))
   (stop [this] this))
 
 (defn new-database
