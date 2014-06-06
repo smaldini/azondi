@@ -6,7 +6,7 @@
    [markdown.core :as md]
    [hiccup.core :refer (html)]
    [org.httpkit.server :refer (run-server)]
-   [azondi.basepage :refer (base-page)]
+   [azondi.basepage :refer :all]
  ))
 
 (defn md->html
@@ -30,7 +30,12 @@
    :services
    (fn [req]
      {:status 200 :body (base-page (md->html (io/resource "markdown/services.md")))})
-
+   :devices
+   (fn [req]
+     {:status 200 :body (devices-page)})
+   :topics
+   (fn [req]
+     {:status 200 :body (topics-page)})
    ;; add devices and topics, then reset password
    })
 
@@ -42,7 +47,9 @@
                       ["help" (:help pages)]
                       ["about" (:about pages)]
                       ["terms" (:terms pages)]
-                      ["services" (:services pages)]]]))
+                      ["services" (:services pages)]
+                      ["devices" (:devices pages)]
+                      ["topics" (:topics pages)]]]))
 
 
 (defrecord WebServer []

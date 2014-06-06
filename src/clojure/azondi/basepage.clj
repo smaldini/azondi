@@ -63,7 +63,7 @@
       (when (= :sidebar (:location menu))
         [:li.side-menu-item [:a {:href (:target menu)} (:label menu)]]))]])
 
-(defn base-page [body]
+(defn base-page [body & scr]
   (html5
    [:head
     [:meta {:charset "utf-8"}]
@@ -74,7 +74,15 @@
     [:title "opensensors.IO"]
     [:link {:href "css/bootstrap.min.css" :rel "stylesheet"}]
     [:link {:href "http://fonts.googleapis.com/css?family=Montserrat" :rel "stylesheet"}]
-    [:link {:href "css/style.css" :rel "stylesheet"}]]
+    [:link {:href "css/style.css" :rel "stylesheet"}]
+    [:script {:src "js/jquery.min.js"}]
+     [:script {:src "js/bootstrap.min.js"}]
+     [:script {:src "js/react-0.9.0.js"}]
+     ;;cljs
+     [:script {:src "cljs/cljs.js"}]
+     [:script {:src "cljs/csk.js"}]
+     [:script {:src "cljs/azondi.js"}]
+     [:script {:src "cljs/logo.js"}]]
    [:body
     [:div#wrap
      [:nav {:class "navbar navbar-default" :role "navigation"}
@@ -111,7 +119,23 @@
              [:img {:src "imgs/glyphicons_social_31_twitter.png"}]]]
        [:li [:a {:href "mailto:hello@opensensors.io?subject=website%20enquiry"}
              [:img {:src "imgs/glyphicons_010_envelope.png"}]]]]]
-     [:script {:src "js/jquery.min.js"}]
-     [:script {:src "js/bootstrap.min.js"}]
-     [:script {:src "js/react-0.9.0.js"}]
-     ]]))
+      ;; extenal libs
+     
+     ]
+     scr
+    ]))
+
+(defn devices-page []
+  (base-page
+   [:div
+    [:h1 "Devices"]
+    [:div#content [:p.loading "Loading..."]]]
+   [:script "azondi.main.devices_page('alice');" ]))
+
+(defn topics-page []
+  (base-page
+   [:div
+    [:h1 "Devices"]
+    [:div#content [:p.loading "Loading..."]]]
+   [:script "azondi.main.t('alice');" ]))
+

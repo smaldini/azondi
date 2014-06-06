@@ -9,9 +9,10 @@
    [clojure.tools.reader.reader-types :refer (indexing-push-back-reader)]
    [clojure.core.async :as async]
    [clojure.tools.logging :refer :all]
-
+   [schema.core :as s]
+   
    ;; Pre-baked components
-   [modular.cljs :refer (new-cljs-module new-cljs-builder)]
+   [modular.cljs :refer :all]
    [modular.netty :refer (new-netty-server)]
    [modular.netty.mqtt :refer (new-mqtt-decoder new-mqtt-encoder)]
    
@@ -25,7 +26,8 @@
    [azondi.data.cassandra :as cass]
    [azondi.api :refer (new-api)]
    [azondi.webapp :refer (new-webserver)]
-   ))
+   )
+  (:import [modular.cljs ClojureScriptBuilder]))
 
 (defn ^:private read-file
   [f]
@@ -58,6 +60,22 @@
   (merge (config-from-classpath)
          (user-config)))
 
+(defn new-azondi-cljs-builder [& {:as opts}]
+  (->> opts
+       (merge {:id ::default
+               :context (if-let [id (:id opts)]
+                              (format "/cljs-%s/" (name id))
+                              "/cljs/")
+               :source-path "src-cljs"
+               :target-dir (if-let [id (:id opts)]
+                             (str "resources/public/cljs/" (name id))
+                             "resources/public/cljs")
+               :work-dir "target/cljs-work"
+               :optimizations :none
+               :pretty-print true})
+       (s/validate new-cljs-builder-schema)
+       map->ClojureScriptBuilder))
+
 (defn configurable-system-map
   [config]
   (let [debug-ch (async/chan 64)
@@ -81,7 +99,7 @@
      :cljs-core (new-cljs-module :name :cljs :mains ['cljs.core] :dependencies #{})
      :cljs-main (new-cljs-module :name :azondi :mains ['azondi.main] :dependencies #{:cljs})
      :cljs-logo (new-cljs-module :name :logo :mains ['azondi.logo] :dependencies #{:cljs})
-     :main-cljs-builder (new-cljs-builder :source-path "src/cljs")
+     :main-cljs-builder (new-azondi-cljs-builder :source-path "src/cljs")
 
      ;; API
      :api (new-api :uri-context "/api/1.0")
