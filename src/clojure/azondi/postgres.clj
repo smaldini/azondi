@@ -37,16 +37,16 @@
       (j/insert! (conn this) :users {:id user :name name :email email :password_hash p :role role})))
 
   (get-users [this]
-    (j/query (conn this) ["Select * from users;"]))
+    (j/query (conn this) ["SELECT * FROM users;"]))
 
   (get-user [this user]
-    (first (j/query (conn this) [(format "Select * from users where id = '%s'" user)])))
+    (first (j/query (conn this) ["SELECT * FROM users WHERE id = ?" user])))
 
   (delete-user! [this user]
-    (j/delete! (conn this) :users [(format "id = '%s'" user)]))
+    (j/delete! (conn this) :users ["id = ?" user]))
 
   (devices-by-owner [this user]
-    (psql->clj (j/query (conn this) [(format "SELECT * from devices WHERE owner_user_id = '%s';" user)])))
+    (psql->clj (j/query (conn this) ["SELECT * FROM devices WHERE owner_user_id = ?;" user])))
 
   (create-device! [this user pwd]
     (let [data {:owner_user_id user :device_password_hash (sc/encrypt pwd)}]
@@ -55,15 +55,15 @@
                      (dissoc :created_on)))))
 
   (get-device [this client-id]
-    (psql->clj (-> (first (j/query (conn this) [(format "SELECT * from devices where client_id = '%s' ;" client-id)]))
+    (psql->clj (-> (first (j/query (conn this) ["SELECT * FROM devices WHERE client_id = ?;" client-id]))
                    (dissoc :device_password_hash))))
 
   (delete-device! [this client-id]
-    (j/delete! (conn this) :devices [(format  "client_id = '%s'" client-id)]))
+    (j/delete! (conn this) :devices ["client_id = ?" client-id]))
 
   (set-device-password! [this client-id p]
     (let [pwd-hash (sc/encrypt p)]
-      (j/update! (conn this) :devices {:device_password_hash pwd-hash} [(format "client_id = '%s'" client-id)])))
+      (j/update! (conn this) :devices {:device_password_hash pwd-hash} ["client_id = ?" client-id])))
 
   (allowed-device? [this client-id username pwd]
     (let [device (first (j/query (conn this) ["SELECT * FROM devices WHERE client_id = ? AND owner_user_id = ? LIMIT 1;"
@@ -71,10 +71,10 @@
       (sc/verify pwd (:device_password_hash device))))
 
   (patch-device! [this client-id data]
-    (j/update! (conn this) :devices data [(format "client_id = '%s'" client-id)]))
+    (j/update! (conn this) :devices data ["client_id = ?" client-id]))
 
   (topics-by-owner [this user]
-    (clj->psql (j/query (conn this) [(format "Select * from topics where owner = '%s';" user)])))
+    (clj->psql (j/query (conn this) ["SELECT * FROM topics WHERE owner = ?;" user])))
 
   (create-topic! [this topic]
     (let [t (clj->psql (merge topic {:public true}))]
@@ -85,14 +85,14 @@
 
   (get-topic [this topic-id]
     (psql->clj
-     (-> (-> (first (j/query (conn this) [(format "Select * from topics where topic = '%s';" topic-id)]))
+     (-> (-> (first (j/query (conn this) ["SELECT * FROM topics WHERE topic = ?;" topic-id]))
              (dissoc :created_on)))))
 
   (delete-topic! [this topic-id]
-    (j/delete! (conn this) :topics [(format  "topic = '%s'" topic-id)]))
+    (j/delete! (conn this) :topics ["topic = ?" topic-id]))
 
   (patch-topic! [this topic-id data]
-    (j/update! (conn this) :topics data [(format "topic = '%s'" topic-id)]))
+    (j/update! (conn this) :topics data ["topic = ?" topic-id]))
   ) 
 
 (defn new-database
