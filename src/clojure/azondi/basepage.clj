@@ -75,14 +75,7 @@
     [:link {:href "css/bootstrap.min.css" :rel "stylesheet"}]
     [:link {:href "http://fonts.googleapis.com/css?family=Montserrat" :rel "stylesheet"}]
     [:link {:href "css/style.css" :rel "stylesheet"}]
-    [:script {:src "js/jquery.min.js"}]
-     [:script {:src "js/bootstrap.min.js"}]
-     [:script {:src "js/react-0.9.0.js"}]
-     ;;cljs
-     [:script {:src "cljs/cljs.js"}]
-     [:script {:src "cljs/csk.js"}]
-     [:script {:src "cljs/azondi.js"}]
-     [:script {:src "cljs/logo.js"}]]
+    
    [:body
     [:div#wrap
      [:nav {:class "navbar navbar-default" :role "navigation"}
@@ -109,6 +102,13 @@
       [:div.col-sm-9
        body]
       [:div#ankha]]
+     [:script {:src "js/jquery.min.js"}]
+     [:script {:src "js/bootstrap.min.js"}]
+     [:script {:src "js/react-0.9.0.js"}]
+     ;;cljs
+     [:script {:src "cljs/cljs.js"}]
+     [:script {:src "cljs/azondi.js"}]
+     [:script {:src "cljs/logo.js"}]]
      [:div#footer {:class "navbar-default navbar-fixed-bottom"}
       [:ul.footer-list
        [:li "&copy; 2014 open sensors ltd"]
@@ -137,5 +137,5 @@
    [:div
     [:h1 "Devices"]
     [:div#content [:p.loading "Loading..."]]]
-   [:script "azondi.main.t('alice');" ]))
+   [:script "azondi.main.topics_page('alice');" ]))
 
