@@ -135,7 +135,7 @@
 (defn topics-page []
   (base-page
    [:div
-    [:h1 "Devices"]
+    [:h1 "Topics"]
     [:div#content [:p.loading "Loading..."]]]
    [:script "azondi.main.topics_page('alice');" ]))
 
