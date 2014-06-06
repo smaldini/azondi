@@ -11,5 +11,5 @@ pom.xml.asc
 /todo.org
 debug/*
 resources/public/js/bridge.js
-resouces/public/cljs
+resources/public/cljs
 resources/azondi.edn
