@@ -12,10 +12,11 @@
 (def date-and-hour-formatter (tf/formatter "yyyy-MM-dd HH"))
 
 (defn archive-message
-  [db data]
+  [db ^String topic data]
   (let [now (tc/now)]
     (cql/insert db collection (merge data
-                                     {:created_at    (.toDate now)
+                                     {:topic         topic
+                                      :created_at    (.toDate now)
                                       :date_and_hour (tf/unparse date-and-hour-formatter now)}))))
 
 (defrecord MessageArchiver []
@@ -23,8 +24,8 @@
   (start [this]
     (let [r   (get-in this [:reactor :reactor])
           db  (get-in this [:cassandra :session])
-          sub (mr/on r (match-all) (fn [{:keys [data]}]
-                                     (archive-message db data)))]
+          sub (mr/on r (match-all) (fn [{:keys [key data]}]
+                                     (archive-message db key data)))]
       (-> this
           (assoc :subscription sub))))
   (stop [this]
