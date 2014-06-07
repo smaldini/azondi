@@ -10,7 +10,7 @@
             [camel-snake-kebab :as csk]))
 
 (defn conn [this]
-  (get-in this [:connection]))
+  (get this :connection))
 
 (defn clj->psql [mp]
   (process-maps mp csk/->snake_case))
