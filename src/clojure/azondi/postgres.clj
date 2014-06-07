@@ -1,5 +1,5 @@
 (ns azondi.postgres
-  "PostgreSQL connectivity and schema management"
+  "Database protocol implementation for PostgreSQL"
   (:require [clojure.java.jdbc :as j]
             [schema.core :as s]
             [com.stuartsierra.component :as component]
