@@ -77,11 +77,21 @@
     (clj->psql (j/query (conn this) ["SELECT * FROM topics WHERE owner = ?;" user])))
 
   (create-topic! [this topic]
-    (let [t (clj->psql (merge topic {:public true}))]
+    (let [s (last (.split topic "//"))
+          t (clj->psql (merge topic {:public true :name s}))]
       (psql->clj (-> (j/insert! (conn this) :topics t)
                      first
                      (dissoc :created_on))
                  )))
+
+  (maybe-create-topic! [this {:keys [topic owner]}]
+    (let [name (last (.split topic "//"))]
+      (j/execute! (conn this)
+                  ["INSERT INTO topics (name, topic, owner, public)
+                    SELECT ?, ?, ?, true
+                    WHERE NOT EXISTS (SELECT topic, owner FROM topics WHERE topic = ? AND owner = ?)",
+                   name, topic, owner,
+                   topic, owner])))
 
   (get-topic [this topic-id]
     (psql->clj

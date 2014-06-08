@@ -16,6 +16,7 @@
   ;;topics
   (topics-by-owner [_ user])
   (create-topic! [_ topic])
+  (maybe-create-topic! [_ topic])
   (get-topic [_ topic-id])
   (delete-topic! [_ topic-id])
   (patch-device! [_ client-id data])

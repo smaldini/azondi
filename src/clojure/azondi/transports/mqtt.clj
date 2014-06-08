@@ -320,9 +320,11 @@
                      {:client-id client-id
                       :message (str "Publishing message on topic: " topic)}))
             (f ctx msg handler-state)
-            (mr/notify reactor topic {:device_id client-id
-                                      :payload payload
-                                      :content_type "application/json"}))
+            (mr/notify reactor "messages.inbound" {:device_id client-id
+                                                   :payload payload
+                                                   :content_type "application/json"
+                                                   :topic topic
+                                                   :owner username}))
           (do
             (warnf "Rejecting client %s for publishing a message %d in size to topic %s" client-id (alength payload) topic)
             (abort ctx)))

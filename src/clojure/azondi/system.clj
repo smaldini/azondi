@@ -35,6 +35,7 @@
    [azondi.reactor :refer (new-reactor)]
    [azondi.bridges.ws :refer (new-websocket-bridge)]
    [azondi.messages :refer (new-message-archiver)]
+   [azondi.topics :refer (new-topic-injector)]
    [azondi.website :refer (new-website render-custom-login-form)]
    [azondi.sse :refer (new-event-service)]
    [azondi.postgres :refer (new-database)]
@@ -144,8 +145,8 @@
      ;; Use a static authenticator when you want to force login to be a particular user
      ;;:authenticator (new-static-authenticator :user "alice")
      :authenticator (new-cookie-authenticator)
-
-     :message-archiver (new-message-archiver))))
+     :message-archiver (new-message-archiver)
+     :topic-injector (new-topic-injector))))
 
 (defn new-dependency-map [system-map]
   (->

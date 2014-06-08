@@ -72,6 +72,13 @@
     (dosync
      (alter (-> this :database :topics) assoc (:topic topic) topic)))
 
+  (maybe-create-topic! [this topic]
+    (dosync
+     (alter (-> this :database :topics) (fn [m k v]
+                                          (when (nil? (get m k))
+                                            (assoc m k v)))
+            (:topic topic) topic)))
+
   (get-topic [this topic]
     (-> this :database :topics deref (get topic)))
 

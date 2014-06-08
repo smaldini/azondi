@@ -3,7 +3,7 @@
   (:require [clojurewerkz.cassaforte.cql :as cql]
             [clojurewerkz.meltdown.reactor :as mr]
             [clojurewerkz.meltdown.consumers :as mc]
-            [clojurewerkz.meltdown.selectors :refer [match-all]]
+            [clojurewerkz.meltdown.selectors :refer [$]]
             [clj-time.core   :as tc]
             [clj-time.format :as tf]
             [com.stuartsierra.component :as component]))
@@ -12,20 +12,19 @@
 (def date-and-hour-formatter (tf/formatter "yyyy-MM-dd HH"))
 
 (defn archive-message
-  [db ^String topic data]
+  [db data]
   (let [now (tc/now)]
-    (cql/insert db table (merge data
-                                {:topic         topic
-                                 :created_at    (.toDate now)
-                                 :date_and_hour (tf/unparse date-and-hour-formatter now)}))))
+    (cql/insert-async db table (merge data
+                                      {:created_at    (.toDate now)
+                                       :date_and_hour (tf/unparse date-and-hour-formatter now)}))))
 
 (defrecord MessageArchiver []
   component/Lifecycle
   (start [this]
     (let [r   (get-in this [:reactor :reactor])
           db  (get-in this [:cassandra :session])
-          sub (mr/on r (match-all) (fn [{:keys [key data]}]
-                                     (archive-message db key data)))]
+          sub (mr/on r ($ "messages.inbound") (fn [{:keys [data]}]
+                                                (archive-message db data)))]
       (-> this
           (assoc :subscription sub))))
   (stop [this]
