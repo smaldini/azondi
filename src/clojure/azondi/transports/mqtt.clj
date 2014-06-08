@@ -15,7 +15,8 @@
             [clojurewerkz.meltdown.reactor :as mr]
             
             [clojurewerkz.meltdown.selectors :as ms :refer [$]]
-            [clojure.core.async :refer (chan pub dropping-buffer sub go >! <! >!! <!! take! put! timeout)])
+            [clojure.core.async :refer (chan pub dropping-buffer sub go >! <! >!! <!! take! put! timeout)]
+            [azondi.reactor.keys :as rk])
   (:import  [io.netty.channel ChannelHandlerAdapter ChannelHandlerContext Channel]
             java.net.InetSocketAddress
             [java.util.concurrent ExecutorService Executors]))
@@ -320,11 +321,11 @@
                      {:client-id client-id
                       :message (str "Publishing message on topic: " topic)}))
             (f ctx msg handler-state)
-            (mr/notify reactor "messages.inbound" {:device_id client-id
-                                                   :payload payload
-                                                   :content_type "application/json"
-                                                   :topic topic
-                                                   :owner username}))
+            (mr/notify reactor rk/message-published {:device_id client-id
+                                                     :payload payload
+                                                     :content_type "application/json"
+                                                     :topic topic
+                                                     :owner username}))
           (do
             (warnf "Rejecting client %s for publishing a message %d in size to topic %s" client-id (alength payload) topic)
             (abort ctx)))

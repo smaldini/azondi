@@ -5,7 +5,8 @@
             [clojurewerkz.meltdown.consumers :as mc]
             [clojurewerkz.meltdown.selectors :refer [$]]
             [clojure.core.cache :as cache]
-            [clojure.java.jdbc :as j]))
+            [clojure.java.jdbc :as j]
+            [azondi.reactor.keys :as rk]))
 
 (defn authorized-to-publish?
   [^String topic ^String username]
@@ -44,8 +45,8 @@
     (let [r   (get-in this [:reactor :reactor])
           db  (get    this :database)
           lru (atom (cache/lru-cache-factory {} :threshold lru-cache-size))
-          sub (mr/on r ($ "messages.inbound") (fn [{:keys [data]}]
-                                                (maybe-insert-topic db lru data)))]
+          sub (mr/on r ($ rk/message-published) (fn [{:keys [data]}]
+                                                  (maybe-insert-topic db lru data)))]
       (-> this
           (assoc :subscription sub
                  :cache        lru))))

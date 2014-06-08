@@ -6,7 +6,8 @@
             [clojurewerkz.meltdown.selectors :refer [$]]
             [clj-time.core   :as tc]
             [clj-time.format :as tf]
-            [com.stuartsierra.component :as component]))
+            [com.stuartsierra.component :as component]
+            [azondi.reactor.keys :as rk]))
 
 (def ^:const table "messages")
 (def date-and-hour-formatter (tf/formatter "yyyy-MM-dd HH"))
@@ -23,7 +24,7 @@
   (start [this]
     (let [r   (get-in this [:reactor :reactor])
           db  (get-in this [:cassandra :session])
-          sub (mr/on r ($ "messages.inbound") (fn [{:keys [data]}]
+          sub (mr/on r ($ rk/message-published) (fn [{:keys [data]}]
                                                 (archive-message db data)))]
       (-> this
           (assoc :subscription sub))))
