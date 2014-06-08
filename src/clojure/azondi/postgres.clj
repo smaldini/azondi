@@ -18,6 +18,10 @@
 (defn psql->clj [mp]
   (process-maps mp csk/->kebab-case))
 
+(defn ^String extract-topic-name
+  [^String topic]
+  (last (.split topic "/"))
+
 (defrecord Database [host port dbname user password]
   component/Lifecycle
   (start [this]
@@ -77,7 +81,7 @@
     (clj->psql (j/query (conn this) ["SELECT * FROM topics WHERE owner = ?;" user])))
 
   (create-topic! [this topic]
-    (let [s (last (.split topic "/"))
+    (let [s (extract-topic-name (:topic topic)))
           t (clj->psql (merge topic {:public true :name s}))]
       (psql->clj (-> (j/insert! (conn this) :topics t)
                      first
@@ -85,7 +89,7 @@
                  )))
 
   (maybe-create-topic! [this {:keys [topic owner]}]
-    (let [name (last (.split topic "/"))]
+    (let [name (extract-topic-name topic)]
       (j/execute! (conn this)
                   ["INSERT INTO topics (name, topic, owner, public)
                     SELECT ?, ?, ?, true
