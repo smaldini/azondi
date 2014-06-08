@@ -20,7 +20,7 @@
 
 (defn ^String extract-topic-name
   [^String topic]
-  (last (.split topic "/"))
+  (last (.split topic "/")))
 
 (defrecord Database [host port dbname user password]
   component/Lifecycle
