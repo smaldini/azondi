@@ -81,7 +81,7 @@
     (clj->psql (j/query (conn this) ["SELECT * FROM topics WHERE owner = ?;" user])))
 
   (create-topic! [this topic]
-    (let [s (extract-topic-name (:topic topic)))
+    (let [s (extract-topic-name (:topic topic))
           t (clj->psql (merge topic {:public true :name s}))]
       (psql->clj (-> (j/insert! (conn this) :topics t)
                      first
