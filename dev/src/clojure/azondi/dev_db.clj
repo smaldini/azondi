@@ -65,6 +65,14 @@
         [:user :password])
        {:user user :password p}))
 
+  (topic-of-owner [this user topic]
+    (let [rows (vals @(-> this :database :topics))]
+      (some (fn [m]
+              (when (and (= (:owner m) user)
+                         (= (:topic m) topic))
+                m))
+            rows)))
+
   (topics-by-owner [this user]
     (filter (comp (partial = user) :owner) (vals @(-> this :database :topics))))
 

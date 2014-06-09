@@ -77,6 +77,11 @@
   (patch-device! [this client-id data]
     (j/update! (conn this) :devices data ["client_id = ?" client-id]))
 
+  (topic-of-owner [this user topic]
+    (clj->psql (first
+                (j/query (conn this)
+                         ["SELECT * FROM topics WHERE owner = ? AND topic = ? LIMIT 1;" user topic]))))
+
   (topics-by-owner [this user]
     (clj->psql (j/query (conn this) ["SELECT * FROM topics WHERE owner = ?;" user])))
 

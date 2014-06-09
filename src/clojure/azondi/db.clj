@@ -14,6 +14,7 @@
   (set-device-password! [_ client-id p])
   (allowed-device? [_ client-id user p])
   ;;topics
+  (topic-of-owner [_ user topic])
   (topics-by-owner [_ user])
   (create-topic! [_ topic])
   (maybe-create-topic! [_ topic])
