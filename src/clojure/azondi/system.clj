@@ -10,7 +10,7 @@
    [clojure.core.async :as async]
    [clojure.tools.logging :refer :all]
    [schema.core :as s]
-   
+      
    ;; Pre-baked components
    [modular.cljs :refer :all]
    [modular.netty :refer (new-netty-server)]
@@ -25,7 +25,7 @@
    [azondi.postgres :refer (new-database)]
    [azondi.data.cassandra :as cass]
    [azondi.api :refer (new-api)]
-   [azondi.webapp :refer (new-webserver)]
+   [azondi.webapp :refer (new-webapp)]
    )
   (:import [modular.cljs ClojureScriptBuilder]))
 
@@ -95,7 +95,7 @@
      :ws (new-websocket-bridge {:port 8083})
 
      ;; Webserver and routing
-     :webserver (new-webserver)
+     
      :cljs-core (new-cljs-module :name :cljs :mains ['cljs.core] :dependencies #{})
      :cljs-main (new-cljs-module :name :azondi :mains ['azondi.main] :dependencies #{:cljs})
      :cljs-logo (new-cljs-module :name :logo :mains ['azondi.logo] :dependencies #{:cljs})
@@ -103,6 +103,8 @@
 
      ;; API
      :api (new-api :uri-context "/api/1.0")
+     :webapp (new-webapp)
+
      :sse (let [sse-ch (async/chan 64)
                 ;; SSE splits on client-id
                 sse-pub (async/pub (async/tap debug-mult sse-ch) :client-id)]

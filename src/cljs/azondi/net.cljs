@@ -3,6 +3,7 @@
   (:require
    [clojure.string :as str :refer (join upper-case)]
    [goog.net.XhrManager :as xhrm]
+   [goog.net.XhrIo :as xhr]
    [cljs.reader :as reader]
    [azondi.csk :as csk]
    [cljs.core.async :refer [<! >! chan put! sliding-buffer close! pipe map< filter< mult tap map> timeout]]
@@ -43,7 +44,7 @@
   (let [out (chan)]
     (go-loop []
       (when-let [m (<! in)]
-        (let [m (merge {:timeout 10} opts m)
+        (let [m (merge {:timeout 0} opts m)
               headers (clj->js (into {} (remove (comp nil? second)
                                                 [["Accept" (:accept m)]
                                                  ["Content-Type" (:content-type m)]
@@ -57,17 +58,13 @@
                            (fn [ev]
                              (let [xhrio (.-target ev)
                                    status (.getStatus xhrio)
-                                   ;;body (parse-response-body xhrio)
+                                   body (parse-response-body xhrio)
                                    ]
-                               (.log js/console (str "status " status))
-                               (.log js/console (.getLastError xhrio))
-                             ;;  (.log js/console (.getResponse xhrio))
                                (go
-                                 
                                  (>! out {:status status :body body})))))
             (.setTimeoutInterval (:timeout m))
             (.send (:uri m)
-                   (if (keyword? (:method m))
+             (if (keyword? (:method m))
                      (upper-case (name (:method m)))
                      (:method m))
                    (case (:content-type m)

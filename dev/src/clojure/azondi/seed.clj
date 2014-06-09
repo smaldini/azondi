@@ -14,7 +14,7 @@
    ))
 
 (defn make-uri [route]
-  (str "http://localhost:" 3000 "/api/1.0" route))
+  (str "/api/1.0" route))
 
 (defn seed-data! []
   (request :put (make-uri "/users/yods/")
@@ -57,4 +57,4 @@
   (stop [this] this))
 
 (defn new-seed-data []
-  (component/using (->SeedData) [:webserver :api]))
+  (component/using (->SeedData) [:webapp :api]))

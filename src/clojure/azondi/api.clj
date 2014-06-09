@@ -5,7 +5,7 @@
    ;; bidi, construction of these hyperlinks becomes increasingly
    ;; cumbersome and brittle.
    [clojure.tools.logging :refer :all]
-   [bidi.bidi :as bidi :refer (path-for ->Redirect make-handler)]
+   [bidi.bidi :as bidi :refer (path-for ->Redirect)]
    [liberator.core :refer (resource)]
    [com.stuartsierra.component :as component]
    [clojure.java.io :as io]
@@ -16,7 +16,6 @@
    [azondi.db :refer (get-users get-user delete-user! create-user! devices-by-owner get-device delete-device! create-device! patch-device! topics-by-owner get-topic delete-topic! create-topic! patch-topic! set-device-password!)]
    [hiccup.core :refer (html)]
    [clojure.walk :refer (postwalk)]
-   [org.httpkit.server :refer (run-server)]
    liberator.representation
    ))
 
@@ -320,32 +319,28 @@
    :handle-ok (fn [{topic :topic existing :existing}] existing)
    :handle-created (fn [_] {:message "Patched"})})
 
-(defn routes [db uri-context]
-  [uri-context {"" (resource (welcome-resource))
-                               "/" (->Redirect 307 "")
-                               "/users" (->Redirect 307 "/users/")
-                               "/users/" (resource (users-resource db))
-                               ["/users/" :user] {"" (resource (user-resource db))
-                                                  "/devices/"  (resource (devices-resource db))
-                                                  "/devices" (->Redirect 307 "/devices/")
-                                                  ["/devices/" :client-id] (resource (device-resource db))
-                                                  ["/devices/" :client-id "/reset-password"] (resource (reset-device-password-resource db))
-                                                  "/topics" (->Redirect 307 (resource (topics-resource db)))
-                                                  "/topics/" (resource (topics-resource db))
-                                                  ["/topics/" :topic-name] (resource (topic-resource db))}}])
+(defn api-routes [db uri-context]
+  {"" (resource (welcome-resource))
+      "/" (->Redirect 307 "")
+      "/users" (->Redirect 307 "/users/")
+      "/users/" (resource (users-resource db))
+      ["/users/" :user] {"" (resource (user-resource db))
+                         "/devices/"  (resource (devices-resource db))
+                         "/devices" (->Redirect 307 "/devices/")
+                         ["/devices/" :client-id] (resource (device-resource db))
+                         ["/devices/" :client-id "/reset-password"] (resource (reset-device-password-resource db))
+                         "/topics" (->Redirect 307 (resource (topics-resource db)))
+                         "/topics/" (resource (topics-resource db))
+                         ["/topics/" :topic-name] (resource (topic-resource db))}})
 
 (defrecord Api []
   component/Lifecycle
   (start [this]
-    (let [routes (routes (:database this) "/api/1.0")
-          api (run-server (make-handler routes) {:port 3000})]
+    (let [routes (api-routes (:database this) "/api/1.0")]
       (assoc this
-        :api api
-        :routes routes)))
+        :api-routes routes)))
   (stop [this]
-    (when-let [api (:api this)]
-      (api (:database this) "/api/1.0")
-      (dissoc this :api))))
+    (dissoc this :api-routes)))
 
 (defn new-api [& {:as opts}]
   (component/using (->Api)

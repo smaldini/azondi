@@ -15,14 +15,14 @@
 (def port nil)
 
 (defn make-uri [route]
-  (str "http://localhost:" 3000 "/api/1.0" route))
+  (str "api/1.0" route))
 
 
 (deftest devices
   ;; Create Alice
   (is (not (get-user db "alice")))
   (let [uri (make-uri "/users/alice")
-        response (request :put "http://localhost:3000/api/1.0/users/alice" :data {:password "lewis"
+        response (request :put "/api/1.0/users/alice" :data {:password "lewis"
                                           :name "Alice Cheung"
                                           :email "alice@example.org"
                                           })]
@@ -177,4 +177,4 @@
   (stop [this] this))
 
 (defn new-api-tests []
-  (component/using (->ApiTests) [:api :database :webserver]))
+  (component/using (->ApiTests) [:api :database :webapp]))

@@ -3,7 +3,7 @@
   (:require
    [clojure.string :as string]
    [cljs.reader :as reader]
-   [cljs.core.async :refer [<! >! chan put! sliding-buffer close! pipe map< filter< mult tap map> timeout]]
+   [cljs.core.async :refer [<! >! <!! chan put! sliding-buffer close! pipe map< filter< mult tap map> timeout]]
    [om.core :as om :include-macros true]
    [sablono.core :as html :refer-macros [html]]
    [azondi.net :refer (ajaj< listen-sse)]
@@ -11,8 +11,8 @@
    [chord.client :refer [ws-ch]]
    [azondi.csk :as csk]
    [azondi.chart :refer (chart-component)]
+   [ajax.core :refer [GET POST]]))
 
-   ))
 
 (enable-console-print!)
 
@@ -22,7 +22,7 @@
                 (set! (.-href a) (.-URL js/document))
                 (.-hostname a)))
 
-(def uri-init (str "http://" hostname ":3000/api/1.0"))
+(def uri-init "/api/1.0")
 
 (def app-model
   (atom {:user "nobody"
@@ -54,9 +54,10 @@
       (let [ajax-send (chan)
             uri (str uri-init "/users/" (:user app-state) "/devices/")
             ajax-recv (ajaj< ajax-send
-                             :method :get
-                             :uri uri)]
-        (.log js/console (str "sending " uri))
+                                  :method :get
+                                  :uri uri)
+            ]
+        
         (go
           (>! ajax-send {})
           (let [r (<! ajax-recv)]

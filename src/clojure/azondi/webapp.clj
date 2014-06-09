@@ -5,8 +5,8 @@
    [bidi.bidi :refer (make-handler ->ResourcesMaybe)]
    [markdown.core :as md]
    [hiccup.core :refer (html)]
-   [org.httpkit.server :refer (run-server)]
    [azondi.basepage :refer :all]
+   [org.httpkit.server :refer (run-server)]
  ))
 
 (defn md->html
@@ -41,28 +41,33 @@
 
 
 
-(defn app []
-  (make-handler ["/" [["" (:index pages)]
-                      ["" (->ResourcesMaybe {:prefix "public/"})]
-                      ["help" (:help pages)]
-                      ["about" (:about pages)]
-                      ["terms" (:terms pages)]
-                      ["services" (:services pages)]
-                      ["devices" (:devices pages)]
-                      ["topics" (:topics pages)]]]))
+(defn app [api-routes]
+  ["/" [["" (:index pages)]
+        ["" (->ResourcesMaybe {:prefix "public/"})]
+        ["help" (:help pages)]
+        ["about" (:about pages)]
+        ["terms" (:terms pages)]
+        ["services" (:services pages)]
+        ["devices" (:devices pages)]
+        ["topics" (:topics pages)]
+        ["api/1.0" api-routes]]])
 
 
-(defrecord WebServer []
+(defrecord WebApp []
   component/Lifecycle
   (start [this]
-    (let [server (run-server (app) {:port 8010})]
-     (assoc this :server server)))
+    (let [webapp-routes (app (get-in this [:api :api-routes]))
+          server (run-server (make-handler webapp-routes) {:port 8010})]
+      (assoc this
+        :webapp-routes webapp-routes
+        :webserver server)))
   (stop [this]
-    (when-let [server (:server this)]
+    (when-let [server (:webserver this)]
       (server)
-      (dissoc this :server))))
+      (dissoc this :webapp-routes :webserver))))
 
-(defn new-webserver []
-  (->WebServer))
+(defn new-webapp []
+  (component/using (->WebApp)
+                   [:api]))
 
 

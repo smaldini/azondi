@@ -44,7 +44,7 @@
                  [markdown-clj "0.9.36"]
                  [cylon "0.2.0-SNAPSHOT"]
                  [http-kit "2.1.16"]
-
+                 
                  ;; Logging
 
                  ;; I tried but couldn't get timbre to talk to
@@ -65,8 +65,7 @@
                  [sablono "0.2.6" :exclusions [com.facebook/react]]
                  [om "0.6.2"]
                  [org.clojure/core.async "0.1.267.0-0d7780-alpha"]
-                 [cljs-ajax "0.2.3"]
-;;                 [ankha "0.1.2"]
+                 [cljs-ajax "0.2.4"]
                  [jarohen/chord "0.3.1"]
                  [org.clojars.ideal-knee/dommy "0.1.3-SNAPSHOT"]]
 
