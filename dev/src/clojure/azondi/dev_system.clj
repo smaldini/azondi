@@ -17,28 +17,30 @@
   "Create a development system"
   [& [env]]
   (cond
-   (= env "prod") (let [s-map
+   (= env "prod") (let [c (config)
+                        s-map
          (->
           (configurable-system-map (config))
           (assoc :api-tests (azondi.api-tests/new-api-tests)
                  :seed (new-seed-data)
 
-                 :database (new-database (get (config) :postgres))
+                 :database (new-database (get c :postgres))
 
-                 :cassandra (cass/new-database (get (config) :cassandra {:keyspace "opensensors" :hosts ["127.0.0.1"]}))
+                 :cassandra (cass/new-database (get c :cassandra {:keyspace "opensensors" :hosts ["127.0.0.1"]}))
                  ))
                        d-map (new-dependency-map s-map)]
                    (component/system-using s-map d-map))
    :else
-   (let [s-map
+   (let [c (config)
+         s-map
          (->
           (configurable-system-map (config))
           (assoc :api-tests (azondi.api-tests/new-api-tests)
                  :seed (new-seed-data)
                  :database (if (System/getenv "USE_POSTGRESQL")
--                             (new-database (get c :postgres))
--                             (new-inmemory-datastore))
--                 :cassandra (cass/new-database (get c :cassandra))
+                             (new-database (get c :postgres))
+                             (new-inmemory-datastore))
+                 :cassandra (cass/new-database (get c :cassandra))
                  ))
 
          d-map (new-dependency-map s-map)]
