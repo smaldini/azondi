@@ -8,18 +8,27 @@
             [clojure.java.jdbc :as j]
             [azondi.reactor.keys :as rk]))
 
-(defn authorized-to-publish?
+(defn ^:private has-user-prefix?
   [^String topic ^String username]
   (.startsWith topic (str "/users/" username "/")))
 
 (defn exists-and-public?
   [db ^String username ^String topic]
-  (let [rows (adb/topics-by-owner db username)
-        m    (some (fn [m]
-                     (when (= (:topic m) topic)
-                       m))
-                   rows)]
+  (let [m (adb/topic-of-owner db username topic)]
     (and m (:public m))))
+
+(defn authorized-to-publish?
+  [^String topic ^String username]
+  (has-user-prefix? topic username))
+
+(defn authorized-to-subscribe?
+  [db ^String topic ^String username]
+  (let [m (adb/topic-of-owner db username topic)]
+    ;; topic is missing or exists
+    ;; and is either public or private + owned
+    (or (nil? m)
+        (or (:public m)
+            (and (not (:public m))) (has-user-prefix? topic username)))))
 
 (def ^:const lru-cache-size 4096)
 
@@ -45,14 +54,17 @@
     (let [r   (get-in this [:reactor :reactor])
           db  (get    this :database)
           lru (atom (cache/lru-cache-factory {} :threshold lru-cache-size))
-          sub (mr/on r ($ rk/message-published) (fn [{:keys [data]}]
-                                                  (maybe-insert-topic db lru data)))]
+          f   (fn [{:keys [data]}]
+                (maybe-insert-topic db lru data))
+          sub1 (mr/on r ($ rk/message-published)   f)
+          sub2 (mr/on r ($ rk/consumer-subscribed) f)]
       (-> this
-          (assoc :subscription sub
-                 :cache        lru))))
+          (assoc :subscriptions [sub1 sub2]
+                 :cache         lru))))
   (stop [this]
-    (let [sub (get this :subscription)]
-      (mc/cancel sub)
+    (let [subs (get this :subscriptions)]
+      (doseq [sub subs]
+        (mc/cancel sub))
       this)))
 
 (defn new-topic-injector

@@ -205,9 +205,9 @@
   ;;  ;; not used per MQTT v3.1 spec (section 3.8)
   ;;  :retain false}
   (let [{:keys [client-id username]} (get @connections-by-ctx ctx)]
-    (if-let [public? (every? (fn [[^String topic _]]
-                               (tp/exists-and-public? database username topic))
-                             topics)]
+    (if [(every? (fn [[^String topic _]]
+                   (tp/authorized-to-subscribe? database username topic))
+                 topics)]
       (do
         (dosync
          (alter subscriptions record-subscribers ctx topics)
@@ -215,7 +215,10 @@
         ;; TODO: QoS > 0
         (.writeAndFlush ctx {:type :suback
                              :message-id message-id
-                             :granted-qos (repeat (count topics) 0)}))
+                             :granted-qos (repeat (count topics) 0)})
+        (mr/notify reactor rk/consumer-subscribed {:device_id client-id
+                                                   :topic topic
+                                                   :owner username}))
       ;; Not allowed to subscribe to one of the topics
       (let [state (get @connections-by-ctx ctx)
             peer  (peer-of ctx)]
