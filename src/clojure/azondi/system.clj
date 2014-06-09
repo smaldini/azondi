@@ -113,15 +113,8 @@
             (new-event-service :async-pub sse-pub))
 
 
-          
-
-     :message-archiver (new-message-archiver))))
-     :session-store (new-atom-backed-session-store)
-     :auth-binding (new-auth-request-binding)
-
-     :authenticator (new-cookie-authenticator)
      :message-archiver (new-message-archiver)
-     :topic-injector (new-topic-injector)
+     :topic-injector) (new-topic-injector)))
 
 (defn new-dependency-map [system-map]
   {:mqtt-handler {:db :database}
