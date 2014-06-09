@@ -20,13 +20,9 @@
    [azondi.transports.mqtt :refer (new-netty-mqtt-handler)]
    [azondi.reactor :refer (new-reactor)]
    [azondi.bridges.ws :refer (new-websocket-bridge)]
-<<<<<<< HEAD
-   [azondi.data.messages :refer (new-message-archiver)]
-=======
    [azondi.messages :refer (new-message-archiver)]
    [azondi.topics :refer (new-topic-injector)]
-   [azondi.website :refer (new-website render-custom-login-form)]
->>>>>>> efc25ec3240e95959ebdeda131fa29390daf9d32
+
    [azondi.sse :refer (new-event-service)]
    [azondi.postgres :refer (new-database)]
    [azondi.cassandra :as cass]
@@ -116,33 +112,16 @@
                 sse-pub (async/pub (async/tap debug-mult sse-ch) :client-id)]
             (new-event-service :async-pub sse-pub))
 
-<<<<<<< HEAD
+
           
 
      :message-archiver (new-message-archiver))))
-=======
-     ;; Security
-     :login-form (new-login-form
-                  :renderer
-                  (reify LoginFormRenderer
-                    (render-login-form [_ request attrs]
-                      (render-custom-login-form attrs)))
-                  :middleware wrap-template)
-
-     #_:user-domain #_(new-default-user-domain)
-     #_:password-hash-algo #_(new-pbkdf2-password-hash)
-     #_:user-store #_(make new-user-file config
-                           :file (io/file (System/getProperty "user.home")
-                                          ".azondi-passwords.edn"))
      :session-store (new-atom-backed-session-store)
      :auth-binding (new-auth-request-binding)
 
-     ;; Use a static authenticator when you want to force login to be a particular user
-     ;;:authenticator (new-static-authenticator :user "alice")
      :authenticator (new-cookie-authenticator)
      :message-archiver (new-message-archiver)
-     :topic-injector (new-topic-injector))))
->>>>>>> efc25ec3240e95959ebdeda131fa29390daf9d32
+     :topic-injector (new-topic-injector)
 
 (defn new-dependency-map [system-map]
   {:mqtt-handler {:db :database}

@@ -35,37 +35,22 @@
                  [clojurewerkz/scrypt     "1.1.0"]
 
                  ;; Pre-built components supplied by modular
-<<<<<<< HEAD
+
                  [juxt.modular/cljs "0.4.0-SNAPSHOT"]
                  [juxt.modular/mqtt "0.1.0-SNAPSHOT"]
                  [juxt.modular/netty "0.1.0-SNAPSHOT"]
-=======
-                 [juxt.modular/bidi "0.4.0" :exclusions [bidi]]
-                 [juxt.modular/cljs "0.4.0"]
-                 [juxt.modular/clostache "0.1.0"]
-                 [juxt.modular/http-kit "0.4.0"]
-                 [juxt.modular/maker "0.1.0"]
-                 [juxt.modular/mqtt "0.1.0"]
-                 [juxt.modular/menu "0.1.0"]
-                 [juxt.modular/netty "0.1.0"]
-                 [juxt.modular/ring "0.4.0"]
-                 [juxt.modular/template "0.1.0"]
-                 [juxt.modular/wire-up "0.1.0"]
->>>>>>> efc25ec3240e95959ebdeda131fa29390daf9d32
+
 
                  [bidi "1.10.3"]
                  [hiccup "1.0.5"]
                  [garden "1.1.5"]
                  [compojure "1.1.8"]
                  [markdown-clj "0.9.36"]
-<<<<<<< HEAD
+
                  [cylon "0.2.0-SNAPSHOT"]
                  [http-kit "2.1.16"]
                  
-=======
-                 [cylon "0.2.0"]
 
->>>>>>> efc25ec3240e95959ebdeda131fa29390daf9d32
                  ;; Logging
 
                  ;; I tried but couldn't get timbre to talk to
