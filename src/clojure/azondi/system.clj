@@ -114,7 +114,7 @@
 
 
      :message-archiver (new-message-archiver)
-     :topic-injector) (new-topic-injector)))
+     :topic-injector (new-topic-injector))))
 
 (defn new-dependency-map [system-map]
   {:mqtt-handler {:db :database}
