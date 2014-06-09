@@ -195,7 +195,7 @@
 
 (defn handle-subscribe
   [^ChannelHandlerContext ctx {:keys [topics message-id dup qos] :as msg}
-   {:keys [topics-by-ctx connections-by-ctx database] :as handler-state}]
+   {:keys [reactor topics-by-ctx connections-by-ctx database] :as handler-state}]
   ;; example message:
   ;; {:topics [["a/topic" 1]],
   ;;  :message-id 1,
