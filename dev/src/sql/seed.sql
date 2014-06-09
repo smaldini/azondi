@@ -38,6 +38,11 @@ INSERT INTO devices (name, owner_user_id, device_password_hash)
              VALUES ('d6acc822-f46a-4c45-88c0-4c29284fd4af',
              'yods', '$s0$e0801$EGG/OmC7ZEIUOkU9t/m5XQ==$oyI8bQInV1jeaMYaV4tHxleK3Hzarr4IrLGb6dA+Vtc=');
 
+INSERT INTO devices (name, owner_user_id, device_password_hash)
+            -- password: device-4-pwd
+             VALUES ('8becf541-5888-4168-8bd7-c09b6056c9f5',
+             'michaelklishin', '$s0$e0801$fndkuyOGRHJcwU0LsTQwpw==$3t5c0YAk6F7ekWD8fbyOvSJholAKYReCdCq8uD/suWM=');
+
 --
 -- Topics
 --
