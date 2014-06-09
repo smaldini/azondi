@@ -3,7 +3,7 @@
   (:require
    [clojure.string :as string]
    [cljs.reader :as reader]
-   [cljs.core.async :refer [<! >! <!! chan put! sliding-buffer close! pipe map< filter< mult tap map> timeout]]
+   [cljs.core.async :refer [<! >! chan put! sliding-buffer close! pipe map< filter< mult tap map> timeout]]
    [om.core :as om :include-macros true]
    [sablono.core :as html :refer-macros [html]]
    [azondi.net :refer (ajaj< listen-sse)]
@@ -134,7 +134,7 @@
                  ajax-recv (ajaj< ajax-send :method :post)]
              (go
                (>! ajax-send
-                   {:uri (str hostname "/api/1.0/users/" (:user @app-state) "/devices/")
+                   {:uri (str "/api/1.0/users/" (:user @app-state) "/devices/")
                     ;; Empty content, but we can patch in device
                     ;; meta-data later.
                     :content {}})
@@ -213,7 +213,7 @@
                           (if-let [id (get-in @app-state [:device :client-id])]
                             (go
                               (>! ajax-send
-                                  {:uri (str hostname "/api/1.0/users/" (:user @app-state) "/devices/" id)
+                                  {:uri (str "/api/1.0/users/" (:user @app-state) "/devices/" id)
                                    :content {:name (or (get-in @app-state [:device :name]) "")
                                              :description (or (get-in @app-state [:device :description]) "")}})
                               (let [response (<! ajax-recv)]
@@ -267,7 +267,7 @@
                             (go
                               (println "here - reset password")
                               (>! ajax-send
-                                  {:uri (str hostname "/api/1.0/users/" (:user @app-state) "/devices/" id "/reset-password")
+                                  {:uri (str "/api/1.0/users/" (:user @app-state) "/devices/" id "/reset-password")
                                    :content {:name (or (get-in @app-state [:device :name]) "")
                                              :description (or (get-in @app-state [:device :description]) "")}})
                               (let [response (<! ajax-recv)]
@@ -325,7 +325,7 @@
                 (if-let [id (get-in @app-state [:device :client-id])]
                   (go
                     (>! ajax-send
-                        {:uri (str hostname "/api/1.0/users/" (:user @app-state) "/devices/" id)})
+                        {:uri (str "/api/1.0/users/" (:user @app-state) "/devices/" id)})
                     (let [{:keys [status body]} (<! ajax-recv)]
                       (when (= status 204)
                         (om/update! app-state [:device] nil)
@@ -359,7 +359,7 @@
       (let [ajax-send (chan)
             ajax-recv (ajaj< ajax-send
                              :method :get
-                             :uri (str hostname "/api/1.0/users/" (:user app-state) "/topics/"))]
+                             :uri (str "/api/1.0/users/" (:user app-state) "/topics/"))]
         (go
           (>! ajax-send {})
           (let [r (<! ajax-recv)]
@@ -384,7 +384,7 @@
                (fn [ev]
                  (.preventDefault ev)   ; don't follow the link
                  (println "Getting topic detail for" topic)
-                 (let [uri (str hostname "/api/1.0/users/" (:user @app-state) "/topics/" (subs topic (count (str "/users/" (:user @app-state) "/"))))
+                 (let [uri (str "/api/1.0/users/" (:user @app-state) "/topics/" (subs topic (count (str "/users/" (:user @app-state) "/"))))
                        ajax-send (chan)
                        ajax-recv (ajaj< ajax-send
                                         :method :get
@@ -415,7 +415,7 @@
   (let [ajax-send (chan)
         ajax-recv (ajaj< ajax-send
                          :method :get
-                         :uri (str hostname "/api/1.0/users/" user "/topics/"))]
+                         :uri (str "/api/1.0/users/" user "/topics/"))]
     (go
       (>! ajax-send {})
       (let [r (<! ajax-recv)]
@@ -436,7 +436,7 @@
                  ajax-recv (ajaj< ajax-send :method :put)]
              (go
                (>! ajax-send
-                   {:uri (str hostname "/api/1.0/users/" (:user @app-state) "/topics/" (:new-topic-name @app-state))
+                   {:uri (str "/api/1.0/users/" (:user @app-state) "/topics/" (:new-topic-name @app-state))
                     :content {:description (or (get-in @app-state [:topic :description]) "")
                               :unit (or (get-in @app-state [:topic :unit]) "")}
                               })
@@ -519,7 +519,7 @@
                         (let [ajax-send (chan)
                               ajax-recv (ajaj< ajax-send :method :put)]
                           (when-let [topic (get-in @app-state [:topic :topic])]
-                            (let [uri (str hostname "/api/1.0/users/" (:user @app-state) "/topics/"  (subs topic (count (str "/users/" (:user @app-state) "/"))))]
+                            (let [uri (str "/api/1.0/users/" (:user @app-state) "/topics/"  (subs topic (count (str "/users/" (:user @app-state) "/"))))]
                               (println "PUT to topic detail uri:" uri)
                               (go
                                 (>! ajax-send
@@ -581,7 +581,7 @@
                 (if-let [topic (get-in @app-state [:topic :topic])]
                   (go
                     (>! ajax-send
-                        {:uri (str hostname "/api/1.0/users/" (:user @app-state) "/topics/"  (subs topic (count (str "/users/" (:user @app-state) "/"))))})
+                        {:uri (str "/api/1.0/users/" (:user @app-state) "/topics/"  (subs topic (count (str "/users/" (:user @app-state) "/"))))})
                     (let [{:keys [status body]} (<! ajax-recv)]
                       (when (= status 204)
                         (om/update! app-state [:topic] nil)
