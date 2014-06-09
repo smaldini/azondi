@@ -216,9 +216,10 @@
         (.writeAndFlush ctx {:type :suback
                              :message-id message-id
                              :granted-qos (repeat (count topics) 0)})
-        (mr/notify reactor rk/consumer-subscribed {:device_id client-id
-                                                   :topic topic
-                                                   :owner username}))
+        (doseq [topic topics]
+          (mr/notify reactor rk/consumer-subscribed {:device_id client-id
+                                                     :topic topic
+                                                     :owner username})))
       ;; Not allowed to subscribe to one of the topics
       (let [state (get @connections-by-ctx ctx)
             peer  (peer-of ctx)]
