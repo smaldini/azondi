@@ -23,20 +23,25 @@ INSERT INTO users (id, name, email, password_hash, role)
 
 DELETE FROM devices;
 
-INSERT INTO devices (client_id, name, device_id, description, owner, device_password_hash)
+INSERT INTO devices (name, owner_user_id, device_password_hash)
             -- password: device-1-pwd
-             VALUES ('3221e1gltf8vlofaf6to', 'device1', '79f4572a-5493-486e-9abe-7337ea06ba4b', '',
+             VALUES ('79f4572a-5493-486e-9abe-7337ea06ba4b',
              'yods', '$s0$e0801$UFqu7r6NqzzA8f2Izbgjig==$D5QttKRnviio4CT8YON+m9OoesbDNen4r0c7P19pqsE=');
 
-INSERT INTO devices (client_id, name, device_id, description, owner, device_password_hash)
+INSERT INTO devices (name, owner_user_id, device_password_hash)
             -- password: device-2-pwd
-             VALUES ('asqv8fs0moo0kv7mknev9', 'device2', '24f9eb8a-ffee-4ec6-b593-11bbcb749a86', '',
+             VALUES ('24f9eb8a-ffee-4ec6-b593-11bbcb749a86',
              'yods', '$s0$e0801$obspyjv/9zmFcD9we9A3oA==$fqeO5pvrR57aaqy4EAy9P3hZ+DS/yoT9GtfJnA3aLq4=');
 
-INSERT INTO devices (client_id, name, device_id, description, owner, device_password_hash)
+INSERT INTO devices (name, owner_user_id, device_password_hash)
             -- password: device-3-pwd
-             VALUES ('e4ih3bn0uqr89ehbodeas', 'device3', 'd6acc822-f46a-4c45-88c0-4c29284fd4af', '',
+             VALUES ('d6acc822-f46a-4c45-88c0-4c29284fd4af',
              'yods', '$s0$e0801$EGG/OmC7ZEIUOkU9t/m5XQ==$oyI8bQInV1jeaMYaV4tHxleK3Hzarr4IrLGb6dA+Vtc=');
+
+INSERT INTO devices (name, owner_user_id, device_password_hash)
+            -- password: device-4-pwd
+             VALUES ('8becf541-5888-4168-8bd7-c09b6056c9f5',
+             'michaelklishin', '$s0$e0801$fndkuyOGRHJcwU0LsTQwpw==$3t5c0YAk6F7ekWD8fbyOvSJholAKYReCdCq8uD/suWM=');
 
 --
 -- Topics
@@ -44,8 +49,13 @@ INSERT INTO devices (client_id, name, device_id, description, owner, device_pass
 
 DELETE FROM topics;
 
-INSERT INTO topics (device_id, unit, type, topic_id, public)
-            VALUES ('79f4572a-5493-486e-9abe-7337ea06ba4b', 'PM10', 'PM', 'yods/dusty/pm10', true);
+INSERT INTO topics (unit, name, topic, public, owner)
+            VALUES ('PM10', 'pm10', '/users/yods/pm10-1', true, 'yods');
+INSERT INTO topics (unit, name, topic, public, owner)
+            VALUES ('PM10', 'pm10-2', '/users/yods/pm10-2', true, 'yods');
+
+INSERT INTO topics (unit, name, topic, public, owner)
+            VALUES ('PM10', 'pm10-private', '/users/yods/pm10-private', false, 'yods');
 
 
 --

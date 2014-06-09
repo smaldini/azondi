@@ -19,11 +19,13 @@
                  ;; Back-end
                  [clojurewerkz/triennium  "1.0.0-beta2"]
                  [cheshire                "5.3.1"]
-                 [clojurewerkz/meltdown   "1.0.0-beta12"]
+                 [clojurewerkz/meltdown   "1.0.0"]
+                 [org.clojure/core.cache  "0.6.3"]
 
                  ;; Database
                  [org.clojure/java.jdbc "0.3.3"]
                  [postgresql/postgresql "8.4-702.jdbc4"]
+                 [clojurewerkz/cassaforte "2.0.0-beta1"]
 
                  ;; for query string parsing
                  ;;[javax.servlet/servlet-api "2.5"]
@@ -33,18 +35,37 @@
                  [clojurewerkz/scrypt     "1.1.0"]
 
                  ;; Pre-built components supplied by modular
+<<<<<<< HEAD
                  [juxt.modular/cljs "0.4.0-SNAPSHOT"]
                  [juxt.modular/mqtt "0.1.0-SNAPSHOT"]
                  [juxt.modular/netty "0.1.0-SNAPSHOT"]
+=======
+                 [juxt.modular/bidi "0.4.0" :exclusions [bidi]]
+                 [juxt.modular/cljs "0.4.0"]
+                 [juxt.modular/clostache "0.1.0"]
+                 [juxt.modular/http-kit "0.4.0"]
+                 [juxt.modular/maker "0.1.0"]
+                 [juxt.modular/mqtt "0.1.0"]
+                 [juxt.modular/menu "0.1.0"]
+                 [juxt.modular/netty "0.1.0"]
+                 [juxt.modular/ring "0.4.0"]
+                 [juxt.modular/template "0.1.0"]
+                 [juxt.modular/wire-up "0.1.0"]
+>>>>>>> efc25ec3240e95959ebdeda131fa29390daf9d32
 
                  [bidi "1.10.3"]
                  [hiccup "1.0.5"]
                  [garden "1.1.5"]
                  [compojure "1.1.8"]
                  [markdown-clj "0.9.36"]
+<<<<<<< HEAD
                  [cylon "0.2.0-SNAPSHOT"]
                  [http-kit "2.1.16"]
                  
+=======
+                 [cylon "0.2.0"]
+
+>>>>>>> efc25ec3240e95959ebdeda131fa29390daf9d32
                  ;; Logging
 
                  ;; I tried but couldn't get timbre to talk to
@@ -67,7 +88,8 @@
                  [org.clojure/core.async "0.1.267.0-0d7780-alpha"]
                  [cljs-ajax "0.2.4"]
                  [jarohen/chord "0.3.1"]
-                 [org.clojars.ideal-knee/dommy "0.1.3-SNAPSHOT"]]
+                 ;;[org.clojars.ideal-knee/dommy "0.1.3-SNAPSHOT"]
+                 ]
 
   :jvm-opts ["-Xss8m" "-Xmx1g" "-Duser.timezone=UTC"
 ;;             "-Djava.net.preferIPv4Stack=true"

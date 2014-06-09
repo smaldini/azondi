@@ -65,12 +65,27 @@
         [:user :password])
        {:user user :password p}))
 
+  (topic-of-owner [this user topic]
+    (let [rows (vals @(-> this :database :topics))]
+      (some (fn [m]
+              (when (and (= (:owner m) user)
+                         (= (:topic m) topic))
+                m))
+            rows)))
+
   (topics-by-owner [this user]
     (filter (comp (partial = user) :owner) (vals @(-> this :database :topics))))
 
   (create-topic! [this topic]
     (dosync
      (alter (-> this :database :topics) assoc (:topic topic) topic)))
+
+  (maybe-create-topic! [this topic]
+    (dosync
+     (alter (-> this :database :topics) (fn [m k v]
+                                          (when (nil? (get m k))
+                                            (assoc m k v)))
+            (:topic topic) topic)))
 
   (get-topic [this topic]
     (-> this :database :topics deref (get topic)))

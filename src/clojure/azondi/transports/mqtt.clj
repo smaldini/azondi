@@ -3,17 +3,20 @@
   (:require [com.stuartsierra.component :as component]
             [modular.netty :refer (NettyHandlerProvider)]
             #_[taoensso.timbre :refer [log  trace  debug  info  warn  error  fatal
-                                     logf tracef debugf infof warnf errorf fatalf]]
+                                       logf tracef debugf infof warnf errorf fatalf]]
             [clojure.tools.logging :refer (warnf infof info log)]
             [clojurewerkz.triennium.mqtt :as tr]
 
+            [azondi.devices :refer (device-names)]
             [azondi.db :refer (allowed-device?)]
+            [azondi.topics :as tp]
 
             [clojure.set :as cs]
             [clojurewerkz.meltdown.reactor :as mr]
-            [azondi.devices :refer (device-names)]
+            
             [clojurewerkz.meltdown.selectors :as ms :refer [$]]
-            [clojure.core.async :refer (chan pub dropping-buffer sub go >! <! >!! <!! take! put! timeout)])
+            [clojure.core.async :refer (chan pub dropping-buffer sub go >! <! >!! <!! take! put! timeout)]
+            [azondi.reactor.keys :as rk])
   (:import  [io.netty.channel ChannelHandlerAdapter ChannelHandlerContext Channel]
             java.net.InetSocketAddress
             [java.util.concurrent ExecutorService Executors]))
@@ -78,16 +81,14 @@
   [^ChannelHandlerContext ctx {:keys [username client-id has-will clean-session]
                                :as   msg}
    {:keys [connections-by-ctx connections-by-client-id] :as handler-state}]
-  (let [db (get-in handler-state [:database])
-        ;;devices (device-names pg-conn username)
+  (let [db   (get-in handler-state [:database])
         conn {:username  username
               :client-id client-id
               :ctx ctx
               :has-will has-will
               :will-qos (when has-will (:will-qos msg))
-              ;;:authorized-topic-prefixes (tp/authorized-prefixes-for username devices)
               }]
-    ;;(maybe-disconnect-existing client-id handler-state)
+    (maybe-disconnect-existing client-id handler-state)
     (dosync
      (alter connections-by-ctx assoc ctx conn)
      (alter connections-by-client-id assoc client-id conn))
@@ -138,7 +139,7 @@
   ;;  :dup false
   ;;  }
 
-  (go (>!! (:debug-ch handler-state) {:message (str "Connection attempt from " (.remoteAddress (.channel ctx))) :client-id client-id}))
+  (go (>!! (:debug-ch handler-state) {:message (format "Connection attempt from %s, client id: %s" (peer-of ctx) client-id) :client-id client-id}))
 
   (cond
    (not (supported-protocol? protocol-name protocol-version))
@@ -194,7 +195,7 @@
 
 (defn handle-subscribe
   [^ChannelHandlerContext ctx {:keys [topics message-id dup qos] :as msg}
-   {:keys [topics-by-ctx connections-by-ctx] :as handler-state}]
+   {:keys [topics-by-ctx connections-by-ctx database] :as handler-state}]
   ;; example message:
   ;; {:topics [["a/topic" 1]],
   ;;  :message-id 1,
@@ -203,15 +204,30 @@
   ;;  :qos 1,
   ;;  ;; not used per MQTT v3.1 spec (section 3.8)
   ;;  :retain false}
-  (let [{:keys [authorized-topic-prefixes]} (get @connections-by-ctx ctx)]
-    (do
-      (dosync
-       (alter subscriptions record-subscribers ctx topics)
-       (alter topics-by-ctx assoc-with-union ctx (set (map first topics))))
-      ;; TODO: QoS > 0
-      (.writeAndFlush ctx {:type :suback
-                           :message-id message-id
-                           :granted-qos (repeat (count topics) 0)}))))
+  (let [{:keys [client-id username]} (get @connections-by-ctx ctx)]
+    (if [(every? (fn [[^String topic _]]
+                   (tp/authorized-to-subscribe? database username topic))
+                 topics)]
+      (do
+        (dosync
+         (alter subscriptions record-subscribers ctx topics)
+         (alter topics-by-ctx assoc-with-union ctx (set (map first topics))))
+        ;; TODO: QoS > 0
+        (.writeAndFlush ctx {:type :suback
+                             :message-id message-id
+                             :granted-qos (repeat (count topics) 0)})
+        (mr/notify reactor rk/consumer-subscribed {:device_id client-id
+                                                   :topic topic
+                                                   :owner username}))
+      ;; Not allowed to subscribe to one of the topics
+      (let [state (get @connections-by-ctx ctx)
+            peer  (peer-of ctx)]
+        (warnf "Dropping connection %s (client id: %s), unauthorized to subscribe to one of the topics: %s"
+               peer (:client-id state) topics)
+        (go (>!! (:debug-ch handler-state)
+                 {:client-id client-id
+                  :message (str "Client is not allowed to subscribe to one of the topics: " topics)}))
+        (disconnect-client ctx)))))
 
 (defn unrecord-subscribers
   [trie ctx topics]
@@ -301,17 +317,18 @@
               1 handle-publish-with-qos1
               2 handle-publish-with-qos2)]
 
-      (if (.startsWith topic (str "/users/" username "/"))
-
+      (if (tp/authorized-to-publish? topic username)
         (if (valid-payload? payload)
           (do
             (go (>!! (:debug-ch handler-state)
                      {:client-id client-id
                       :message (str "Publishing message on topic: " topic)}))
             (f ctx msg handler-state)
-            (mr/notify reactor topic {:device_id client-id
-                                      :payload payload
-                                      :content_type "application/json"}))
+            (mr/notify reactor rk/message-published {:device_id client-id
+                                                     :payload payload
+                                                     :content_type "application/json"
+                                                     :topic topic
+                                                     :owner username}))
           (do
             (warnf "Rejecting client %s for publishing a message %d in size to topic %s" client-id (alength payload) topic)
             (abort ctx)))
