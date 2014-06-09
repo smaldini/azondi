@@ -47,7 +47,10 @@ DELETE FROM topics;
 INSERT INTO topics (unit, name, topic, public, owner)
             VALUES ('PM10', 'pm10', '/users/yods/pm10-1', true, 'yods');
 INSERT INTO topics (unit, name, topic, public, owner)
-            VALUES ('PM10', 'pm10', '/users/yods/pm10-2', true, 'yods');
+            VALUES ('PM10', 'pm10-2', '/users/yods/pm10-2', true, 'yods');
+
+INSERT INTO topics (unit, name, topic, public, owner)
+            VALUES ('PM10', 'pm10-private', '/users/yods/pm10-private', false, 'yods');
 
 
 --
