@@ -27,6 +27,10 @@
                  [postgresql/postgresql "8.4-702.jdbc4"]
                  [clojurewerkz/cassaforte "2.0.0-beta1"]
 
+                 ;; Metrics
+                 [metrics-clojure         "2.0.4"]
+                 [metrics-clojure-ring    "2.0.4"]
+
                  ;; for query string parsing
                  ;;[javax.servlet/servlet-api "2.5"]
                  [clj-time "0.7.0"]
