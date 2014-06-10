@@ -81,5 +81,3 @@
 (defn new-webapp []
   (component/using (->WebApp)
                    [:api :metrics]))
-
-
