@@ -15,7 +15,10 @@
             [clojurewerkz.meltdown.selectors :as ms :refer [$]]
             [clojure.core.async :refer (chan pub dropping-buffer sub go >! <! >!! <!! take! put! timeout)]
             [azondi.reactor.keys :as rk]
-            [azondi.metrics      :as am])
+            [azondi.metrics      :as am]
+            [metrics.meters     :as mm]
+            [metrics.histograms :as mh]
+            [metrics.counters   :as mct])
   (:import  [io.netty.channel ChannelHandlerAdapter ChannelHandlerContext Channel]
             java.net.InetSocketAddress
             [java.util.concurrent ExecutorService Executors]))
@@ -46,7 +49,6 @@
 
 (defn disconnect-client
   ([^ChannelHandlerContext ctx]
-     ;; TODO: decrease number of connections
      (.close ctx))
   ([^ChannelHandlerContext ctx message]
      (.writeAndFlush ctx message)
@@ -118,7 +120,7 @@
                                       username
                                       password
                                       client-id] :as msg}
-   handler-state]
+   {:keys [metrics] :as handler-state}]
   ;; example connect message:
   ;; {
   ;;  :type :connect,
@@ -147,12 +149,14 @@
      (warnf "Unsupported protocol and/or version: %s v%d, rejecting connection"
             protocol-name
             protocol-version)
+     (mct/inc! (:mqtt-connections-unsupported-protocol-version metrics))
      (reject-connection ctx :unacceptable-protocol-version))
 
    (not (and has-username has-password))
    (do
      (warnf "Client has no username or password, rejecting connection")
      (go (>!! (:debug-ch handler-state) {:message "rejecting connection" :client-id client-id}))
+     (mm/mark! (:mqtt-connections-authentication-failures metrics))
      (reject-connection ctx :bad-username-or-password))
 
    (not (allowed-device? (:database handler-state) client-id username password))
@@ -160,9 +164,10 @@
      (warnf "Device authentication failed, rejecting connection")
      (go (>!! (:debug-ch handler-state) {:client-id client-id
                                          :message "Rejecting connection, check username/password"}))
+     (mm/mark! (:mqtt-connections-authentication-failures metrics))
      (reject-connection ctx :bad-username-or-password))
 
-   ;; TODO: check known devices table, too
+   ;; at this point, client-id is checked against the devices table. MK.
    (not (valid-client-id? client-id))
    (do
      (warnf "Invalid client id: %s, rejecting connection" client-id)
@@ -171,6 +176,7 @@
    :otherwise
    (do
      (go (>!! (:debug-ch handler-state) {:message "Accepting connection" :client-id client-id}))
+     (mct/inc! (:mqtt-connections-active metrics))
      (accept-connection ctx msg handler-state))))
 
 ;;
@@ -358,7 +364,8 @@
 (defn handle-disconnect
   [^ChannelHandlerContext ctx {:keys [topics-by-ctx
                                       connections-by-ctx
-                                      connections-by-client-id]}]
+                                      connections-by-client-id
+                                      metrics]}]
   (dosync
    (let [topics              (get @topics-by-ctx ctx)
          {:keys [client-id]} (get @connections-by-ctx ctx)]
@@ -366,6 +373,7 @@
      (alter subscriptions unrecord-subscribers ctx topics)
      (alter connections-by-ctx       dissoc ctx)
      (alter connections-by-client-id dissoc client-id)))
+    (mct/dec! (:mqtt-connections-active metrics))
   (abort ctx))
 
 ;;
@@ -396,7 +404,8 @@
       #(make-channel-handler
         (assoc this
           :reactor (get-in this [:reactor :reactor])
-          :database (get-in this [:database])
+          :database (get this :database)
+          :metrics (get this :metrics)
           :debug-ch debug-ch))))
   (stop [this] this)
 
@@ -410,4 +419,4 @@
                               :connections-by-client-id (ref {})
                               :topics-by-ctx (ref {})
                               :debug-ch debug-ch})
-      (component/using [:database :reactor])))
+      (component/using [:database :reactor :metrics])))

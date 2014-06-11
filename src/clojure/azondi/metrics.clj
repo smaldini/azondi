@@ -12,9 +12,9 @@
       (merge this
              {:registry                                      reg
               :mqtt-connections-active                       (mct/counter reg ["mqtt" "connections" "active"])
-              :mqtt-connections-auth-failures                (mm/meter reg ["mqtt" "connections" "auth_failures"])
-              :mqtt-connections-unsupported-protocol-version (mm/meter reg ["mqtt" "connections" "unsupported_protocol_version"])
-              :mqtt-connections-invalid-client-ids           (mm/meter reg ["mqtt" "connections" "invalid_client_id"])
+              :mqtt-connections-authentication-failures      (mm/meter reg ["mqtt" "connections" "authentication_failures"])
+              :mqtt-connections-authorization-failures       (mm/meter reg ["mqtt" "connections" "authorization_failures"])
+              :mqtt-connections-unsupported-protocol-version (mct/counter reg ["mqtt" "connections" "unsupported_protocol_version"])
               :mqtt-exceptions-uncaught                      (mm/meter reg ["mqtt" "exceptions" "uncaught"])
               :mqtt-messages-published                       (mm/meter reg ["mqtt" "messages" "published"])
               :mqtt-messages-payload-size                    (mh/histogram reg ["mqtt" "messages" "payload_size"])
