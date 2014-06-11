@@ -2,8 +2,6 @@
 (ns azondi.transports.mqtt
   (:require [com.stuartsierra.component :as component]
             [modular.netty :refer (NettyHandlerProvider)]
-            #_[taoensso.timbre :refer [log  trace  debug  info  warn  error  fatal
-                                       logf tracef debugf infof warnf errorf fatalf]]
             [clojure.tools.logging :refer (warnf infof info log)]
             [clojurewerkz.triennium.mqtt :as tr]
 
@@ -16,7 +14,8 @@
             
             [clojurewerkz.meltdown.selectors :as ms :refer [$]]
             [clojure.core.async :refer (chan pub dropping-buffer sub go >! <! >!! <!! take! put! timeout)]
-            [azondi.reactor.keys :as rk])
+            [azondi.reactor.keys :as rk]
+            [azondi.metrics      :as am])
   (:import  [io.netty.channel ChannelHandlerAdapter ChannelHandlerContext Channel]
             java.net.InetSocketAddress
             [java.util.concurrent ExecutorService Executors]))
@@ -47,13 +46,15 @@
 
 (defn disconnect-client
   ([^ChannelHandlerContext ctx]
+     ;; TODO: decrease number of connections
      (.close ctx))
   ([^ChannelHandlerContext ctx message]
-     (doto ctx
-       (.writeAndFlush message)
-       .close)))
+     (.writeAndFlush ctx message)
+     (disconnect-client ctx)))
 
 (defn abort
+  "Same as disconnect-client/1 but with a name that better fits certain
+   contexts. Prefer disconnect-client/1 where possible."
   [^ChannelHandlerContext ctx]
   (.close ctx))
 
@@ -99,9 +100,8 @@
 
 (defn reject-connection
   [^ChannelHandlerContext ctx code]
-  (doto ctx
-    (.writeAndFlush {:type :connack :return-code code})
-    .close)
+  (.writeAndFlush ctx {:type :connack :return-code code})
+  (disconnect-client ctx)
   (let [^InetSocketAddress peer-host (peer-of ctx)]
     (warnf "Rejecting connection from %s (return code: %s)" peer-host code))
   ctx)
@@ -332,7 +332,7 @@
                                                      :owner username}))
           (do
             (warnf "Rejecting client %s for publishing a message %d in size to topic %s" client-id (alength payload) topic)
-            (abort ctx)))
+            (disconnect-client ctx)))
 
         ;; Not allowed to publish to this topic
         (let [state (get @connections-by-ctx ctx)
@@ -366,7 +366,7 @@
      (alter subscriptions unrecord-subscribers ctx topics)
      (alter connections-by-ctx       dissoc ctx)
      (alter connections-by-client-id dissoc client-id)))
-  (.close ctx))
+  (abort ctx))
 
 ;;
 ;; Netty glue
@@ -385,7 +385,7 @@
         :disconnect (handle-disconnect ctx handler-state)))
     (exceptionCaught [^ChannelHandlerContext ctx cause]
       (try (throw cause)
-           (finally (abort ctx))))))
+           (finally (disconnect-client ctx))))))
 
 (defrecord NettyMqttHandler [connections-by-ctx connections-by-client-id topics-by-ctx debug-ch]
   component/Lifecycle
