@@ -21,4 +21,9 @@
   (get-topic [_ topic-id])
   (delete-topic! [_ topic-id])
   (patch-device! [_ client-id data])
-  (patch-topic! [_ topic-id data]))
+  (patch-topic! [_ topic-id data])
+  ;;api
+  (api-key [_ user])
+  (delete-api-key [_ user])
+  (create-api-key [_ user])
+  )

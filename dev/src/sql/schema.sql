@@ -20,6 +20,12 @@ CREATE TABLE IF NOT EXISTS api_keys (api text,
                                      id text PRIMARY KEY,
                                      created_on timestamp default current_timestamp);
 
+CREATE UNIQUE INDEX api_user_id_idx ON api_keys(id);
+CREATE UNIQUE INDEX api_id_key_idx ON api_keys(api, id);
+CREATE INDEX api_created_on_idx ON api_keys(created_on);
+ALTER TABLE api_keys ADD CONSTRAINT api_id_fk FOREIGN KEY (id) REFERENCES users (id);
+
+
 --
 -- Devices
 --

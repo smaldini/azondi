@@ -114,13 +114,6 @@
             (new-event-service :async-pub sse-pub))
 
 
-
-
-     :message-archiver (new-message-archiver)
-     :session-store (new-atom-backed-session-store)
-     :auth-binding (new-auth-request-binding)
-
-     :authenticator (new-cookie-authenticator)
      :message-archiver (new-message-archiver)
      :topic-injector (new-topic-injector)
      :metrics (new-metrics))))

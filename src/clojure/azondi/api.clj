@@ -13,7 +13,7 @@
    [cheshire.core :refer (decode decode-stream encode)]
    [schema.core :as s]
    [camel-snake-kebab :refer (->kebab-case-keyword ->camelCaseString)]
-   [azondi.db :refer (get-users get-user delete-user! create-user! devices-by-owner get-device delete-device! create-device! patch-device! topics-by-owner get-topic delete-topic! create-topic! patch-topic! set-device-password!)]
+   [azondi.db :refer (get-users get-user delete-user! create-user! devices-by-owner get-device delete-device! create-device! patch-device! topics-by-owner get-topic delete-topic! create-topic! patch-topic! set-device-password! api-key create-api-key)]
    [hiccup.core :refer (html)]
    [clojure.walk :refer (postwalk)]
    liberator.representation
@@ -241,17 +241,17 @@
 
    :exists? (fn [{{{user :user client-id :client-id} :route-params} :request}]
               (when (and (get-user db user)
-                         (get-device db client-id))
+                         (get-device db (Integer. client-id)))
                 {:user user
                  :client-id client-id}))
 
    :processable? (create-schema-check device-attributes-schema)
    :handle-unprocessable-entity handle-unprocessable-entity
 
-   :put! (fn [{client-id :client-id body :body}] (patch-device! db client-id body))
-   :delete! (fn [{client-id :client-id}] (delete-device! db client-id))
+   :put! (fn [{client-id :client-id body :body}] (patch-device! db (Integer. client-id) body))
+   :delete! (fn [{client-id :client-id}] (delete-device! db (Integer. client-id)))
 
-   :handle-ok (fn [{client-id :client-id}] (get-device db client-id))
+   :handle-ok (fn [{client-id :client-id}] (get-device db (Integer. client-id)))
    :handle-created (fn [_] {:message "Patched"})
 
    })
@@ -318,6 +318,22 @@
 
    :handle-ok (fn [{topic :topic existing :existing}] existing)
    :handle-created (fn [_] {:message "Patched"})})
+
+(defn api-resource [db]
+  {:available-media-types #{"application/json"}
+   :allowed-methods #{:get :post}
+   :known-content-type? #{"application/json"}
+   :handle-ok (fn [{{{user :user} :route-params} :request}]
+                (encode {:user user
+                         :api-key (-> (api-key db user)
+                                      (map #(select-keys % [:api]))
+                                      (map #(reduce-kv (fn [acc k v] (assoc acc (->camelCaseString k) v)) {} %)))}))
+   :post! (fn [{body :body {{user :user} :route-params} :request}]
+            {:api-key
+             (create-api-key db user)})
+
+   :handle-created (fn [{api-key :api-key}]
+                     (->js api-key))})
 
 (defn api-routes [db uri-context]
   {"" (resource (welcome-resource))

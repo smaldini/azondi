@@ -25,22 +25,22 @@ DELETE FROM devices;
 
 INSERT INTO devices (name, owner_user_id, device_password_hash)
             -- password: device-1-pwd
-             VALUES ('79f4572a-5493-486e-9abe-7337ea06ba4b',
+             VALUES ('Pollution 1',
              'yods', '$s0$e0801$UFqu7r6NqzzA8f2Izbgjig==$D5QttKRnviio4CT8YON+m9OoesbDNen4r0c7P19pqsE=');
 
 INSERT INTO devices (name, owner_user_id, device_password_hash)
             -- password: device-2-pwd
-             VALUES ('24f9eb8a-ffee-4ec6-b593-11bbcb749a86',
+             VALUES ('Pollution 2',
              'yods', '$s0$e0801$obspyjv/9zmFcD9we9A3oA==$fqeO5pvrR57aaqy4EAy9P3hZ+DS/yoT9GtfJnA3aLq4=');
 
 INSERT INTO devices (name, owner_user_id, device_password_hash)
             -- password: device-3-pwd
-             VALUES ('d6acc822-f46a-4c45-88c0-4c29284fd4af',
+             VALUES ('Foo 3',
              'yods', '$s0$e0801$EGG/OmC7ZEIUOkU9t/m5XQ==$oyI8bQInV1jeaMYaV4tHxleK3Hzarr4IrLGb6dA+Vtc=');
 
 INSERT INTO devices (name, owner_user_id, device_password_hash)
             -- password: device-4-pwd
-             VALUES ('8becf541-5888-4168-8bd7-c09b6056c9f5',
+             VALUES ('Fab 5',
              'michaelklishin', '$s0$e0801$fndkuyOGRHJcwU0LsTQwpw==$3t5c0YAk6F7ekWD8fbyOvSJholAKYReCdCq8uD/suWM=');
 
 --
