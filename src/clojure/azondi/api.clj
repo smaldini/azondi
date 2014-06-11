@@ -13,7 +13,7 @@
    [cheshire.core :refer (decode decode-stream encode)]
    [schema.core :as s]
    [camel-snake-kebab :refer (->kebab-case-keyword ->camelCaseString)]
-   [azondi.db :refer (get-users get-user delete-user! create-user! devices-by-owner get-device delete-device! create-device! patch-device! topics-by-owner get-topic delete-topic! create-topic! patch-topic! set-device-password! api-key create-api-key)]
+   [azondi.db :refer (get-users get-user delete-user! create-user! devices-by-owner get-device delete-device! create-device! patch-device! topics-by-owner get-topic delete-topic! create-topic! patch-topic! set-device-password! get-api-key delete-api-key create-api-key)]
    [hiccup.core :refer (html)]
    [clojure.walk :refer (postwalk)]
    liberator.representation
@@ -323,17 +323,22 @@
   {:available-media-types #{"application/json"}
    :allowed-methods #{:get :post}
    :known-content-type? #{"application/json"}
-   :handle-ok (fn [{{{user :user} :route-params} :request}]
-                (encode {:user user
-                         :api-key (-> (api-key db user)
-                                      (map #(select-keys % [:api]))
-                                      (map #(reduce-kv (fn [acc k v] (assoc acc (->camelCaseString k) v)) {} %)))}))
+   :exists? (fn [{{{user :user} :route-params} :request}]
+              (let [apikey (-> (get-api-key db user)
+                                     (select-keys [:api]))]
+                  {:user user :apikey apikey}))
+   :handle-ok (fn [{user :user apikey :apikey}]
+                {user apikey})
    :post! (fn [{body :body {{user :user} :route-params} :request}]
-            {:api-key
-             (create-api-key db user)})
+            {:apikey
+             (if (get-api-key db user)
+               (do
+                 (delete-api-key db user)
+                 (create-api-key db user))
+               (create-api-key db user))})
 
-   :handle-created (fn [{api-key :api-key}]
-                     (->js api-key))})
+   :handle-created (fn [{apikey :apikey}]
+                     (->js apikey))})
 
 (defn api-routes [db uri-context]
   {"" (resource (welcome-resource))
@@ -347,7 +352,9 @@
                          ["/devices/" :client-id "/reset-password"] (resource (reset-device-password-resource db))
                          "/topics" (->Redirect 307 (resource (topics-resource db)))
                          "/topics/" (resource (topics-resource db))
-                         ["/topics/" :topic-name] (resource (topic-resource db))}})
+                         ["/topics/" :topic-name] (resource (topic-resource db))
+                         "/api-key/" (resource (api-resource db))
+                         "/api-key" (->Redirect 307 "/api-key/")}})
 
 (defrecord Api []
   component/Lifecycle
