@@ -112,6 +112,22 @@
 
   (patch-topic! [this topic-id data]
     (j/update! (conn this) :topics data ["topic = ?" topic-id]))
+
+  #_(api-key [this user]
+    (first (j/query (conn this) ["SELECT * FROM api_keys WHERE id = ?" user])))
+
+  #_(delete-api-key [this user]
+    (j/delete! (conn this) :api_key ["user = ?" user]))
+  
+  #_(create-api-key [this user]
+    (let [api (str (java.util.UUID/randomUUID))
+          create (fn [uuid a-key]
+                   )]
+      (if (api-key this user)
+        (do
+          (delete-api-key this user)
+          (j/insert! (conn this) :api_key {:user user :api api}))
+        (j/insert! (conn this) :api_key {:user user :api api}))))
   ) 
 
 (defn new-database

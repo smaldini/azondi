@@ -21,8 +21,8 @@
                         s-map
          (->
           (configurable-system-map (config))
-          (assoc :api-tests (azondi.api-tests/new-api-tests)
-                 :seed (new-seed-data)
+          (assoc ;;:api-tests (azondi.api-tests/new-api-tests)
+                 ;;:seed (new-seed-data)
 
                  :database (new-database (get c :postgres))
 
@@ -40,7 +40,7 @@
                  :database (if (System/getenv "USE_POSTGRESQL")
                              (new-database (get c :postgres))
                              (new-inmemory-datastore))
-                 :cassandra (cass/new-database (get c :cassandra))
+                 :cassandra (cass/new-database (get c :cassandra {:keyspace "opensensors" :hosts ["127.0.0.1"]}))
                  ))
 
          d-map (new-dependency-map s-map)]

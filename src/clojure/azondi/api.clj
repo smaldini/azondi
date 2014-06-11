@@ -13,7 +13,7 @@
    [cheshire.core :refer (decode decode-stream encode)]
    [schema.core :as s]
    [camel-snake-kebab :refer (->kebab-case-keyword ->camelCaseString)]
-   [azondi.db :refer (get-users get-user delete-user! create-user! devices-by-owner get-device delete-device! create-device! patch-device! topics-by-owner get-topic delete-topic! create-topic! patch-topic! set-device-password!)]
+   [azondi.db :refer (get-users get-user delete-user! create-user! devices-by-owner get-device delete-device! create-device! patch-device! topics-by-owner get-topic delete-topic! create-topic! patch-topic! set-device-password! api-key create-api-key)]
    [hiccup.core :refer (html)]
    [clojure.walk :refer (postwalk)]
    liberator.representation
@@ -318,6 +318,22 @@
 
    :handle-ok (fn [{topic :topic existing :existing}] existing)
    :handle-created (fn [_] {:message "Patched"})})
+
+(defn api-resource [db]
+  {:available-media-types #{"application/json"}
+   :allowed-methods #{:get :post}
+   :known-content-type? #{"application/json"}
+   :handle-ok (fn [{{{user :user} :route-params} :request}]
+                (encode {:user user
+                         :api-key (-> (api-key db user)
+                                      (map #(select-keys % [:api]))
+                                      (map #(reduce-kv (fn [acc k v] (assoc acc (->camelCaseString k) v)) {} %)))}))
+   :post! (fn [{body :body {{user :user} :route-params} :request}]
+            {:api-key
+             (create-api-key db user)})
+
+   :handle-created (fn [{api-key :api-key}]
+                     (->js api-key))})
 
 (defn api-routes [db uri-context]
   {"" (resource (welcome-resource))

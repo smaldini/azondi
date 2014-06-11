@@ -9,7 +9,7 @@
    [azondi.dev-db :refer (new-inmemory-datastore)]
    [azondi.seed :refer (new-seed-data)]
    [azondi.postgres :refer (new-database)]
-   [azondi.passwords :as pwd]g
+   [azondi.passwords :as pwd]
    [azondi.cassandra :as cass]))
 
 
@@ -21,9 +21,7 @@
                         s-map
          (->
           (configurable-system-map (config))
-          (assoc :api-tests (azondi.api-tests/new-api-tests)
-                 :seed (new-seed-data)
-
+          (assoc 
                  :database (new-database (get c :postgres))
 
                  :cassandra (cass/new-database (get c :cassandra {:keyspace "opensensors" :hosts ["127.0.0.1"]}))
@@ -40,7 +38,7 @@
                  :database (if (System/getenv "USE_POSTGRESQL")
                              (new-database (get c :postgres))
                              (new-inmemory-datastore))
-                 :cassandra (cass/new-database (get c :cassandra))
+                 :cassandra (cass/new-database (get c :cassandra {:keyspace "opensensors" :hosts ["127.0.0.1"]}))
                  ))
 
          d-map (new-dependency-map s-map)]
