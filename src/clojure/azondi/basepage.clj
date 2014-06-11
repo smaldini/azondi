@@ -130,12 +130,12 @@
    [:div
     [:h1 "Devices"]
     [:div#content [:p.loading "Loading..."]]]
-   [:script "azondi.main.devices_page('alice');" ]))
+   [:script "azondi.main.devices_page('yods');" ]))
 
 (defn topics-page []
   (base-page
    [:div
     [:h1 "Topics"]
     [:div#content [:p.loading "Loading..."]]]
-   [:script "azondi.main.topics_page('alice');" ]))
+   [:script "azondi.main.topics_page('yods');" ]))
 

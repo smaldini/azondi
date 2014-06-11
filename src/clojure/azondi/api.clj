@@ -241,17 +241,17 @@
 
    :exists? (fn [{{{user :user client-id :client-id} :route-params} :request}]
               (when (and (get-user db user)
-                         (get-device db client-id))
+                         (get-device db (Integer. client-id)))
                 {:user user
                  :client-id client-id}))
 
    :processable? (create-schema-check device-attributes-schema)
    :handle-unprocessable-entity handle-unprocessable-entity
 
-   :put! (fn [{client-id :client-id body :body}] (patch-device! db client-id body))
-   :delete! (fn [{client-id :client-id}] (delete-device! db client-id))
+   :put! (fn [{client-id :client-id body :body}] (patch-device! db (Integer. client-id) body))
+   :delete! (fn [{client-id :client-id}] (delete-device! db (Integer. client-id)))
 
-   :handle-ok (fn [{client-id :client-id}] (get-device db client-id))
+   :handle-ok (fn [{client-id :client-id}] (get-device db (Integer. client-id)))
    :handle-created (fn [_] {:message "Patched"})
 
    })
