@@ -40,9 +40,9 @@
 
                  ;; Pre-built components supplied by modular
 
-                 [juxt.modular/cljs "0.4.0-SNAPSHOT"]
-                 [juxt.modular/mqtt "0.1.0-SNAPSHOT"]
-                 [juxt.modular/netty "0.1.0-SNAPSHOT"]
+                 [juxt.modular/cljs "0.4.0"]
+                 [juxt.modular/mqtt "0.1.0"]
+                 [juxt.modular/netty "0.1.0"]
 
 
                  [bidi "1.10.3"]
@@ -51,7 +51,7 @@
                  [compojure "1.1.8"]
                  [markdown-clj "0.9.36"]
 
-                 [cylon "0.2.0-SNAPSHOT"]
+                 [cylon "0.2.0"]
                  [http-kit "2.1.16"]
                  
 
@@ -65,8 +65,6 @@
                  [org.slf4j/jul-to-slf4j "1.7.2"]
                  [org.slf4j/jcl-over-slf4j "1.7.2"]
                  [org.slf4j/log4j-over-slf4j "1.7.2"]
-
-                 ;;[com.taoensso/timbre "3.2.1"]
 
                  [camel-snake-kebab "0.1.4"]
 
