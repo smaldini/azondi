@@ -49,6 +49,9 @@
   (delete-user! [this user]
     (j/delete! (conn this) :users ["id = ?" user]))
 
+  (reset-user-password [this user password]
+    (j/update! (conn this) :users {:password_hash (sc/encrypt password)} ["id = ?" user]))
+
   (devices-by-owner [this user]
     (psql->clj (j/query (conn this) ["SELECT * FROM devices WHERE owner_user_id = ?;" user])))
 
@@ -122,6 +125,8 @@
   (create-api-key [this user]
     (let [api (str (java.util.UUID/randomUUID))]
       (j/insert! (conn this) :api_keys {:id user :api api})))
+
+  
   ) 
 
 (defn new-database

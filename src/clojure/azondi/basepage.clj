@@ -128,14 +128,19 @@
 (defn devices-page []
   (base-page
    [:div
-    [:h1 "Devices"]
+    [:h2 "Devices"]
     [:div#content [:p.loading "Loading..."]]]
    [:script "azondi.main.devices_page('yods');" ]))
 
 (defn topics-page []
   (base-page
    [:div
-    [:h1 "Topics"]
+    [:h2 "Topics"]
     [:div#content [:p.loading "Loading..."]]]
    [:script "azondi.main.topics_page('yods');" ]))
+
+(defn api-page []
+  (base-page
+   [:div
+    [:h2 "Api"]]))
 

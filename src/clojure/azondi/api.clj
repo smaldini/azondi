@@ -13,7 +13,7 @@
    [cheshire.core :refer (decode decode-stream encode)]
    [schema.core :as s]
    [camel-snake-kebab :refer (->kebab-case-keyword ->camelCaseString)]
-   [azondi.db :refer (get-users get-user delete-user! create-user! devices-by-owner get-device delete-device! create-device! patch-device! topics-by-owner get-topic delete-topic! create-topic! patch-topic! set-device-password! get-api-key delete-api-key create-api-key)]
+   [azondi.db :refer (get-users get-user delete-user! create-user! devices-by-owner get-device delete-device! create-device! patch-device! topics-by-owner get-topic delete-topic! create-topic! patch-topic! set-device-password! get-api-key delete-api-key create-api-key reset-user-password)]
    [hiccup.core :refer (html)]
    [clojure.walk :refer (postwalk)]
    liberator.representation
@@ -90,8 +90,7 @@
                 (case mt
                   "text/plain" welcome
                   "text/html" (html [:h1 welcome])
-                  ("application/json" "application/edn") {:message welcome :current-date (java.util.Date.)}
-                  ))})
+                  ("application/json" "application/edn") {:message welcome :current-date (java.util.Date.)}))})
 
 ;;;;; ----- USERS ----
 
@@ -120,8 +119,7 @@
          (html [:ul (for [[k user] (get-users db)]
                       [:li [:a {:href (bidi/path-for routes :user :user (:user user))} (:user user)]])]))
        "application/json"
-       (for [user (get-users db)] {:user user :href (bidi/path-for routes :user :user (:user user))})
-       ))})
+       (for [user (get-users db)] {:user user :href (bidi/path-for routes :user :user (:user user))})))})
 
 (def new-user-schema
   {(s/optional-key :name) s/Str
@@ -136,19 +134,14 @@
    ;; We only allow local access
    #_:allowed?
    #_(fn [{{:keys [remote-addr request-method]} :request}]
-     (or (= request-method :get)
-         ;;(= remote-addr "127.0.0.1")
-         ))
+     (or (= request-method :get)))
 
    :known-content-type? #{"application/json"}
    :processable? (create-schema-check new-user-schema)
    :handle-unprocessable-entity handle-unprocessable-entity
 
-   :exists? (fn [{{{user :user} :route-params} :request}
-                 ]
-                {::user (get-user db user)}
-                ;;{::user {:db (get-user db user) :user (str user)}}
-                 )
+   :exists? (fn [{{{user :user} :route-params} :request}]
+                {::user (get-user db user)})
 
    :handle-ok (fn [{user ::user {media-type :media-type} :representation req :request}]
                 (case media-type
@@ -157,10 +150,7 @@
                                [:dl
                                 (for [[k v] user]
                                   (list [:dt k]
-                                        [:dd v])
-                                  )
-                                ]))
-                )
+                                        [:dd v]))])))
 
    :put! (fn [{{:keys [name email password]} :body {{user :user} :route-params} :request}]
            (when (get-user db user)
@@ -172,11 +162,17 @@
                  ]
              ;; We create the api-key, in order to return. This is
              ;; really just to help with the tests. Is this appropriate?
-             {:response-body {:api-key "12345"}}
-             )
-           )
-   :handle-created (fn [{body :response-body}] body)
-   })
+             {:response-body {:api-key "12345"}}))
+   :handle-created (fn [{body :response-body}] body)})
+
+(defn reset-user-password-resource [db]
+  {:available-media-types #{"application/json"}
+   :allowed-methods #{:post}
+   ;;:allowed? same-user
+   :post! (fn [{{:keys [password]} :body {{user :users} :route-params} :request}]
+            (reset-user-password db user password)
+            {:password password})
+   :handle-created (fn [{password :password}] {:password password})})
 
 ;; DEVICES
 
@@ -252,9 +248,7 @@
    :delete! (fn [{client-id :client-id}] (delete-device! db (Integer. client-id)))
 
    :handle-ok (fn [{client-id :client-id}] (get-device db (Integer. client-id)))
-   :handle-created (fn [_] {:message "Patched"})
-
-   })
+   :handle-created (fn [_] {:message "Patched"})})
 
 (defn reset-device-password-resource [db]
   {:available-media-types #{"application/json"}
@@ -304,18 +298,14 @@
                body :body
                {{user :user} :route-params} :request}]
            (if-not existing
-
              (do
                (infof "TOPIC CREATING: new is %s" (assoc body :topic topic :owner user))
                (create-topic! db (assoc body :topic topic :owner user)))
              (do
                (infof "TOPIC PATCHING: existing is %s, new is " existing (assoc body :owner user))
-               (patch-topic! db topic (assoc body :owner user)))
-
-             ))
+               (patch-topic! db topic (assoc body :owner user)))))
 
    :delete! (fn [{topic :topic}] (delete-topic! db topic))
-
    :handle-ok (fn [{topic :topic existing :existing}] existing)
    :handle-created (fn [_] {:message "Patched"})})
 
@@ -353,8 +343,9 @@
                          "/topics" (->Redirect 307 (resource (topics-resource db)))
                          "/topics/" (resource (topics-resource db))
                          ["/topics/" :topic-name] (resource (topic-resource db))
-                         "/api-key/" (resource (api-resource db))
-                         "/api-key" (->Redirect 307 "/api-key/")}})
+                         "/api-key" (resource (api-resource db))
+                         "/api-key/" (->Redirect 307 "/api-key")
+                         "/reset-password" (resource (reset-device-password-resource db))}})
 
 (defrecord Api []
   component/Lifecycle
