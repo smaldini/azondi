@@ -51,9 +51,9 @@
         ["services" (:services pages)]
         ["devices" (:devices pages)]
         ["topics" (:topics pages)]
-        ["api/1.0" api-routes]]
-   "/ops/" [["" (fn [req]
-                  (serve-metrics req metric-registry))]]])
+        ["api/1.0" api-routes]
+        ["ops/1.0/metrics" (fn [req]
+                             (serve-metrics req metric-registry))]]])
 
 
 (defrecord WebApp []
