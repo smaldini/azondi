@@ -161,7 +161,7 @@
 
    (not (allowed-device? (:database handler-state) client-id username password))
    (do
-     (warnf "Device authentication failed, rejecting connection")
+     (warnf "Device authentication failed for username: %s, client id: %s, rejecting connection" username client-id)
      (go (>!! (:debug-ch handler-state) {:client-id client-id
                                          :message "Rejecting connection, check username/password"}))
      (mm/mark! (:mqtt-connections-authentication-failures metrics))
