@@ -35,8 +35,7 @@
          s-map
          (->
           (configurable-system-map (config))
-          (assoc :api-tests (azondi.api-tests/new-api-tests)
-                 :seed (new-seed-data)
+          (assoc :seed (new-seed-data)
                  :database (if (System/getenv "USE_POSTGRESQL")
                              (new-database (get c :postgres))
                              (new-inmemory-datastore))
