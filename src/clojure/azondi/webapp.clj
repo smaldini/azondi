@@ -53,7 +53,7 @@
         ["topics" (:topics pages)]
         ["api/1.0" api-routes]
         ["ops/1.0/metrics" (fn [req]
-                             (serve-metrics req metric-registry))]]])
+                             (serve-metrics req metric-registry {:pretty-print? true}))]]])
 
 
 (defrecord WebApp []
