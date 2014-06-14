@@ -28,8 +28,9 @@
                  [clojurewerkz/cassaforte "2.0.0-beta1"]
 
                  ;; Metrics
-                 [metrics-clojure         "2.0.4"]
-                 [metrics-clojure-ring    "2.0.4"]
+                 [metrics-clojure          "2.2.0-beta1"]
+                 [metrics-clojure-ring     "2.2.0-beta1"]
+                 [metrics-clojure-graphite "2.2.0-beta1"]
 
                  ;; for query string parsing
                  ;;[javax.servlet/servlet-api "2.5"]

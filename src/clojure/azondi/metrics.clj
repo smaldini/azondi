@@ -4,12 +4,19 @@
             [metrics.histograms :as mh]
             [metrics.timers     :as mt]
             [metrics.counters   :as mct]
+            [metrics.reporters          :as mr]
+            [metrics.reporters.graphite :as mrg]
             [com.stuartsierra.component :as component]))
 
-(defrecord Metrics []
+(defrecord Metrics [^String hostname ^String prefix]
   component/Lifecycle
   (start [this]
-    (let [reg (mc/new-registry)]
+    (println this)
+    (let [reg (mc/new-registry)
+          rep (mrg/reporter reg {:hostname (.hostname this)
+                                 :prefix   (str (.prefix this) "." (.hostname this))})]
+      (when (System/getenv "USE_GRAPHITE")
+        (mr/start rep 5))
       (merge this
              {:registry                                      reg
               :mqtt-connections-active                       (mct/counter reg ["mqtt" "connections" "active"])
@@ -25,5 +32,5 @@
     this))
 
 (defn new-metrics
-  []
-  (-> (Metrics.)))
+  [opts]
+  (map->Metrics opts))

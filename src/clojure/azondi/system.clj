@@ -116,7 +116,8 @@
 
      :message-archiver (new-message-archiver)
      :topic-injector (new-topic-injector)
-     :metrics (new-metrics))))
+     :metrics (new-metrics {:hostname (.. java.net.InetAddress getLocalHost getHostName)
+                            :prefix   "azondi"}))))
 
 
 (defn new-dependency-map [system-map]
