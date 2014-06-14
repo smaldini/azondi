@@ -2,6 +2,7 @@
   (:require [metrics.core       :as mc]
             [metrics.meters     :as mm]
             [metrics.histograms :as mh]
+            [metrics.timers     :as mt]
             [metrics.counters   :as mct]
             [com.stuartsierra.component :as component]))
 
@@ -18,7 +19,7 @@
               :mqtt-exceptions-uncaught                      (mm/meter reg ["mqtt" "exceptions" "uncaught"])
               :mqtt-messages-published                       (mm/meter reg ["mqtt" "messages" "published"])
               :mqtt-messages-payload-size                    (mh/histogram reg ["mqtt" "messages" "payload_size"])
-              :mqtt-messages-publish-latency                 (mh/histogram reg ["mqtt" "messages" "publish_latency"])})))
+              :mqtt-messages-publish-latency                 (mt/timer reg ["mqtt" "messages" "publish_latency"])})))
 
   (stop [this]
     this))
