@@ -17,6 +17,7 @@
             [azondi.reactor.keys :as rk]
             [azondi.metrics      :as am]
             [metrics.meters     :as mm]
+            [metrics.timers     :as mt]
             [metrics.histograms :as mh]
             [metrics.counters   :as mct])
   (:import  [io.netty.channel ChannelHandlerAdapter ChannelHandlerContext Channel]
@@ -308,7 +309,7 @@
 
 (defn handle-publish
   [^ChannelHandlerContext ctx {:keys [qos topic payload] :as msg}
-   {:keys [reactor connections-by-ctx] :as handler-state}]
+   {:keys [reactor connections-by-ctx metrics] :as handler-state}]
   ;; example message:
   ;; {:payload #<byte[] [B@1503e6b>,
   ;;  :message-id 1,
@@ -323,19 +324,21 @@
               0 handle-publish-with-qos0
               1 handle-publish-with-qos1
               2 handle-publish-with-qos2)]
-
       (if (tp/authorized-to-publish? topic username)
         (if (valid-payload? payload)
           (do
             (go (>!! (:debug-ch handler-state)
                      {:client-id client-id
                       :message (str "Publishing message on topic: " topic)}))
-            (f ctx msg handler-state)
-            (mr/notify reactor rk/message-published {:device_id client-id
-                                                     :payload payload
-                                                     :content_type "application/json"
-                                                     :topic topic
-                                                     :owner username}))
+            (mt/time! (:mqtt-messages-publish-latency metrics)
+             (f ctx msg handler-state)
+             (mr/notify reactor rk/message-published {:device_id client-id
+                                                      :payload payload
+                                                      :content_type "application/json"
+                                                      :topic topic
+                                                      :owner username}))
+            (mh/update! (:mqtt-messages-payload-size metrics) (alength payload))
+            (mm/mark!   (:mqtt-messages-published metrics)))
           (do
             (warnf "Rejecting client %s for publishing a message %d in size to topic %s" client-id (alength payload) topic)
             (disconnect-client ctx)))
@@ -373,7 +376,7 @@
      (alter subscriptions unrecord-subscribers ctx topics)
      (alter connections-by-ctx       dissoc ctx)
      (alter connections-by-client-id dissoc client-id)))
-    (mct/dec! (:mqtt-connections-active metrics))
+  (mct/dec! (:mqtt-connections-active metrics))
   (abort ctx))
 
 ;;
