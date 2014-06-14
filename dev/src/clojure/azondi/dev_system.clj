@@ -7,6 +7,7 @@
    [azondi.db :refer (Datastore get-user)]
    [azondi.postgres :refer (new-database)]
    [azondi.passwords :as pwd]
+   [azondi.messages :refer (new-message-archiver)]
    [azondi.cassandra :as cass]))
 
 
@@ -14,16 +15,31 @@
   "Create a development system"
   [& [env]]
   (cond
-   (= env "prod") (let [c     (config)
-                        s-map (-> (configurable-system-map (config))
-                                  (assoc :database (new-database (get c :postgres))
-                                         :cassandra (cass/new-database (get c :cassandra))))
-                        d-map (new-dependency-map s-map)]
-                    (component/system-using s-map d-map))
+   (= env "prod") (let [c (config)
+                        s-map
+         (->
+          (configurable-system-map (config))
+          (assoc ;;:api-tests (azondi.api-tests/new-api-tests)
+                 ;;:seed (new-seed-data)
+
+                 :database (new-database (get c :postgres))
+                 :message-archiver (new-message-archiver)
+
+                 :cassandra (cass/new-database (get c :cassandra))
+                 ))
+                       d-map (new-dependency-map s-map)]
+                   (component/system-using s-map d-map))
    :else
    (let [c (config)
-         s-map (-> (configurable-system-map (config))
-                   (assoc :database (new-database (get c :postgres))
-                          :cassandra (cass/new-database (get c :cassandra))))
+         s-map
+         (->
+          (configurable-system-map (config))
+          (assoc :seed (new-seed-data)
+                 :database (if (System/getenv "USE_POSTGRESQL")
+                             (new-database (get c :postgres))
+                             (new-inmemory-datastore))
+                 ;;:cassandra (cass/new-database (get c :cassandra {:keyspace "opensensors" :hosts ["127.0.0.1"]}))
+                 ))
+
          d-map (new-dependency-map s-map)]
      (component/system-using s-map d-map))))

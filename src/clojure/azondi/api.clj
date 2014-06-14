@@ -17,6 +17,7 @@
    [hiccup.core :refer (html)]
    [clojure.walk :refer (postwalk)]
    liberator.representation
+   [modular.bidi :refer (WebService)]
    ))
 
 ;; Coercians
@@ -331,32 +332,40 @@
    :handle-created (fn [{apikey :apikey}]
                      (->js apikey))})
 
-(defn api-routes [db uri-context]
-  {"" (resource (welcome-resource))
-      "/" (->Redirect 307 "")
-      "/users" (->Redirect 307 "/users/")
-      "/users/" (resource (users-resource db))
-      ["/users/" :user] {"" (resource (user-resource db))
-                         "/devices/"  (resource (devices-resource db))
-                         "/devices" (->Redirect 307 "/devices/")
-                         ["/devices/" :client-id] (resource (device-resource db))
-                         ["/devices/" :client-id "/reset-password"] (resource (reset-device-password-resource db))
-                         "/topics" (->Redirect 307 (resource (topics-resource db)))
-                         "/topics/" (resource (topics-resource db))
-                         ["/topics/" :topic-name] (resource (topic-resource db))
-                         "/api-key" (resource (api-resource db))
-                         "/api-key/" (->Redirect 307 "/api-key")
-                         "/reset-password" (resource (reset-user-password-resource db))}})
+(defn handlers [db]
+  {::welcome (resource (welcome-resource))
+   ::users (resource (users-resource db))
+   ::user (resource (user-resource db))
+   ::devices (resource (devices-resource db))
+   ::device (resource (device-resource db))
+   ::reset-password (resource (reset-device-password-resource db))
+   ::topics (resource (topics-resource db))
+   ::topic (resource (topic-resource db))
+   ::api-key (resource (api-resource db))
+   ::reset-user-password (resource (reset-user-password-resource db))})
+
+(def routes
+  {"" ::welcome
+   "/" (->Redirect 307 "")
+   "/users" (->Redirect 307 "/users/")
+   "/users/" ::users
+   ["/users/" ::user] {"" ::user
+                       "/devices/" ::devices
+                       "/devices" (->Redirect 307 ::devices)
+                       ["/devices/" :client-id] ::device
+                       ["/devices/" :client-id "/reset-password"] ::reset-password
+                       "/topics/" ::topics
+                       "/topics" (->Redirect 307 ::topics)
+                       ["/topics/" :topic-name] ::topic
+                       "/api-key/" ::api-key
+                       "/api-key" (->Redirect 307 ::api-key)
+                       "/reset-password" ::reset-user-password}})
 
 (defrecord Api []
-  component/Lifecycle
-  (start [this]
-    (let [routes (api-routes (:database this) "/api/1.0")]
-      (assoc this
-        :api-routes routes)))
-  (stop [this]
-    (dissoc this :api-routes)))
+  WebService
+  (request-handlers [this] (handlers (:database this)))
+  (routes [_] routes)
+  (uri-context [_] "/api/1.0"))
 
 (defn new-api [& {:as opts}]
-  (component/using (->Api)
-                   [:database]))
+  (component/using (->Api) [:database]))

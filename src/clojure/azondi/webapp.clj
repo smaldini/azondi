@@ -3,18 +3,19 @@
    [com.stuartsierra.component :as component]
    [clojure.java.io :as io]
    [bidi.bidi :refer (make-handler ->ResourcesMaybe)]
+   [modular.bidi :refer (WebService)]
    [markdown.core :as md]
    [hiccup.core :refer (html)]
    [azondi.basepage :refer :all]
    [org.httpkit.server :refer (run-server)]
-   [metrics.ring.expose :refer [serve-metrics]]))
+   ))
 
 (defn md->html
   "Reads a markdown file/resource and returns an HTML string"
   [r]
   (md/md-to-html-string (slurp r)))
 
-(def pages
+(def handlers
   {:index
    (fn [req]
      {:status 200 :body (base-page (md->html (io/resource "markdown/index.md")))})
@@ -44,40 +45,28 @@
      {:status 200 :body (api-page)})
      })
 
-
-
-(defn app
-  [api-routes metric-registry]
-  ["/" [["" (:index pages)]
+(def routes
+  ["/" [["" :index]
         ["" (->ResourcesMaybe {:prefix "public/"})]
-        ["help" (:help pages)]
-        ["about" (:about pages)]
-        ["terms" (:terms pages)]
-        ["services" (:services pages)]
-        ["devices" (:devices pages)]
-        ["topics" (:topics pages)]
-        ["reset-password" (:reset-password pages)]
-        ["api-docs" (:api-docs-page pages)]
-        ["api/1.0" api-routes]
-        ["ops/1.0/metrics" (fn [req]
-                             (serve-metrics req metric-registry {:pretty-print? true}))]]])
-
-
+        ["help" :help]
+        ["about" :about]
+        ["terms" :terms]
+        ["services" :services]
+        ["devices" :devices]
+        ["topics" :topics]
+        ["reset-password" :reset-password]
+        ["api-docs" :api-docs-page]
+        ]])
 
 (defrecord WebApp []
-  component/Lifecycle
-  (start [this]
-    (let [reg           (get-in this [:metrics :registry])
-          webapp-routes (app (get-in this [:api :api-routes]) reg)
-          server (run-server (make-handler webapp-routes) {:port 8010})]
-      (assoc this
-        :webapp-routes webapp-routes
-        :webserver server)))
-  (stop [this]
-    (when-let [server (:webserver this)]
-      (server)
-      (dissoc this :webapp-routes :webserver))))
+  WebService
+  (request-handlers [_] handlers)
+  (routes [_] routes)
+  (uri-context [_] ""))
 
-(defn new-webapp []
-  (component/using (->WebApp)
-                   [:api :metrics]))
+(defn new-webapp [] (->WebApp))
+
+;; TODO Need a webservice to call
+;; require : [metrics.ring.expose :refer [serve-metrics]]
+;;["ops/1.0/metrics" (fn [req]
+;;                             (serve-metrics req metric-registry {:pretty-print? true}))]
