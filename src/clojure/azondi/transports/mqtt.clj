@@ -2,8 +2,6 @@
 (ns azondi.transports.mqtt
   (:require [com.stuartsierra.component :as component]
             [modular.netty :refer (NettyHandlerProvider)]
-            #_[taoensso.timbre :refer [log  trace  debug  info  warn  error  fatal
-                                       logf tracef debugf infof warnf errorf fatalf]]
             [clojure.tools.logging :refer (warnf infof info log)]
             [clojurewerkz.triennium.mqtt :as tr]
 
@@ -16,7 +14,12 @@
             
             [clojurewerkz.meltdown.selectors :as ms :refer [$]]
             [clojure.core.async :refer (chan pub dropping-buffer sub go >! <! >!! <!! take! put! timeout)]
-            [azondi.reactor.keys :as rk])
+            [azondi.reactor.keys :as rk]
+            [azondi.metrics      :as am]
+            [metrics.meters     :as mm]
+            [metrics.timers     :as mt]
+            [metrics.histograms :as mh]
+            [metrics.counters   :as mct])
   (:import  [io.netty.channel ChannelHandlerAdapter ChannelHandlerContext Channel]
             java.net.InetSocketAddress
             [java.util.concurrent ExecutorService Executors]))
@@ -49,11 +52,12 @@
   ([^ChannelHandlerContext ctx]
      (.close ctx))
   ([^ChannelHandlerContext ctx message]
-     (doto ctx
-       (.writeAndFlush message)
-       .close)))
+     (.writeAndFlush ctx message)
+     (disconnect-client ctx)))
 
 (defn abort
+  "Same as disconnect-client/1 but with a name that better fits certain
+   contexts. Prefer disconnect-client/1 where possible."
   [^ChannelHandlerContext ctx]
   (.close ctx))
 
@@ -99,9 +103,8 @@
 
 (defn reject-connection
   [^ChannelHandlerContext ctx code]
-  (doto ctx
-    (.writeAndFlush {:type :connack :return-code code})
-    .close)
+  (.writeAndFlush ctx {:type :connack :return-code code})
+  (disconnect-client ctx)
   (let [^InetSocketAddress peer-host (peer-of ctx)]
     (warnf "Rejecting connection from %s (return code: %s)" peer-host code))
   ctx)
@@ -118,7 +121,7 @@
                                       username
                                       password
                                       client-id] :as msg}
-   handler-state]
+   {:keys [metrics] :as handler-state}]
   ;; example connect message:
   ;; {
   ;;  :type :connect,
@@ -147,22 +150,25 @@
      (warnf "Unsupported protocol and/or version: %s v%d, rejecting connection"
             protocol-name
             protocol-version)
+     (mct/inc! (:mqtt-connections-unsupported-protocol-version metrics))
      (reject-connection ctx :unacceptable-protocol-version))
 
    (not (and has-username has-password))
    (do
      (warnf "Client has no username or password, rejecting connection")
      (go (>!! (:debug-ch handler-state) {:message "rejecting connection" :client-id client-id}))
+     (mm/mark! (:mqtt-connections-authentication-failures metrics))
      (reject-connection ctx :bad-username-or-password))
 
    (not (allowed-device? (:database handler-state) client-id username password))
    (do
-     (warnf "Device authentication failed, rejecting connection")
+     (warnf "Device authentication failed for username: %s, client id: %s, rejecting connection" username client-id)
      (go (>!! (:debug-ch handler-state) {:client-id client-id
                                          :message "Rejecting connection, check username/password"}))
+     (mm/mark! (:mqtt-connections-authentication-failures metrics))
      (reject-connection ctx :bad-username-or-password))
 
-   ;; TODO: check known devices table, too
+   ;; at this point, client-id is checked against the devices table. MK.
    (not (valid-client-id? client-id))
    (do
      (warnf "Invalid client id: %s, rejecting connection" client-id)
@@ -171,6 +177,7 @@
    :otherwise
    (do
      (go (>!! (:debug-ch handler-state) {:message "Accepting connection" :client-id client-id}))
+     (mct/inc! (:mqtt-connections-active metrics))
      (accept-connection ctx msg handler-state))))
 
 ;;
@@ -302,7 +309,7 @@
 
 (defn handle-publish
   [^ChannelHandlerContext ctx {:keys [qos topic payload] :as msg}
-   {:keys [reactor connections-by-ctx] :as handler-state}]
+   {:keys [reactor connections-by-ctx metrics] :as handler-state}]
   ;; example message:
   ;; {:payload #<byte[] [B@1503e6b>,
   ;;  :message-id 1,
@@ -317,22 +324,24 @@
               0 handle-publish-with-qos0
               1 handle-publish-with-qos1
               2 handle-publish-with-qos2)]
-
       (if (tp/authorized-to-publish? topic username)
         (if (valid-payload? payload)
           (do
             (go (>!! (:debug-ch handler-state)
                      {:client-id client-id
                       :message (str "Publishing message on topic: " topic)}))
-            (f ctx msg handler-state)
-            (mr/notify reactor rk/message-published {:device_id client-id
-                                                     :payload payload
-                                                     :content_type "application/json"
-                                                     :topic topic
-                                                     :owner username}))
+            (mt/time! (:mqtt-messages-publish-latency metrics)
+             (f ctx msg handler-state)
+             (mr/notify reactor rk/message-published {:device_id client-id
+                                                      :payload payload
+                                                      :content_type "application/json"
+                                                      :topic topic
+                                                      :owner username}))
+            (mh/update! (:mqtt-messages-payload-size metrics) (alength payload))
+            (mm/mark!   (:mqtt-messages-published metrics)))
           (do
             (warnf "Rejecting client %s for publishing a message %d in size to topic %s" client-id (alength payload) topic)
-            (abort ctx)))
+            (disconnect-client ctx)))
 
         ;; Not allowed to publish to this topic
         (let [state (get @connections-by-ctx ctx)
@@ -358,7 +367,8 @@
 (defn handle-disconnect
   [^ChannelHandlerContext ctx {:keys [topics-by-ctx
                                       connections-by-ctx
-                                      connections-by-client-id]}]
+                                      connections-by-client-id
+                                      metrics]}]
   (dosync
    (let [topics              (get @topics-by-ctx ctx)
          {:keys [client-id]} (get @connections-by-ctx ctx)]
@@ -366,7 +376,8 @@
      (alter subscriptions unrecord-subscribers ctx topics)
      (alter connections-by-ctx       dissoc ctx)
      (alter connections-by-client-id dissoc client-id)))
-  (.close ctx))
+  (mct/dec! (:mqtt-connections-active metrics))
+  (abort ctx))
 
 ;;
 ;; Netty glue
@@ -385,7 +396,7 @@
         :disconnect (handle-disconnect ctx handler-state)))
     (exceptionCaught [^ChannelHandlerContext ctx cause]
       (try (throw cause)
-           (finally (abort ctx))))))
+           (finally (disconnect-client ctx))))))
 
 (defrecord NettyMqttHandler [connections-by-ctx connections-by-client-id topics-by-ctx debug-ch]
   component/Lifecycle
@@ -396,7 +407,8 @@
       #(make-channel-handler
         (assoc this
           :reactor (get-in this [:reactor :reactor])
-          :database (get-in this [:database])
+          :database (get this :database)
+          :metrics (get this :metrics)
           :debug-ch debug-ch))))
   (stop [this] this)
 
@@ -410,4 +422,4 @@
                               :connections-by-client-id (ref {})
                               :topics-by-ctx (ref {})
                               :debug-ch debug-ch})
-      (component/using [:database :reactor])))
+      (component/using [:database :reactor :metrics])))

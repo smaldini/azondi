@@ -10,18 +10,19 @@
    [clojure.core.async :as async]
    [clojure.tools.logging :refer :all]
    [schema.core :as s]
-      
+
    ;; Pre-baked components
    [modular.cljs :refer :all]
    [modular.netty :refer (new-netty-server)]
    [modular.netty.mqtt :refer (new-mqtt-decoder new-mqtt-encoder)]
-   
+
    ;; Custom components
    [azondi.transports.mqtt :refer (new-netty-mqtt-handler)]
    [azondi.reactor :refer (new-reactor)]
    [azondi.bridges.ws :refer (new-websocket-bridge)]
    [azondi.messages :refer (new-message-archiver)]
    [azondi.topics :refer (new-topic-injector)]
+   [azondi.metrics :refer (new-metrics)]
 
    [azondi.sse :refer (new-event-service)]
    [azondi.postgres :refer (new-database)]
@@ -97,7 +98,7 @@
      :ws (new-websocket-bridge {:port 8083})
 
      ;; Webserver and routing
-     
+
      :cljs-core (new-cljs-module :name :cljs :mains ['cljs.core] :dependencies #{})
      :cljs-main (new-cljs-module :name :azondi :mains ['azondi.main] :dependencies #{:cljs})
      :cljs-logo (new-cljs-module :name :logo :mains ['azondi.logo] :dependencies #{:cljs})
@@ -115,7 +116,10 @@
 
 
      :message-archiver (new-message-archiver)
-     :topic-injector (new-topic-injector))))
+     :topic-injector (new-topic-injector)
+     :metrics (new-metrics {:hostname (.. java.net.InetAddress getLocalHost getHostName)
+                            :prefix   "azondi"}))))
+
 
 (defn new-dependency-map [system-map]
   {:mqtt-handler {:db :database}

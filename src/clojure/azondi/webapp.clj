@@ -7,7 +7,7 @@
    [hiccup.core :refer (html)]
    [azondi.basepage :refer :all]
    [org.httpkit.server :refer (run-server)]
- ))
+   [metrics.ring.expose :refer [serve-metrics]]))
 
 (defn md->html
   "Reads a markdown file/resource and returns an HTML string"
@@ -43,7 +43,8 @@
 
 
 
-(defn app [api-routes]
+(defn app
+  [api-routes metric-registry]
   ["/" [["" (:index pages)]
         ["" (->ResourcesMaybe {:prefix "public/"})]
         ["help" (:help pages)]
@@ -53,13 +54,17 @@
         ["devices" (:devices pages)]
         ["topics" (:topics pages)]
         ["reset-password" (:reset-password pages)]
-        ["api/1.0" api-routes]]])
+        ["api/1.0" api-routes]
+        ["ops/1.0/metrics" (fn [req]
+                             (serve-metrics req metric-registry {:pretty-print? true}))]]])
+
 
 
 (defrecord WebApp []
   component/Lifecycle
   (start [this]
-    (let [webapp-routes (app (get-in this [:api :api-routes]))
+    (let [reg           (get-in this [:metrics :registry])
+          webapp-routes (app (get-in this [:api :api-routes]) reg)
           server (run-server (make-handler webapp-routes) {:port 8010})]
       (assoc this
         :webapp-routes webapp-routes
@@ -71,6 +76,6 @@
 
 (defn new-webapp []
   (component/using (->WebApp)
-                   [:api]))
+                   [:api :metrics]))
 
 
