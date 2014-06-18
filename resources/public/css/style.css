@@ -97,7 +97,16 @@ margin-left: 30px;
 #sign-in-form * {margin: 10px;}
 #sign-in-form input {width: 80%;}
 
-
+#pword-reset {width:30%;
+	      padding: 20px;
+	      border: 1px solid rgba(0, 0, 0, 0.1);
+	      height: 350px;
+	      overflow: hidden;
+	      white-space: nowrap;
+	     
+	     }
+#passwordVerif1 {display: inline-block; }
+#passwordVerif2 {display: inline-block; }
 .footer-list {list-style-type:none}
 .footer-list > li {display:inline;
 		   padding: 10px 10px 10px 10px;}

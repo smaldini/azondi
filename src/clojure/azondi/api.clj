@@ -169,10 +169,11 @@
   {:available-media-types #{"application/json"}
    :allowed-methods #{:post}
    ;;:allowed? same-user
-   :post! (fn [{{:keys [password]} :body {{user :users} :route-params} :request}]
-            (reset-user-password db user password)
-            {:password password})
-   :handle-created (fn [{password :password}] {:password password})})
+   :post! (fn [{{body :body {user :user} :route-params} :request}]
+            (let [password (get-in (->clj (read-json-body body)) [:password])]
+              (reset-user-password db user password)
+              {:password password}))
+   :handle-created (fn [{password :password}] {} )})
 
 ;; DEVICES
 
@@ -345,7 +346,7 @@
                          ["/topics/" :topic-name] (resource (topic-resource db))
                          "/api-key" (resource (api-resource db))
                          "/api-key/" (->Redirect 307 "/api-key")
-                         "/reset-password" (resource (reset-device-password-resource db))}})
+                         "/reset-password" (resource (reset-user-password-resource db))}})
 
 (defrecord Api []
   component/Lifecycle

@@ -8,7 +8,6 @@
   :resource-paths ["resources"]
 
   :dependencies [[org.clojure/clojure "1.6.0"]
-
                  ;; Assembly
                  [com.stuartsierra/component "0.2.1"]
 
@@ -67,13 +66,12 @@
                  [camel-snake-kebab "0.1.4"]
 
                  ;; ClojureScript libraries
-                 [org.clojure/clojurescript "0.0-2173"]
+
                  [sablono "0.2.6" :exclusions [com.facebook/react]]
                  [om "0.6.2"]
                  [org.clojure/core.async "0.1.267.0-0d7780-alpha"]
-                 [cljs-ajax "0.2.4"]
                  [jarohen/chord "0.3.1"]
-                 ;;[org.clojars.ideal-knee/dommy "0.1.3-SNAPSHOT"]
+                 [org.clojars.ideal-knee/dommy "0.1.3-SNAPSHOT"]
                  ]
 
   :jvm-opts ["-Xss8m" "-Xmx1g" "-Duser.timezone=UTC"

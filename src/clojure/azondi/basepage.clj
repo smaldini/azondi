@@ -1,6 +1,7 @@
 (ns azondi.basepage
   (:require
    [hiccup.page :refer (html5)]
+   [hiccup.form :as hf]
    [clojure.java.io :as io]))
 
 (def menus
@@ -12,6 +13,20 @@
       :security :user
       :location :sidebar
       :target "/topics"}
+     {:label "Getting Started"
+      :security :user
+      :location :navbar
+      :target "/help"}
+     {:label "Account"
+      :security :user
+      :location :navbar
+      :target "#"
+      :children [{:label "Reset Password"
+                  :security :user
+                  :target "/reset-password"}
+                 {:label "API"
+                  :security :user
+                  :target "/api-key"}]}
      {:label "Login"
       :security :none
       :location :navbar
@@ -19,11 +34,7 @@
      {:label "Logout"
       :security :user
       :location :navbar
-      :target "/logout"}
-     {:label "Getting Started"
-      :security :user
-      :location :navbar
-      :target "/help"}])
+      :target "/logout"}])
 
 (def logo-area
   [:div#header
@@ -72,8 +83,8 @@
     [:meta {:property "dc:title" :content "opensensors.IO"}]
     [:meta {:property "dc:description" :content "opensensors.IO processes sensor data using azondi"}]
     [:title "opensensors.IO"]
+    [:link {:href "//netdna.bootstrapcdn.com/font-awesome/4.1.0/css/font-awesome.min.css" :rel "stylesheet"}]
     [:link {:href "css/bootstrap.min.css" :rel "stylesheet"}]
-    [:link {:href "http://fonts.googleapis.com/css?family=Montserrat" :rel "stylesheet"}]
     [:link {:href "css/style.css" :rel "stylesheet"}]
     
    [:body
@@ -93,7 +104,13 @@
         [:ul {:class "nav navbar-nav navbar-right"}
          (for [menu menus]
            (if (= :navbar (:location menu))
-             [:li [:a {:href (:target menu)} (:label menu)]]))]]]]
+             (if (:children menu)
+               [:li.dropdown [:a.dropdown-toggle {:href "#" :data-toggle "dropdown"} (:label menu) [:b.caret]]
+                [:ul.dropdown-menu
+                 (for [child (:children menu)]
+                   [:li [:a {:href (:target child)} (:label child)]])]]
+               [:li [:a {:href (:target menu)} (:label menu)]]
+               )))]]]]
      logo-area
      [:div.row
       [:div.col-sm-2
@@ -108,7 +125,8 @@
      ;;cljs
      [:script {:src "cljs/cljs.js"}]
      [:script {:src "cljs/azondi.js"}]
-     [:script {:src "cljs/logo.js"}]]
+     [:script {:src "cljs/logo.js"}]
+     [:script {:src "js/helpers.js"}]]
      [:div#footer {:class "navbar-default navbar-fixed-bottom"}
       [:ul.footer-list
        [:li "&copy; 2014 open sensors ltd"]
@@ -125,6 +143,7 @@
      scr
     ]))
 
+;;; We need to pull out the user details from the session
 (defn devices-page []
   (base-page
    [:div
@@ -139,8 +158,17 @@
     [:div#content [:p.loading "Loading..."]]]
    [:script "azondi.main.topics_page('yods');" ]))
 
-(defn api-page []
+(defn reset-password-page []
   (base-page
-   [:div
-    [:h2 "Api"]]))
-
+   [:div#pword-reset
+    [:h2 "Password Reset"]
+    [:p "Change your password"]
+    [:form {:id "reset-password-form" :role "form" }
+     [:div.form-group
+      [:input {:type "password" :class "form-control" :id "passwordVerif1" :name "passwordVerif1" :placeholder "Enter New Password"}]
+      [:div#ireset1]]
+     [:div.form-group
+      [:input {:type "password" :class "form-control" :id "passwordVerif2" :name "passwordVerif2" :placeholder "Verfiy Password"}]
+      [:div#ireset2]]
+     [:button {:id "reset-password-btn" :type "submit" :class "btn" :disabled "true"} "Reset Password"]
+     ]]))

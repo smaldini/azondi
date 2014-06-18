@@ -101,6 +101,7 @@
      :cljs-core (new-cljs-module :name :cljs :mains ['cljs.core] :dependencies #{})
      :cljs-main (new-cljs-module :name :azondi :mains ['azondi.main] :dependencies #{:cljs})
      :cljs-logo (new-cljs-module :name :logo :mains ['azondi.logo] :dependencies #{:cljs})
+     :cljs-reset (new-cljs-module :name :reset-password :mains ['azondi.reset-password] :dependencies #{:cljs})
      :main-cljs-builder (new-azondi-cljs-builder :source-path "src/cljs")
 
      ;; API

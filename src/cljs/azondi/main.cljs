@@ -10,8 +10,7 @@
    [goog.events :as events]
    [chord.client :refer [ws-ch]]
    [azondi.csk :as csk]
-   [azondi.chart :refer (chart-component)]
-   [ajax.core :refer [GET POST]]))
+   [azondi.chart :refer (chart-component)]))
 
 
 (enable-console-print!)
@@ -34,6 +33,7 @@
 
          :topic-detail nil ; the current details
          :new-topic-name nil ; The candidate suffix for a new topic
+         :new-password nil
          :test-card {:messages []}}))
 
 ;; TODO The styling of this table component needs a lot of work
@@ -650,3 +650,4 @@
 
 (defn ^:export test-card []
   (om/root test-card-page-component app-model {:target (. js/document (getElementById "content"))}))
+

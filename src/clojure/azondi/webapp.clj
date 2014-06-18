@@ -36,8 +36,10 @@
    :topics
    (fn [req]
      {:status 200 :body (topics-page)})
-   ;; add devices and topics, then reset password
-   })
+   :reset-password
+   (fn [req]
+     {:status 200 :body (reset-password-page)})
+     })
 
 
 
@@ -50,6 +52,7 @@
         ["services" (:services pages)]
         ["devices" (:devices pages)]
         ["topics" (:topics pages)]
+        ["reset-password" (:reset-password pages)]
         ["api/1.0" api-routes]]])
 
 
