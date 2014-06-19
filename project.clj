@@ -79,20 +79,14 @@
                  ;;[org.clojars.ideal-knee/dommy "0.1.3-SNAPSHOT"]
                  ]
 
-  :jvm-opts ["-Xss8m" "-Xmx1g" "-Duser.timezone=UTC"
-;;             "-Djava.net.preferIPv4Stack=true"
-             ]
+  :jvm-opts ["-Xss8m" "-Xmx1g" "-Duser.timezone=UTC"]
   :main azondi.main
-
   :repl-options {:init-ns user}
-
   :profiles {:dev {:dependencies [[org.clojure/tools.namespace "0.2.4"]
                                   [clojurewerkz/machine_head "1.0.0-beta7"]]
-                   :source-paths ["dev/src/clojure" "src/cljs" ;;"/home/malcolm/src/cylon/src"
-                                  ]
-                   :resource-paths ["test/resources"]}
-
+                   :source-paths ["dev/src/clojure" "src/cljs"]
+                   :resource-paths ["test/resources"
+                                    "dev/src/sql"
+                                    "dev/src/cql"]}
              :uberjar {:main azondi.main
-                       :aot [azondi.main]}}
-
-  )
+                       :aot [azondi.main]}})
