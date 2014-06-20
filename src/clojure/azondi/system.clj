@@ -18,6 +18,9 @@
    [modular.http-kit :refer (new-webserver)]
    [modular.ring :refer (new-web-request-handler-head)]
    [modular.bidi :refer (new-router)]
+   [cylon.impl.login-form :refer (new-login-form)]
+   [cylon.bootstrap-login-form :refer (new-bootstrap-login-form-renderer)]
+   [cylon.impl.session :refer (new-atom-backed-session-store)]
 
    ;; Custom components
    [azondi.transports.mqtt :refer (new-netty-mqtt-handler)]
@@ -31,6 +34,7 @@
    [azondi.cassandra :as cass]
    [azondi.api :refer (new-api)]
    [azondi.webapp :refer (new-webapp)]
+
    )
   (:import [modular.cljs ClojureScriptBuilder]))
 
@@ -93,24 +97,24 @@
      ;; component.
 
      ;; MQTT
-     :mqtt-decoder (new-mqtt-decoder)
-     :mqtt-encoder (new-mqtt-encoder)
-     :mqtt-handler (new-netty-mqtt-handler debug-ch)
-     :mqtt-server (new-netty-server {:port 1883})
-     :reactor (new-reactor)
-     :ws (new-websocket-bridge {:port 8083})
+     ;;:mqtt-decoder (new-mqtt-decoder)
+;;     :mqtt-encoder (new-mqtt-encoder)
+;;     :mqtt-handler (new-netty-mqtt-handler debug-ch)
+;;     :mqtt-server (new-netty-server {:port 1883})
+;;     :reactor (new-reactor)
+;;     :ws (new-websocket-bridge {:port 8083})
 
      ;; Webserver and routing
 
-     :cljs-core (new-cljs-module :name :cljs :mains ['cljs.core] :dependencies #{})
-     :cljs-main (new-cljs-module :name :azondi :mains ['azondi.main] :dependencies #{:cljs})
-     :cljs-logo (new-cljs-module :name :logo :mains ['azondi.logo] :dependencies #{:cljs})
-     :cljs-reset (new-cljs-module :name :reset-password :mains ['azondi.reset-password] :dependencies #{:cljs})
+;;     :cljs-core (new-cljs-module :name :cljs :mains ['cljs.core] :dependencies #{})
+;;     :cljs-main (new-cljs-module :name :azondi :mains ['azondi.main] :dependencies #{:cljs})
+;;     :cljs-logo (new-cljs-module :name :logo :mains ['azondi.logo] :dependencies #{:cljs})
+;;     :cljs-reset (new-cljs-module :name :reset-password :mains ['azondi.reset-password] :dependencies #{:cljs})
 
-     :main-cljs-builder (new-azondi-cljs-builder :source-path "src/cljs")
+     #_:main-cljs-builder #_(new-azondi-cljs-builder :source-path "src/cljs")
 
      ;; API
-     :api (new-api :uri-context "/api/1.0")
+     #_:api #_(new-api :uri-context "/api/1.0")
      :webserver (new-webserver :port 8010)
      :webhead (new-web-request-handler-head)
      :webrouter (new-router)
@@ -121,21 +125,26 @@
                 sse-pub (async/pub (async/tap debug-mult sse-ch) :client-id)]
             (new-event-service :async-pub sse-pub))
 
+     ;; Security
 
-     :message-archiver (new-message-archiver)
-     :topic-injector (new-topic-injector)
-     :metrics (new-metrics {:hostname (.. java.net.InetAddress getLocalHost getHostName)
+     :login-form (new-login-form) ; start with the login form
+     ;; Cylon login-forms depend on a session-store. This default impl
+     ;; won't survive system reset but will do for now
+     :session-store (new-atom-backed-session-store)
+
+;;     :topic-injector (new-topic-injector)
+     #_:metrics #_(new-metrics {:hostname (.. java.net.InetAddress getLocalHost getHostName)
                             :prefix   "azondi"}))))
 
 (defn new-dependency-map [system-map]
-  {:mqtt-handler {:db :database}
-   :mqtt-server [:mqtt-handler :mqtt-decoder :mqtt-encoder]
-   :ws [:reactor :database]
-   :main-cljs-builder [:cljs-core :cljs-main #_:cljs-logo]
+  {#_:mqtt-handler #_{:db :database}
+   #_:mqtt-server #_[:mqtt-handler :mqtt-decoder :mqtt-encoder]
+   #_:ws #_[:reactor :database]
+   #_:main-cljs-builder #_[:cljs-core :cljs-main #_:cljs-logo]
 
    :webserver {:request-handler :webhead}
    :webhead {:request-handler :webrouter}
-   :webrouter [:webapp :api :sse :main-cljs-builder]})
+   :webrouter [:webapp #_:api #_:sse #_:main-cljs-builder :login-form]})
 
 (defn new-prod-system []
   (let [s-map (-> (configurable-system-map (config))

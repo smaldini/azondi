@@ -40,21 +40,20 @@
 
                  ;; Pre-built components supplied by modular
 
-                 [juxt.modular/cljs "0.5.0"]
-                 [juxt.modular/mqtt "0.5.0"]
-                 [juxt.modular/ring "0.5.0"]
-                 [juxt.modular/netty "0.5.0"]
+                 [juxt.modular/cljs "0.5.0-SNAPSHOT"]
+                 [juxt.modular/mqtt "0.1.0"]
+                 [juxt.modular/netty "0.1.0"]
+                 ;;[juxt.modular/http-kit "0.5.0-SNAPSHOT"]
+                 ;;[juxt.modular/bidi "0.5.0-SNAPSHOT"]
 
-
-                 [bidi "1.10.3"]
+                 ;;[bidi "1.10.3"]
                  [hiccup "1.0.5"]
                  [garden "1.1.5"]
                  [compojure "1.1.8"]
                  [markdown-clj "0.9.36"]
 
-                 [cylon "0.2.0"]
-                 [http-kit "2.1.16"]
-                 
+                 ;;[cylon "0.2.0-SNAPSHOT"]
+                 ;;[http-kit "2.1.16"]
 
                  ;; Logging
 
@@ -75,17 +74,31 @@
                  [om "0.6.2"]
                  [org.clojure/core.async "0.1.267.0-0d7780-alpha"]
                  [jarohen/chord "0.3.1"]
-                 [org.clojars.ideal-knee/dommy "0.1.3-SNAPSHOT"]
+
+                 ;;[org.clojars.ideal-knee/dommy "0.1.3-SNAPSHOT"]
+
+                 ;; Security
+                 ;;[cylon/bootstrap-login-form "0.1.0-SNAPSHOT"]
                  ]
 
   :jvm-opts ["-Xss8m" "-Xmx1g" "-Duser.timezone=UTC"]
   :main azondi.main
   :repl-options {:init-ns user}
   :profiles {:dev {:dependencies [[org.clojure/tools.namespace "0.2.4"]
-                                  [clojurewerkz/machine_head "1.0.0-beta8"]]
-                   :source-paths ["dev/src/clojure" "src/cljs"]
+                                  [clojurewerkz/machine_head "1.0.0-beta7"]
+                                  ]
+                   :source-paths
+                   ["dev/src/clojure" "src/cljs"
+                    "/home/malcolm/src/cylon/src"
+                    "/home/malcolm/src/cylon/contrib/bootstrap-login-form/src"
+
+                    "/home/malcolm/src/modular/modules/http-kit/src"
+                    "/home/malcolm/src/modular/modules/ring/src"
+                    "/home/malcolm/src/modular/modules/bidi/src"
+                    ]
                    :resource-paths ["test/resources"
                                     "dev/src/sql"
                                     "dev/src/cql"]}
+
              :uberjar {:main azondi.main
                        :aot [azondi.main]}})

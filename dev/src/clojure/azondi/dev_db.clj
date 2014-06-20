@@ -6,11 +6,6 @@
 
 ;; In memory implementation
 
-(def a (ref 0))
-
-(dosync
- (alter a inc))
-
 (defrecord InmemoryDatastore []
   component/Lifecycle
   (start [this]

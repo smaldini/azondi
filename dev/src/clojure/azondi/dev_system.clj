@@ -8,8 +8,18 @@
    [azondi.postgres :refer (new-database)]
    [azondi.passwords :as pwd]
    [azondi.messages :refer (new-message-archiver)]
-   [azondi.cassandra :as cass]))
+   [azondi.cassandra :as cass]
+   [cylon.user :refer (UserDomain)]))
 
+(defrecord DevUserDomain []
+  UserDomain
+  (verify-user [this uid password]
+    (infof "Verifying user: %s against password %s" uid password)
+    (infof "User in database is: %s" (get-user (:database this) uid))
+    (= password (:password (get-user (:database this) uid)))))
+
+(defn new-dev-user-domain []
+  (component/using (->DevUserDomain) [:database]))
 
 (defn new-dev-system
   "Create a development system"
@@ -17,13 +27,13 @@
   (cond
    (= env "prod") (let [c (config)
                         s-map
-         (->
-          (configurable-system-map (config))
-          (assoc ;;:api-tests (azondi.api-tests/new-api-tests)
-                 ;;:seed (new-seed-data)
+                        (->
+                         (configurable-system-map (config))
+                         (assoc ;;:api-tests (azondi.api-tests/new-api-tests)
+                             ;;:seed (new-seed-data)
 
-                 :database (new-database (get c :postgres))
-                 :message-archiver (new-message-archiver)
+                             :database (new-database (get c :postgres))
+                             :message-archiver (new-message-archiver)
 
                  :cassandra (cass/new-database (get c :cassandra))
                  ))
@@ -34,8 +44,14 @@
          s-map
          (->
           (configurable-system-map (config))
-          (assoc :seed (new-seed-data)
-                 :database (if (System/getenv "USE_POSTGRESQL")
+
+          (assoc ;;:seed (new-seed-data)
+                 ;; :api-tests (azondi.api-tests/new-api-tests)
+                 :user-domain (new-dev-user-domain)
+                 :database (new-inmemory-datastore)
+
+                 ;; MS: I think we should create another profile for postgres
+                 #_:database #_(if (System/getenv "USE_POSTGRESQL")
                              (new-database (get c :postgres))
                              (new-inmemory-datastore))
                  ;;:cassandra (cass/new-database (get c :cassandra {:keyspace "opensensors" :hosts ["127.0.0.1"]}))
