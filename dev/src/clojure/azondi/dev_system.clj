@@ -4,7 +4,10 @@
    [clojure.tools.logging :refer :all]
    [com.stuartsierra.component :as component]
    [azondi.system :refer (config configurable-system-map new-dependency-map new-prod-system)]
-   [azondi.db :refer (Datastore get-user)]
+   [azondi.api-tests :refer (new-api-tests)]
+   [azondi.db :refer (Datastore get-user create-user!)]
+   [azondi.dev-db :refer (new-inmemory-datastore)]
+   [azondi.seed :refer (new-seed-data)]
    [azondi.postgres :refer (new-database)]
    [azondi.passwords :as pwd]
    [azondi.messages :refer (new-message-archiver)]
@@ -20,6 +23,14 @@
 
 (defn new-dev-user-domain []
   (component/using (->DevUserDomain) [:database]))
+
+
+(defrecord UserDomainSeeder []
+  component/Lifecycle
+  (start [this]
+    (create-user! (:database this) "Malcolm Sparks" "malcolm" "malcolm@juxt.pro" "foobar")
+    this)
+  (stop [this] this))
 
 (defn new-dev-system
   "Create a development system"
@@ -40,22 +51,24 @@
                        d-map (new-dependency-map s-map)]
                    (component/system-using s-map d-map))
    :else
-   (let [c (config)
+   (let [db (new-inmemory-datastore)
+         c (config)
          s-map
          (->
           (configurable-system-map (config))
 
           (assoc ;;:seed (new-seed-data)
-                 ;; :api-tests (azondi.api-tests/new-api-tests)
-                 :user-domain (new-dev-user-domain)
-                 :database (new-inmemory-datastore)
+              ;; :api-tests (azondi.api-tests/new-api-tests)
+              :user-domain (new-dev-user-domain)
+              :database db
+              :user-domain-seed (->UserDomainSeeder)
 
-                 ;; MS: I think we should create another profile for postgres
-                 #_:database #_(if (System/getenv "USE_POSTGRESQL")
-                             (new-database (get c :postgres))
-                             (new-inmemory-datastore))
-                 ;;:cassandra (cass/new-database (get c :cassandra {:keyspace "opensensors" :hosts ["127.0.0.1"]}))
-                 ))
+              ;; MS: I think we should create another profile for postgres
+              #_:database #_(if (System/getenv "USE_POSTGRESQL")
+                              (new-database (get c :postgres))
+                              (new-inmemory-datastore))
+              ;;:cassandra (cass/new-database (get c :cassandra {:keyspace "opensensors" :hosts ["127.0.0.1"]}))
+              ))
 
-         d-map (new-dependency-map s-map)]
+         d-map (merge (new-dependency-map s-map) {:user-domain-seed [:database]})]
      (component/system-using s-map d-map))))

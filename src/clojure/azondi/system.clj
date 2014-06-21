@@ -20,7 +20,11 @@
    [modular.bidi :refer (new-router)]
    [cylon.impl.login-form :refer (new-login-form)]
    [cylon.bootstrap-login-form :refer (new-bootstrap-login-form-renderer)]
-   [cylon.impl.session :refer (new-atom-backed-session-store)]
+   [cylon.impl.session :refer (new-atom-backed-session-store
+                               new-cookie-authenticator)]
+   ;;[cylon.impl.webrequest :refer (new-authenticator-request-middleware)]
+   ;; We require this to ensure we can use Cylon default authenticators as Ring middleware
+   ;;cylon.impl.webrequest
 
    ;; Custom components
    [azondi.transports.mqtt :refer (new-netty-mqtt-handler)]
@@ -120,6 +124,9 @@
      :webrouter (new-router)
      :webapp (new-webapp)
 
+     :authenticator (new-cookie-authenticator)
+     ;;new-authenticator-request-middleware
+
      :sse (let [sse-ch (async/chan 64)
                 ;; SSE splits on client-id
                 sse-pub (async/pub (async/tap debug-mult sse-ch) :client-id)]
@@ -143,7 +150,8 @@
    #_:main-cljs-builder #_[:cljs-core :cljs-main #_:cljs-logo]
 
    :webserver {:request-handler :webhead}
-   :webhead {:request-handler :webrouter}
+   :webhead {:request-handler :webrouter
+             :authenticator-middleware :authenticator}
    :webrouter [:webapp #_:api #_:sse #_:main-cljs-builder :login-form]})
 
 (defn new-prod-system []
