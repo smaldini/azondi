@@ -24,10 +24,10 @@
 (defn new-dev-user-domain []
   (component/using (->DevUserDomain) [:database]))
 
-
 (defrecord UserDomainSeeder []
   component/Lifecycle
   (start [this]
+    (create-user! (:database this) "Yodit Stanton" "yods" "yods@example.com" "password")
     (create-user! (:database this) "Malcolm Sparks" "malcolm" "malcolm@juxt.pro" "foobar")
     this)
   (stop [this] this))
