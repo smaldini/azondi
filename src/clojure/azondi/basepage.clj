@@ -46,14 +46,13 @@
       [:circle {:cx 400 :cy 30 :fill "red" :opacity "1.0" :r "1"}
        [:animate {:attributeName "r" :begin "1s" :calcmode "linear" :dur "1s" :values="15; 4; 2; 1"}]]]]]])
 
+;; MS: This is a bit of a hack that will have to do for now. A better solution is warranted.
 (defn displayed? [menu session]
   (case (:security menu)
     :user session
     :all true
     :none (nil? session)
-    true
-    )
-  )
+    true))
 
 (defn side-menu [session]
   [:div.navbar-default.navbar.sbar {:role "navigation"}
