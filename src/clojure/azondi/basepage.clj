@@ -69,13 +69,13 @@
    ;;              :class "collapsed"
    ;;              } parent]])
    ;;[:div {:id (str parent) :class "collapse out"}])
-  
+
    [:ul
     (for [menu menus]
       (when (= :sidebar (:location menu))
         [:li.side-menu-item [:a {:href (:target menu)} (:label menu)]]))]])
 
-(defn base-page [body & scr]
+(defn base-page [req body & scr]
   (html5
    [:head
     [:meta {:charset "utf-8"}]
@@ -87,7 +87,7 @@
     [:link {:href "//netdna.bootstrapcdn.com/font-awesome/4.1.0/css/font-awesome.min.css" :rel "stylesheet"}]
     [:link {:href "css/bootstrap.min.css" :rel "stylesheet"}]
     [:link {:href "css/style.css" :rel "stylesheet"}]
-    
+
    [:body
     [:div#wrap
      [:nav {:class "navbar navbar-default" :role "navigation"}
@@ -111,7 +111,8 @@
                  (for [child (:children menu)]
                    [:li [:a {:href (:target child)} (:label child)]])]]
                [:li [:a {:href (:target menu)} (:label menu)]]
-               )))]]]]
+               )))
+         [:li [:a (or (:cylon/user req) "USER")]]]]]]
      logo-area
      [:div.row
       [:div.col-sm-2
@@ -139,28 +140,28 @@
        [:li [:a {:href "mailto:hello@opensensors.io?subject=website%20enquiry"}
              [:img {:src "imgs/glyphicons_010_envelope.png"}]]]]]
       ;; extenal libs
-     
+
      ]
      scr
     ]))
 
 ;;; We need to pull out the user details from the session
-(defn devices-page []
-  (base-page
+(defn devices-page [req]
+  (base-page req
    [:div
     [:h2 "Devices"]
     [:div#content [:p.loading "Loading..."]]]
    [:script "azondi.main.devices_page('yods');" ]))
 
-(defn topics-page []
-  (base-page
+(defn topics-page [req]
+  (base-page req
    [:div
     [:h2 "Topics"]
     [:div#content [:p.loading "Loading..."]]]
    [:script "azondi.main.topics_page('yods');" ]))
 
-(defn reset-password-page []
-  (base-page
+(defn reset-password-page [req]
+  (base-page req
    [:div#pword-reset
     [:h2 "Password Reset"]
     [:p "Change your password"]

@@ -18,31 +18,31 @@
 (def handlers
   {:index
    (fn [req]
-     {:status 200 :body (base-page (md->html (io/resource "markdown/index.md")))})
+     {:status 200 :body (base-page req (md->html (io/resource "markdown/index.md")))})
    :help
    (fn [req]
-     {:status 200 :body (base-page (md->html (io/resource "markdown/getting-started.md")))})
+     {:status 200 :body (base-page req (md->html (io/resource "markdown/getting-started.md")))})
    :about
    (fn [req]
-     {:status 200 :body (base-page (md->html (io/resource "markdown/about-us.md")))})
+     {:status 200 :body (base-page req (md->html (io/resource "markdown/about-us.md")))})
    :terms
    (fn [req]
-     {:status 200 :body (base-page (md->html (io/resource "markdown/terms.md")))})
+     {:status 200 :body (base-page req (md->html (io/resource "markdown/terms.md")))})
    :services
    (fn [req]
-     {:status 200 :body (base-page (md->html (io/resource "markdown/services.md")))})
+     {:status 200 :body (base-page req (md->html (io/resource "markdown/services.md")))})
    :devices
    (fn [req]
-     {:status 200 :body (devices-page)})
+     {:status 200 :body (devices-page req)})
    :topics
    (fn [req]
-     {:status 200 :body (topics-page)})
+     {:status 200 :body (topics-page req)})
    :reset-password
    (fn [req]
-     {:status 200 :body (reset-password-page)})
+     {:status 200 :body (reset-password-page req)})
    :api-docs-page
    (fn [req]
-     {:status 200 :body (api-page)})
+     {:status 200 :body (api-page req)})
      })
 
 (def routes
