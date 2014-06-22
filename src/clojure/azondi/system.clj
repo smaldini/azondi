@@ -118,7 +118,7 @@
      #_:main-cljs-builder #_(new-azondi-cljs-builder :source-path "src/cljs")
 
      ;; API
-     #_:api #_(new-api :uri-context "/api/1.0")
+     :api (new-api :uri-context "/api/1.0")
      :webserver (new-webserver :port 8010)
      :webhead (new-web-request-handler-head)
      :webrouter (new-router)
@@ -152,7 +152,7 @@
    :webserver {:request-handler :webhead}
    :webhead {:request-handler :webrouter
              :authenticator-middleware :authenticator}
-   :webrouter [:webapp #_:api #_:sse #_:main-cljs-builder :login-form]})
+   :webrouter [:webapp :api #_:sse #_:main-cljs-builder :login-form]})
 
 (defn new-prod-system []
   (let [s-map (-> (configurable-system-map (config))

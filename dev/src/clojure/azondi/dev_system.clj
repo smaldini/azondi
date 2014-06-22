@@ -57,11 +57,12 @@
          (->
           (configurable-system-map (config))
 
-          (assoc ;;:seed (new-seed-data)
+          (assoc
+              :seed (new-seed-data)
               ;; :api-tests (azondi.api-tests/new-api-tests)
               :user-domain (new-dev-user-domain)
               :database db
-              :user-domain-seed (->UserDomainSeeder)
+              ;;:user-domain-seed (->UserDomainSeeder)
 
               ;; MS: I think we should create another profile for postgres
               #_:database #_(if (System/getenv "USE_POSTGRESQL")
@@ -70,5 +71,5 @@
               ;;:cassandra (cass/new-database (get c :cassandra {:keyspace "opensensors" :hosts ["127.0.0.1"]}))
               ))
 
-         d-map (merge (new-dependency-map s-map) {:user-domain-seed [:database]})]
+         d-map (new-dependency-map s-map)]
      (component/system-using s-map d-map))))

@@ -345,21 +345,21 @@
    ::reset-user-password (resource (reset-user-password-resource db))})
 
 (def routes
-  {"" ::welcome
-   "/" (->Redirect 307 "")
-   "/users" (->Redirect 307 "/users/")
-   "/users/" ::users
-   ["/users/" ::user] {"" ::user
-                       "/devices/" ::devices
-                       "/devices" (->Redirect 307 ::devices)
-                       ["/devices/" :client-id] ::device
-                       ["/devices/" :client-id "/reset-password"] ::reset-password
-                       "/topics/" ::topics
-                       "/topics" (->Redirect 307 ::topics)
-                       ["/topics/" :topic-name] ::topic
-                       "/api-key/" ::api-key
-                       "/api-key" (->Redirect 307 ::api-key)
-                       "/reset-password" ::reset-user-password}})
+  ["" {"" ::welcome
+       "/" (->Redirect 307 ::welcome)
+       "/users" (->Redirect 307 "/users/")
+       "/users/" ::users
+       ["/users/" ::user] {"" ::user
+                           "/devices/" ::devices
+                           "/devices" (->Redirect 307 ::devices)
+                           ["/devices/" :client-id] ::device
+                           ["/devices/" :client-id "/reset-password"] ::reset-password
+                           "/topics/" ::topics
+                           "/topics" (->Redirect 307 ::topics)
+                           ["/topics/" :topic-name] ::topic
+                           "/api-key/" ::api-key
+                           "/api-key" (->Redirect 307 ::api-key)
+                           "/reset-password" ::reset-user-password}}])
 
 (defrecord Api []
   WebService
