@@ -1,6 +1,7 @@
 (ns azondi.dev-db
   (:require
    [com.stuartsierra.component :as component]
+   [clojure.tools.logging :refer :all]
    azondi.db)
   (:import (azondi.db Datastore)))
 

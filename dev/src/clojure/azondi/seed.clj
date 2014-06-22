@@ -33,7 +33,7 @@
            :auth ["malcolm" "password"]
            :data {:name "S3-2" :description "MQTTitude (test) on Samsung Galaxy S3"})
 
-  (request :put (make-uri "/users/mk/" :user "mk")
+  (request :put (make-uri "/users/mk")
            :data {:password "password"
                   :name "Michael Klishin"
                   :email "michael@opensensors.io"}))
