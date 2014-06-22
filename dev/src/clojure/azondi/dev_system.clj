@@ -28,39 +28,50 @@
   "Create a development system"
   [& [env]]
   (cond
-   (= env "prod") (let [c (config)
-                        s-map
-                        (->
-                         (configurable-system-map (config))
-                         (assoc ;;:api-tests (azondi.api-tests/new-api-tests)
-                             ;;:seed (new-seed-data)
+   (= env "prod")
+   (let [c (config)
+         s-map
+         (->
+          (configurable-system-map (config))
+          (assoc
+              :database (new-database (get c :postgres))
+              :message-archiver (new-message-archiver)
+              :cassandra (cass/new-database (get c :cassandra {:keyspace "opensensors" :hosts ["127.0.0.1"]}))
+              ))
+         d-map (new-dependency-map s-map)]
+     (component/system-using s-map d-map))
 
-                             :database (new-database (get c :postgres))
-                             :message-archiver (new-message-archiver)
+   (= env "ui")
+   (let [c (config)
+         db (new-inmemory-datastore)
+         s-map
+         (->
+          (configurable-system-map (config))
 
-                 :cassandra (cass/new-database (get c :cassandra))
-                 ))
-                       d-map (new-dependency-map s-map)]
-                   (component/system-using s-map d-map))
+          (assoc
+              :database db
+              :seed (new-seed-data)
+              ;;:api-tests (azondi.api-tests/new-api-tests)
+              :user-domain (new-dev-user-domain)
+              ))
+
+         d-map (new-dependency-map s-map)]
+     (component/system-using s-map d-map))
+
    :else
-   (let [db (new-inmemory-datastore)
-         c (config)
+   (let [c (config)
+         db (new-database (get c :postgres))
          s-map
          (->
           (configurable-system-map (config))
 
           (assoc
               :seed (new-seed-data)
-              ;; :api-tests (azondi.api-tests/new-api-tests)
+              ;;:api-tests (azondi.api-tests/new-api-tests)
               :user-domain (new-dev-user-domain)
               :database db
-              ;;:user-domain-seed (->UserDomainSeeder)
-
-              ;; MS: I think we should create another profile for postgres
-              #_:database #_(if (System/getenv "USE_POSTGRESQL")
-                              (new-database (get c :postgres))
-                              (new-inmemory-datastore))
-              ;;:cassandra (cass/new-database (get c :cassandra {:keyspace "opensensors" :hosts ["127.0.0.1"]}))
+              :message-archiver (new-message-archiver)
+              :cassandra (cass/new-database (get c :cassandra {:keyspace "opensensors" :hosts ["127.0.0.1"]}))
               ))
 
          d-map (new-dependency-map s-map)]
