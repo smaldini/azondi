@@ -14,11 +14,13 @@
    [azondi.db :refer (get-user)]
    ))
 
+(def PORT 8099)
+
 (defn new-api-system []
   (component/system-using
 
    (component/system-map
-    :webserver (new-webserver :port 8099)
+    :webserver (new-webserver :port PORT)
     :webhead (new-web-request-handler-head)
     :webrouter (new-router)
     :database (new-inmemory-datastore)
@@ -56,12 +58,12 @@
 
   (testing "welcome path"
     (is (= (make-uri :azondi.api/welcome)
-           "http://localhost:8099/api/1.0"))))
+           (format "http://localhost:%d/api/1.0" PORT)))))
 
 (deftest test-users
   (testing "user path"
     (is (= (make-uri :azondi.api/user :user "alice")
-           "http://localhost:8099/api/1.0/users/alice")))
+           (format "http://localhost:%d/api/1.0/users/alice" PORT))))
 
   (testing "create user"
     (let [db (-> *system* :database)
@@ -88,7 +90,7 @@
       (is (= (:email (get-user db "alice")) "alice@another.com"))
 
       (let [uri (make-uri :azondi.api/devices :user "alice")]
-        (is (= uri "http://localhost:8099/api/1.0/users/alice/devices/"))
+        (is (= uri (format "http://localhost:%d/api/1.0/users/alice/devices/" PORT)))
 
         (let [response (request :post uri :data {} :auth ["alice" "shock"])]
 
