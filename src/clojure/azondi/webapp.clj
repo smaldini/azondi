@@ -39,6 +39,9 @@
    :reset-password
    (fn [req]
      {:status 200 :body (reset-password-page)})
+   :api-docs-page
+   (fn [req]
+     {:status 200 :body (api-page)})
      })
 
 
@@ -54,6 +57,7 @@
         ["devices" (:devices pages)]
         ["topics" (:topics pages)]
         ["reset-password" (:reset-password pages)]
+        ["api-docs" (:api-docs-page pages)]
         ["api/1.0" api-routes]
         ["ops/1.0/metrics" (fn [req]
                              (serve-metrics req metric-registry {:pretty-print? true}))]]])

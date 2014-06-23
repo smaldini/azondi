@@ -319,7 +319,7 @@
                                      (select-keys [:api]))]
                   {:user user :apikey apikey}))
    :handle-ok (fn [{user :user apikey :apikey}]
-                {user apikey})
+                (assoc apikey :user user))
    :post! (fn [{body :body {{user :user} :route-params} :request}]
             {:apikey
              (if (get-api-key db user)

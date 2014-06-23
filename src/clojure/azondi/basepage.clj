@@ -26,7 +26,7 @@
                   :target "/reset-password"}
                  {:label "API"
                   :security :user
-                  :target "/api-key"}]}
+                  :target "/api-docs"}]}
      {:label "Login"
       :security :none
       :location :navbar
@@ -120,13 +120,13 @@
        body]
       [:div#ankha]]
      [:script {:src "js/jquery.min.js"}]
+     [:script {:src "js/helpers.js"}]
      [:script {:src "js/bootstrap.min.js"}]
      [:script {:src "js/react-0.9.0.js"}]
      ;;cljs
      [:script {:src "cljs/cljs.js"}]
      [:script {:src "cljs/azondi.js"}]
-     [:script {:src "cljs/logo.js"}]
-     [:script {:src "js/helpers.js"}]]
+     [:script {:src "cljs/logo.js"}]]
      [:div#footer {:class "navbar-default navbar-fixed-bottom"}
       [:ul.footer-list
        [:li "&copy; 2014 open sensors ltd"]
@@ -172,3 +172,39 @@
       [:div#ireset2]]
      [:button {:id "reset-password-btn" :type "submit" :class "btn" :disabled "true"} "Reset Password"]
      ]]))
+
+;; add api key
+;; add user id
+;; reset the api key
+(defn api-page []
+  (base-page
+   [:div
+    [:div.row "Your user info:"]
+    [:div.row
+     [:span "user: "] [:strong [:span#api-info-user-id ]]
+     ]
+    [:div.row
+     [:span "API: "]  [:strong [:span#api-info-api-key-view ]]]
+    [:div.row
+     [:a#api-info-api-key-link {:href "#"} "reset the API key..."]]
+    [:div.row
+     [:span "please add:"]
+     [:pre
+      [:span#uuid-api-view]
+      ]
+     [:span " to your API calls."]]
+    [:hr]
+    [:div "All of the API calls should be made to " [:code "opensensors.IO"]]
+    [:div "Authorization is achieved by adding the following HTTP header"]
+    [:pre#api-authorisation-key "Authorization: api-key "]
+    [:h3#api-devices-url]
+    [:p "Send a PUT request to this address to create new devices for your user. The API expects a JSON map with optional entries describing the device's metadata. Each PUT will return a JSON map, containing the following entries :-"]
+    [:ul
+     [:li "client-id : the client id to use for your device when connecting to the opensensors.io MQTT broker"]
+     [:li "user : the user name to use when connecting (this is the same as your username)"]
+     [:li "password : the password to use when connecting"]
+     [:li "device-id : the device id, you can publish to any topics below this path"]]
+
+    [:h3#api-topics-url]
+    [:p "Send a GET request this address to return your existing devices."]]
+   [:script "populate_api_page ()"]))
