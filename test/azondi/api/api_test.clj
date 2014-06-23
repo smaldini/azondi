@@ -89,7 +89,8 @@
       (is (not= (:email (get-user db "alice")) "alice@example.org"))
       (is (= (:email (get-user db "alice")) "alice@another.com"))
 
-      (let [uri (make-uri "/users/alice/devices/")]
+      (let [uri (make-uri :azondi.api/devices :user "alice")]
+        (is (= uri "http://localhost:8099/api/1.0/users/alice/devices/"))
 
         (let [response (request :post uri :data {} :auth ["alice" "shock"])]
 
@@ -101,8 +102,7 @@
           (let [password (-> response :body :password)]
 
             ;; Find our devices
-            (let [uri (make-uri "/users/alice/devices")
-                  response (request :get uri :auth ["alice" "shock"])]
+            (let [response (request :get uri :auth ["alice" "shock"])]
 
               (is (contains? (:body response) :user))
               (is (contains? (:body response) :devices))
@@ -114,7 +114,6 @@
 
             ;;(request :post (make-uri :azondi.api/devices :user "alice") :data {})
 
-            ;; Let's try to get our devices
             ))
 
         ;; Create another device, this time with some attributes
@@ -130,11 +129,20 @@
                  :auth ["alice" "shock"]
                  :data {:name "Arduino 1" :description "Some hack"})
 
+        ;; There should now be 4 devices
+        (let [response (request :get uri :auth ["alice" "shock"])]
+          (is (contains? (:body response) :user))
+          (is (contains? (:body response) :devices))
+          (let [devices (-> response :body :devices)]
+            (is (= 4 (count devices)))))
+
         ;; create and find topics
-        (let [topics-uri (make-uri "/users/alice/topics")
+        (let [topics-uri (make-uri :azondi.api/topics :user "alice")
               response (request :get topics-uri :auth ["alice" "shock"])]
 
-          (let [topic-uri (make-uri "/users/alice/topics/pollution")]
+          (let [topic-uri (make-uri :azondi.api/topic
+                                    :user "alice"
+                                    :topic-name "pollution")]
 
             (is (contains? (:body response) :user))
             (is (contains? (:body response) :topics))
@@ -189,18 +197,7 @@
                       :description "Dangerous atmospheric particulate matter",
                       :unit "PM25"})))
 
-           (request :delete topic-uri :auth ["alice" "shock"])
-
+            (request :delete topic-uri :auth ["alice" "shock"])
 
             (let [topics-response (request :get topics-uri :auth ["alice" "shock"])]
-              (is (= (-> topics-response :body :topics count) 0))
-              )
-
-            )
-
-          ))
-      )
-    )
-
-
-  )
+              (is (= (-> topics-response :body :topics count) 0)))))))))
