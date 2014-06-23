@@ -36,7 +36,7 @@
    [azondi.sse :refer (new-event-service)]
    [azondi.postgres :refer (new-database)]
    [azondi.cassandra :as cass]
-   [azondi.api :refer (new-api)]
+   [azondi.api :refer (new-api new-apikey-authenticator)]
    [azondi.webapp :refer (new-webapp)]
 
    )
@@ -124,7 +124,8 @@
      :webrouter (new-router)
      :webapp (new-webapp)
 
-     :authenticator (new-cookie-authenticator)
+     :session-authenticator (new-cookie-authenticator)
+     :apikey-authenticator (new-apikey-authenticator)
      ;;new-authenticator-request-middleware
 
      :sse (let [sse-ch (async/chan 64)
@@ -150,9 +151,11 @@
    #_:main-cljs-builder #_[:cljs-core :cljs-main #_:cljs-logo]
 
    :webserver {:request-handler :webhead}
-   :webhead {:request-handler :webrouter
-             :authenticator-middleware :authenticator}
-   :webrouter [:webapp :api #_:sse #_:main-cljs-builder :login-form]})
+   :webhead {:request-handler :webrouter,
+             :authenticator-middleware :session-authenticator}
+   :webrouter [:webapp :api #_:sse #_:main-cljs-builder :login-form]
+   ;; TODO API will need to be a composite authenticator over the cookie one and the custom API one so that the UI will work
+   :api {:authenticator :apikey-authenticator}})
 
 (defn new-prod-system []
   (let [s-map (-> (configurable-system-map (config))

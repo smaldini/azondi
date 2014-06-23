@@ -7,7 +7,7 @@
    [modular.bidi :refer (new-router routes uri-context)]
    [bidi.bidi :refer (path-for)]
    [azondi.webapp :refer (new-webapp)]
-   [azondi.api :refer (new-api)]
+   [azondi.api :refer (new-api new-apikey-authenticator)]
    [cylon.impl.login-form :refer (new-login-form)]
    [azondi.http :refer (request)]
    [azondi.dev-db :refer (new-inmemory-datastore)]
@@ -23,12 +23,14 @@
     :webhead (new-web-request-handler-head)
     :webrouter (new-router)
     :database (new-inmemory-datastore)
-    :api (new-api :uri-context "/api/1.0"))
+    :api (new-api :uri-context "/api/1.0")
+    :apikey-authenticator (new-apikey-authenticator))
 
    {:webserver {:request-handler :webhead}
     :webhead {:request-handler :webrouter,
               #_:authenticator-middleware #_:authenticator}
-    :webrouter [:api]}))
+    :webrouter [:api]
+    :api {:authenticator :apikey-authenticator}}))
 
 (def ^:dynamic *system* nil)
 

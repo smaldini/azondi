@@ -18,7 +18,9 @@
    [clojure.walk :refer (postwalk)]
    liberator.representation
    [modular.bidi :refer (WebService)]
-   ))
+   [cylon.authentication :refer (Authenticator)]
+   )
+  )
 
 ;; Coercians
 
@@ -368,4 +370,15 @@
   (uri-context [_] "/api/1.0"))
 
 (defn new-api [& {:as opts}]
-  (component/using (->Api) [:database]))
+  (component/using (->Api) [:database :authenticator]))
+
+;; Authentication
+
+(defrecord ApiKeyAuthenticator []
+  Authenticator
+  (authenticate [_ request]
+    nil
+    ))
+
+(defn new-apikey-authenticator []
+  (->ApiKeyAuthenticator))
