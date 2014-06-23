@@ -11,6 +11,7 @@
    [cylon.impl.login-form :refer (new-login-form)]
    [azondi.http :refer (request)]
    [azondi.dev-db :refer (new-inmemory-datastore)]
+   [azondi.db :refer (get-user)]
    ))
 
 (defn new-api-system []
@@ -51,23 +52,155 @@
           (uri-context (-> *system* :api))
           (apply path-for (routes (-> *system* :api)) target args)))
 
-(deftest server
+(deftest test-welcome
   (testing "control"
     (is (= (+ 2 2) 4)))
 
   (testing "welcome path"
     (is (= (make-uri :azondi.api/welcome)
-           "http://localhost:8099/api/1.0")))
+           "http://localhost:8099/api/1.0"))))
 
+(deftest test-users
   (testing "user path"
     (is (= (make-uri :azondi.api/user :user "alice")
            "http://localhost:8099/api/1.0/users/alice")))
 
   (testing "create user"
-    (request :put (make-uri :azondi.api/user :user "alice")
-             :data {:password "lewis"
-                    :name "Alice Cheung"
-                    :email "alice@example.org"
-                    })
+    (let [db (-> *system* :database)
+          response
+          (request :put (make-uri :azondi.api/user :user "alice")
+                   :data {:password "lewis"
+                          :name "Alice Cheung"
+                          :email "alice@example.org"
+                          })]
+      (is (= (:status response) 201))
+      ;; Do we have the user in the database?
+      (is (get-user db "alice"))
+      ))
 
-    ))
+  (testing "overwrite user"
+    (let [db (-> *system* :database)
+          response (request :put (make-uri :azondi.api/user :user "alice")
+                            :expected 201
+                            :data {:password "shock"
+                                   :name "Alice Cooper"
+                                   :email "alice@another.com"
+                                   })]
+      (is (not= (:email (get-user db "alice")) "alice@example.org"))
+      (is (= (:email (get-user db "alice")) "alice@another.com"))
+
+      (let [uri (make-uri "/users/alice/devices/")]
+
+        (let [response (request :post uri :data {} :auth ["alice" "shock"])]
+
+          ;; This needs to return a client id and password in the result
+          (is (= 201 (:status response)))
+          (is (contains? (:body response) :password))
+          (is (contains? (:body response) :client-id))
+          (is (not (nil? (:client-id (:body response)))))
+          (let [password (-> response :body :password)]
+
+            ;; Find our devices
+            (let [uri (make-uri "/users/alice/devices")
+                  response (request :get uri :auth ["alice" "shock"])]
+
+              (is (contains? (:body response) :user))
+              (is (contains? (:body response) :devices))
+
+              (let [devices (-> response :body :devices)]
+                (is (= 1 (count devices)))))
+
+            ;; Now try to publish a message to azondi
+
+            ;;(request :post (make-uri :azondi.api/devices :user "alice") :data {})
+
+            ;; Let's try to get our devices
+            ))
+
+        ;; Create another device, this time with some attributes
+        (request :post uri
+                 :auth ["alice" "shock"]
+                 :data {:name "iPhone" :description "MQTTitude on my old iPhone"})
+
+        (request :post uri
+                 :auth ["alice" "shock"]
+                 :data {:name "S3 custom" :description "My own Android app"})
+
+        (request :post uri
+                 :auth ["alice" "shock"]
+                 :data {:name "Arduino 1" :description "Some hack"})
+
+        ;; create and find topics
+        (let [topics-uri (make-uri "/users/alice/topics")
+              response (request :get topics-uri :auth ["alice" "shock"])]
+
+          (let [topic-uri (make-uri "/users/alice/topics/pollution")]
+
+            (is (contains? (:body response) :user))
+            (is (contains? (:body response) :topics))
+
+            ;; Create a topic
+            (request :put topic-uri
+                     :auth ["alice" "shock"]
+                     :data {})
+
+            (let [topics-response (request :get topics-uri :auth ["alice" "shock"])]
+              (is (contains? (:body response) :topics))
+              (is (= (-> topics-response :body :topics count) 1))
+              )
+
+            ;; Get the newly created topic
+            (let [topic-response (request :get topic-uri :auth ["alice" "shock"])]
+              (is (= (:body topic-response)
+                     {:owner "alice",
+                      :topic "/users/alice/pollution",})))
+
+            ;; Patch the topic
+            (request :put topic-uri
+                     :auth ["alice" "shock"]
+                     :data {:unit "PM25"
+                            :description "Forgot the description!"})
+
+            (let [topic-response (request :get topic-uri :auth ["alice" "shock"])]
+              (is (= (:body topic-response)
+                     {:owner "alice",
+                      :topic "/users/alice/pollution",
+                      :unit "PM25",
+                      :description "Forgot the description!"
+                      })))
+
+            (request :put topic-uri
+                     :auth ["alice" "shock"]
+                     :data {:unit "PM25"
+                            :description "Dangerous atmospheric particulate matter"})
+
+            (let [topic-response (request :get topic-uri :auth ["alice" "shock"])]
+              (is (= (:body topic-response)
+                     {:owner "alice",
+                      :topic "/users/alice/pollution",
+                      :unit "PM25",
+                      :description "Dangerous atmospheric particulate matter"
+                      })))
+
+            (let [topic-response (request :get topic-uri :auth ["alice" "shock"])]
+              (is (= (:body topic-response)
+                     {:owner "alice",
+                      :topic "/users/alice/pollution",
+                      :description "Dangerous atmospheric particulate matter",
+                      :unit "PM25"})))
+
+           (request :delete topic-uri :auth ["alice" "shock"])
+
+
+            (let [topics-response (request :get topics-uri :auth ["alice" "shock"])]
+              (is (= (-> topics-response :body :topics count) 0))
+              )
+
+            )
+
+          ))
+      )
+    )
+
+
+  )

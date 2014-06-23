@@ -27,7 +27,6 @@
     (is (= (:status response) 201))
     ;; Do we have the user in the database?
     (is (get-user db "alice"))
-
     ;; Overwrite the user
     (let [response (request :put uri :expected 201
                             :data {:password "shock"
