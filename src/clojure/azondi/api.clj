@@ -108,8 +108,8 @@
    :available-media-types #{"text/html" "application/json"}
 
    ;; Only allow local access
-   #_:allowed?
-   #_(fn [{{:keys [remote-addr request-method]} :request}]
+   :allowed?
+   (fn [{{:keys [remote-addr request-method]} :request}]
      (= remote-addr "127.0.0.1"))
 
    :handle-ok
@@ -133,9 +133,9 @@
    :allowed-methods #{:put :get}
 
    ;; We only allow local access
-   #_:allowed?
-   #_(fn [{{:keys [remote-addr request-method]} :request}]
-     (or (= request-method :get)))
+   :allowed?
+   (fn [{{:keys [remote-addr request-method]} :request}]
+     (= remote-addr "127.0.0.1"))
 
    :known-content-type? #{"application/json"}
    :processable? (create-schema-check new-user-schema)
