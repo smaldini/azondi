@@ -36,8 +36,6 @@
      (try
        (binding [*system* s#] ~@body)
        (finally
-         (println "System stopping!")
-         ;;(Thread/sleep 4000)
          (component/stop s#)))))
 
 (defn system-fixture [f]
