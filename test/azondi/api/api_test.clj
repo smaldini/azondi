@@ -11,8 +11,7 @@
    [cylon.impl.login-form :refer (new-login-form)]
    [azondi.http :refer (request)]
    [azondi.dev-db :refer (new-inmemory-datastore)]
-   [azondi.db :refer (get-user)]
-   ))
+   [azondi.db :refer (get-user)]))
 
 (def PORT 8099)
 
@@ -75,8 +74,7 @@
                           })]
       (is (= (:status response) 201))
       ;; Do we have the user in the database?
-      (is (get-user db "alice"))
-      ))
+      (is (get-user db "alice"))))
 
   (testing "overwrite user"
     (let [db (-> *system* :database)
@@ -111,9 +109,7 @@
                 (is (= 1 (count devices)))))
 
             ;; Now try to publish a message to azondi
-
             ;;(request :post (make-uri :azondi.api/devices :user "alice") :data {})
-
             ))
 
         ;; Create another device, this time with some attributes
@@ -154,8 +150,7 @@
 
             (let [topics-response (request :get topics-uri :auth ["alice" "shock"])]
               (is (contains? (:body response) :topics))
-              (is (= (-> topics-response :body :topics count) 1))
-              )
+              (is (= (-> topics-response :body :topics count) 1)))
 
             ;; Get the newly created topic
             (let [topic-response (request :get topic-uri :auth ["alice" "shock"])]
@@ -174,8 +169,7 @@
                      {:owner "alice",
                       :topic "/users/alice/pollution",
                       :unit "PM25",
-                      :description "Forgot the description!"
-                      })))
+                      :description "Forgot the description!"})))
 
             (request :put topic-uri
                      :auth ["alice" "shock"]
@@ -187,8 +181,7 @@
                      {:owner "alice",
                       :topic "/users/alice/pollution",
                       :unit "PM25",
-                      :description "Dangerous atmospheric particulate matter"
-                      })))
+                      :description "Dangerous atmospheric particulate matter"})))
 
             (let [topic-response (request :get topic-uri :auth ["alice" "shock"])]
               (is (= (:body topic-response)
