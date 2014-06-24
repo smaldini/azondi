@@ -20,7 +20,7 @@
                                     "opensensors_test"))
 
 (def ^:const test-postgresql-user (or (System/getenv "AZONDI_TEST_POSTGRESQL_USER")
-                                     "azondi"))
+                                      "azondi"))
 
 (def tables ["users" "api_keys" "devices" "topics"
              "subscriptions" "ws_session_tokens"])
