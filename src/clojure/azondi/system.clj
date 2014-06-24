@@ -60,8 +60,8 @@
   "Return a map of the static configuration used in the component
   constructors."
   []
-  (merge (config-from-classpath)
-         (user-config)))
+  (merge (user-config)
+         (config-from-classpath)))
 
 (defn new-azondi-cljs-builder [& {:as opts}]
   (->> opts
