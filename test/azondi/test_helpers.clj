@@ -2,7 +2,10 @@
   (:require [clojure.java.io :as io]
             [clojure.java.jdbc :as psql]
             [clojure.java.shell :as sh]
-            dev))
+            dev
+            [clojurewerkz.cassaforte.client :as cc]
+            [clojurewerkz.cassaforte.cql    :as cql]
+            [clojurewerkz.cassaforte.query :refer :all]))
 
 
 ;;
@@ -11,6 +14,7 @@
 
 (def schema-file-location (io/resource "schema.sql"))
 (def seed-file-location   (io/resource "seed.sql"))
+(def cassandra-schema-file-location (io/resource "schema.cql"))
 
 (def loaded-schema? (atom false))
 
@@ -46,6 +50,27 @@
     (psql/execute! db [schema-sql] :transaction? false)
     (psql/execute! db [seed-sql])))
 
+(defn load-cassandra-schema!
+  []
+  (let [s (cc/connect ["127.0.0.1"])]
+    (cql/create-keyspace s test-cassandra-ks
+                         (with {:replication
+                                {:class "SimpleStrategy"
+                                 :replication_factor 1 }})
+                         (if-not-exists))
+    (cql/use-keyspace s test-cassandra-ks)
+    (cql/create-table s "messages"
+                  (column-definitions {:device_id     :text
+                                       :date_and_hour :text
+                                       :created_at    :timestamp
+                                       :topic         :text
+                                       :owner         :text
+                                       :payload       :blob
+                                       :content_type  :text
+                                       :primary-key [[:device_id :date_and_hour]
+                                                     :created_at]})
+                  (if-not-exists))))
+
 (dev/init)
 
 ;;
@@ -55,7 +80,9 @@
 (defn load-schema!
   []
   (println "[fixutres] Loading PostgreSQL schema")
-  (load-postgresql-schema!))
+  (load-postgresql-schema!)
+  (println "[fixutres] Loading Cassandra schema")
+  (load-cassandra-schema!))
 
 (defn maybe-load-schema
   []
