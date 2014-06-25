@@ -40,7 +40,8 @@
   [:div#header
    [:div.jumbotron
     [:div#logoarea {:class "vcenter"}
-     [:h1 "opensensors.IO" [:sup "beta"]]
+     ;;[:h2 "Big Data"]
+     ;;[:h2 "Small Devices"]
      [:svg {:viewBox "0 20 1000 100"  :height "60"}
       [:circle {:cx 400 :cy 30 :fill "red" :opacity "1.0" :r "1"}
        [:animate {:attributeName "r" :begin "1s" :calcmode "linear" :dur "1s" :values="15; 4; 2; 1"}]]]]]])
@@ -97,7 +98,7 @@
          [:span.icon-bar]
          [:span.icon-bar]
          [:span.icon-bar]]
-        [:a.navbar-brand {:href "/"} "Home"]
+        [:a#home-logo.navbar-brand {:href "/"} [:img {:src "imgs/osio.svg"}]]
         [:ul {:class "nav navbar-nav"}
          [:li [:a {:href "/services"} "Services"]]]]
        [:div {:class "collapse navbar-collapse" :id "bs-example-navbar-collapse-1"}

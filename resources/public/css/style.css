@@ -34,6 +34,16 @@ body {
 .navbar {margin-bottom: 0px;}
 
 #logoarea {height:100px;}
+#subheading {text-align: center;
+              font-size: 50px;
+              color: white;
+              font-weight:normal;
+              font-weight:50;}
+
+#home-logo:hover {
+    opacity: 0.4;
+    filter: alpha(opacity=100); /* For IE8 and earlier */
+} 
 .container-narrow {margin-left: 50px;
 		   margin-right: 50px;}
 
