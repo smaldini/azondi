@@ -14,6 +14,8 @@
 ;; Connection
 ;;
 
-(deftest test-connect-disconnect
-  (comment "TODO: start the system")
-  (comment "TODO: stop the system"))
+(deftest test-connect-disconnect-with-valid-credentials
+  (let [c  (mh/connect "tcp://127.0.0.1:1883" "1" {:username "yods"
+                                                   :password "device-1-pwd"})]
+    (is (mh/connected? c))
+    (mh/disconnect-and-close c)))
