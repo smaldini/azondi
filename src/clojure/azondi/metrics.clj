@@ -11,7 +11,6 @@
 (defrecord Metrics [^String hostname ^String prefix]
   component/Lifecycle
   (start [this]
-    (println this)
     (let [reg (mc/new-registry)
           rep (mrg/reporter reg {:hostname (.hostname this)
                                  :prefix   (str (.prefix this) "." (.hostname this))})]
