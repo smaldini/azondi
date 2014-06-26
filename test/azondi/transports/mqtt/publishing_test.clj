@@ -4,11 +4,15 @@
             [clojurewerkz.machine-head.client :as mh]
             [clojurewerkz.machine-head.durability :as md]
             [azondi.test-helpers :as th])
-  (:import java.util.concurrent.atomic.AtomicInteger
+  (:import [java.util.concurrent CountDownLatch TimeUnit]
            java.util.UUID))
 
 (use-fixtures :once th/maybe-load-schema-fixture)
 (use-fixtures :each th/with-system-fixture)
+
+(defn await
+  [^CountDownLatch latch]
+  (is (.await latch 10 TimeUnit/SECONDS)))
 
 ;;
 ;; Publishing
@@ -20,4 +24,17 @@
     (is (mh/connected? c))
     (dotimes [i 1000]
       (mh/publish c "/users/yods/pm10-1" "" 0))
+    (mh/disconnect-and-close c)))
+
+(deftest test-publishing-and-consuming-messages-to-existing-public-topic
+  (let [c  (mh/connect "tcp://127.0.0.1:1883" "1" {:username "yods"
+                                                   :password "device-1-pwd"})
+        l  (CountDownLatch. 500)]
+    (is (mh/connected? c))
+    (mh/subscribe c ["/users/yods/pm10-1"] (fn [^String topic meta ^bytes payload]
+                                             (.countDown l))
+                  {:qos [0]})
+    (dotimes [i 1000]
+      (mh/publish c "/users/yods/pm10-1" "" 0))
+    (await l)
     (mh/disconnect-and-close c)))
