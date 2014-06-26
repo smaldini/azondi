@@ -19,3 +19,8 @@
                                                    :password "device-1-pwd"})]
     (is (mh/connected? c))
     (mh/disconnect-and-close c)))
+
+(deftest test-connect-disconnect-with-invalid-credentials
+  (is (thrown? org.eclipse.paho.client.mqttv3.MqttSecurityException
+               (mh/connect "tcp://127.0.0.1:1883" "1" {:username "yods"
+                                                       :password (str (UUID/randomUUID))}))))
