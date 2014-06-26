@@ -96,7 +96,6 @@
                  )))
 
   (maybe-create-topic! [this {:keys [topic owner]}]
-    (println topic)
     (let [name (extract-topic-name topic)]
       (j/execute! (conn this)
                   ["INSERT INTO topics (name, topic, owner, public)
