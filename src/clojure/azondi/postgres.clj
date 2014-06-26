@@ -34,7 +34,7 @@
   (stop [this] this)
   Datastore
 
- 
+
   (create-user! [this name user email password]
     (let [p (sc/encrypt password)
           role "user"]
@@ -96,6 +96,7 @@
                  )))
 
   (maybe-create-topic! [this {:keys [topic owner]}]
+    (println topic)
     (let [name (extract-topic-name topic)]
       (j/execute! (conn this)
                   ["INSERT INTO topics (name, topic, owner, public)
@@ -120,11 +121,11 @@
 
   (delete-api-key [this user]
     (j/delete! (conn this) :api_keys ["id = ?" user]))
-  
+
   (create-api-key [this user]
     (let [api (str (java.util.UUID/randomUUID))]
       (j/insert! (conn this) :api_keys {:id user :api api})))
-  ) 
+  )
 
 (defn new-database
   [opts]
