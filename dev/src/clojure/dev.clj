@@ -6,19 +6,18 @@
    [com.stuartsierra.component :as component]
    [clojure.tools.namespace.repl :refer (refresh refresh-all)]
    [azondi.dev-system :refer (new-dev-system)]
-;;   [cylon.user :as user]
    [clojure.tools.logging :refer (infof)]
-   env
-   ))
+   env))
 
 (def system nil)
 
 (defn init
   "Constructs the current development system."
-  []
-  (alter-var-root #'system
-                  (constantly (new-dev-system env/env)
-     )))
+  ([]
+     (init env/env))
+  ([m]
+     (alter-var-root #'system
+                     (constantly (new-dev-system m)))))
 
 (defn start
   "Starts the current development system."
@@ -43,8 +42,3 @@
 
 (defn set-env! [env]
   (alter-var-root #'env/env (constantly env)))
-
-#_(defn add-user! [user password]
-  (user/add-user!
-   (-> system :protection-domain)
-   user password))

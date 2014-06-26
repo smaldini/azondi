@@ -27,7 +27,7 @@
 
 (defrecord EventService [async-pub]
   WebService
-  (ring-handler-map [_] {::events (server-event-source async-pub)})
+  (request-handlers [_] {::events (server-event-source async-pub)})
   (routes [_] ["/" {[[#"\d+" :client-id]] ::events}])
   (uri-context [_] "/events"))
 

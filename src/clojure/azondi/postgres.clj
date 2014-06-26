@@ -34,7 +34,7 @@
   (stop [this] this)
   Datastore
 
- 
+
   (create-user! [this name user email password]
     (let [p (sc/encrypt password)
           role "user"]
@@ -75,7 +75,9 @@
   (allowed-device? [this client-id username pwd]
     (let [device (first (j/query (conn this) ["SELECT * FROM devices WHERE client_id = ? AND owner_user_id = ? LIMIT 1;"
                                               (Long/valueOf client-id) username]))]
-      (sc/verify pwd (:device_password_hash device))))
+      (and device
+           (:device_password_hash device)
+           (sc/verify pwd (:device_password_hash device)))))
 
   (patch-device! [this client-id data]
     (j/update! (conn this) :devices data ["client_id = ?" client-id]))
@@ -121,13 +123,11 @@
 
   (delete-api-key [this user]
     (j/delete! (conn this) :api_keys ["id = ?" user]))
-  
+
   (create-api-key [this user]
     (let [api (str (java.util.UUID/randomUUID))]
       (j/insert! (conn this) :api_keys {:id user :api api})))
-
-  
-  ) 
+  )
 
 (defn new-database
   [opts]
