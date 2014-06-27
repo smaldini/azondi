@@ -22,6 +22,7 @@
             [metrics.counters   :as mct])
   (:import  [io.netty.channel ChannelHandlerAdapter ChannelHandlerContext Channel
              ChannelPipeline ChannelHandler]
+            [io.netty.handler.timeout IdleStateHandler IdleStateEvent]
             java.net.InetSocketAddress
             [java.util.concurrent ExecutorService Executors]))
 
@@ -82,18 +83,12 @@
        (alter connections-by-ctx       dissoc other-ctx))
       other-ctx)))
 
-(declare handle-disconnect)
 (defn ^:private inject-idle-state-handler
   [^ChannelHandlerContext ctx ^String client-id ^long timeout handler-state]
-  (let [^ChannelPipeline pl (.. ctx channel pipeline)
-        ^ChannelHandler  ch (proxy [ChannelHandlerAdapter] []
-                              ;; ctx in channelInactive is a different instance
-                              ;; than in this function argument, so we need ctx
-                              ;; to be captured via closure. MK.
-                              (channelInactive [^ChannelHandlerContext _]
-                                (warnf "Connection %s (client id: %s) is lost (keepalive: %d seconds)" (peer-of ctx) client-id timeout)
-                                (handle-disconnect ctx handler-state)))]
-    (.addFirst pl (into-array ChannelHandler [ch]))))
+  (let [^ChannelPipeline   pl (.. ctx channel pipeline)
+        n                     (long (* 1.6 timeout))
+        ^IdleStateHandler  ish (IdleStateHandler. n n 0)]
+    (.addFirst pl (into-array ChannelHandler [ish]))))
 
 (defn accept-connection
   [^ChannelHandlerContext ctx {:keys [username client-id has-will clean-session
@@ -106,7 +101,7 @@
               :ctx ctx
               :has-will has-will
               :will-qos (when has-will (:will-qos msg))
-              }]
+              :keepalive keepalive}]
     (maybe-disconnect-existing client-id handler-state)
     (dosync
      (alter connections-by-ctx assoc ctx conn)
@@ -347,12 +342,12 @@
                      {:client-id client-id
                       :message (str "Publishing message on topic: " topic)}))
             (mt/time! (:mqtt-messages-publish-latency metrics)
-             (f ctx msg handler-state)
-             (mr/notify reactor rk/message-published {:device_id client-id
-                                                      :payload payload
-                                                      :content_type "application/json"
-                                                      :topic topic
-                                                      :owner username}))
+                      (f ctx msg handler-state)
+                      (mr/notify reactor rk/message-published {:device_id client-id
+                                                               :payload payload
+                                                               :content_type "application/json"
+                                                               :topic topic
+                                                               :owner username}))
             (mh/update! (:mqtt-messages-payload-size metrics) (alength payload))
             (mm/mark!   (:mqtt-messages-published metrics)))
           (do
@@ -377,21 +372,44 @@
   (.writeAndFlush ctx {:type :pingresp}))
 
 ;;
-;; DISCONNECT
+;; Lost Connections, Keep Alive
 ;;
 
-(defn handle-disconnect
+(defn ^:private forget-ctx
   [^ChannelHandlerContext ctx {:keys [topics-by-ctx
                                       connections-by-ctx
-                                      connections-by-client-id
-                                      metrics]}]
+                                      connections-by-client-id]}]
   (dosync
    (let [topics              (get @topics-by-ctx ctx)
          {:keys [client-id]} (get @connections-by-ctx ctx)]
      (alter topics-by-ctx dissoc ctx)
      (alter subscriptions unrecord-subscribers ctx topics)
      (alter connections-by-ctx       dissoc ctx)
-     (alter connections-by-client-id dissoc client-id)))
+     (alter connections-by-client-id dissoc client-id))))
+
+(defn ^:private handle-timeout
+  [^ChannelHandlerContext ctx {:keys [connections-by-ctx]
+                               :as handler-state}]
+  (let [{:keys [client-id
+                keepalive]} (get @connections-by-ctx ctx)]
+    (warnf "Connection %s (client id: %s) is lost (keepalive: %d seconds)"
+           (peer-of ctx) client-id keepalive)
+    (forget-ctx ctx handler-state))
+  ctx)
+
+(defn ^:private handle-closed-tcp-connection
+  [^ChannelHandlerContext ctx handler-state]
+  (warnf "Connection %s is closed or lost" (peer-of ctx))
+  (forget-ctx ctx handler-state)
+  ctx)
+
+;;
+;; DISCONNECT
+;;
+
+(defn handle-disconnect
+  [^ChannelHandlerContext ctx {:keys [metrics] :as handler-state}]
+  (forget-ctx ctx handler-state)
   (mct/dec! (:mqtt-connections-active metrics))
   (abort ctx))
 
@@ -400,7 +418,7 @@
 ;;
 
 (defn make-channel-handler
-  [handler-state]
+  [{:keys [metrics] :as handler-state}]
   (proxy [ChannelHandlerAdapter] []
     (channelRead [^ChannelHandlerContext ctx msg]
       (case (:type msg)
@@ -410,9 +428,17 @@
         :publish (handle-publish ctx msg handler-state)
         :pingreq (handle-pingreq ctx handler-state)
         :disconnect (handle-disconnect ctx handler-state)))
+    (channelInactive [^ChannelHandlerContext ctx]
+      (handle-closed-tcp-connection ctx handler-state)
+      (mct/dec! (:mqtt-connections-active metrics))
+      (abort ctx))
+    (userEventTriggered [^ChannelHandlerContext ctx evt]
+      (when (instance? IdleStateEvent evt)
+        (do (handle-timeout ctx handler-state)
+            (abort ctx))))
     (exceptionCaught [^ChannelHandlerContext ctx cause]
       (try (throw cause)
-           (finally (disconnect-client ctx))))))
+           (finally (handle-disconnect ctx handler-state))))))
 
 (defrecord NettyMqttHandler [connections-by-ctx connections-by-client-id topics-by-ctx debug-ch]
   component/Lifecycle
