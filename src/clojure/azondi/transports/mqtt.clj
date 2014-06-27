@@ -2,7 +2,7 @@
 (ns azondi.transports.mqtt
   (:require [com.stuartsierra.component :as component]
             [modular.netty :refer (NettyHandlerProvider)]
-            [clojure.tools.logging :refer (warnf infof info log)]
+            [clojure.tools.logging :refer (warnf infof info log debugf)]
             [clojurewerkz.triennium.mqtt :as tr]
 
             [azondi.devices :refer (device-names)]
@@ -20,7 +20,8 @@
             [metrics.timers     :as mt]
             [metrics.histograms :as mh]
             [metrics.counters   :as mct])
-  (:import  [io.netty.channel ChannelHandlerAdapter ChannelHandlerContext Channel]
+  (:import  [io.netty.channel ChannelHandlerAdapter ChannelHandlerContext Channel
+             ChannelPipeline ChannelHandler]
             java.net.InetSocketAddress
             [java.util.concurrent ExecutorService Executors]))
 
@@ -81,8 +82,22 @@
        (alter connections-by-ctx       dissoc other-ctx))
       other-ctx)))
 
+(declare handle-disconnect)
+(defn ^:private inject-idle-state-handler
+  [^ChannelHandlerContext ctx ^String client-id ^long timeout handler-state]
+  (let [^ChannelPipeline pl (.. ctx channel pipeline)
+        ^ChannelHandler  ch (proxy [ChannelHandlerAdapter] []
+                              ;; ctx in channelInactive is a different instance
+                              ;; than in this function argument, so we need ctx
+                              ;; to be captured via closure. MK.
+                              (channelInactive [^ChannelHandlerContext _]
+                                (warnf "Connection %s (client id: %s) is lost (keepalive: %d seconds)" (peer-of ctx) client-id timeout)
+                                (handle-disconnect ctx handler-state)))]
+    (.addFirst pl (into-array ChannelHandler [ch]))))
+
 (defn accept-connection
-  [^ChannelHandlerContext ctx {:keys [username client-id has-will clean-session]
+  [^ChannelHandlerContext ctx {:keys [username client-id has-will clean-session
+                                      keepalive]
                                :as   msg}
    {:keys [connections-by-ctx connections-by-client-id] :as handler-state}]
   (let [db   (get-in handler-state [:database])
@@ -97,6 +112,7 @@
      (alter connections-by-ctx assoc ctx conn)
      (alter connections-by-client-id assoc client-id conn))
     (.writeAndFlush ctx {:type :connack :return-code :accepted})
+    (inject-idle-state-handler ctx client-id keepalive handler-state)
     (let [^InetSocketAddress peer (peer-of ctx)]
       (infof "Accepted connection from %s (client id: %s, owner: %s)" peer client-id username))
     conn))
