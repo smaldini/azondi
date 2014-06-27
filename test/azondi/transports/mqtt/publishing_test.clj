@@ -29,12 +29,30 @@
 (deftest test-publishing-and-consuming-messages-to-existing-public-topic
   (let [c  (mh/connect "tcp://127.0.0.1:1883" "1" {:username "yods"
                                                    :password "device-1-pwd"})
-        l  (CountDownLatch. 500)]
+        l  (CountDownLatch. 50)]
     (is (mh/connected? c))
     (mh/subscribe c ["/users/yods/pm10-1"] (fn [^String topic meta ^bytes payload]
                                              (.countDown l))
                   {:qos [0]})
-    (dotimes [i 1000]
+    (dotimes [i 100]
       (mh/publish c "/users/yods/pm10-1" "" 0))
     (await l)
     (mh/disconnect-and-close c)))
+
+(deftest test-publishing-and-consuming-messages-with-multiple-consumers
+  (let [c1  (mh/connect "tcp://127.0.0.1:1883" "1" {:username "yods"
+                                                    :password "device-1-pwd"})
+        c2  (mh/connect "tcp://127.0.0.1:1883" "2" {:username "yods"
+                                                    :password "device-2-pwd"})
+        l  (CountDownLatch. 50)
+        f  (fn [^String topic meta ^bytes payload]
+             (.countDown l))]
+    (mh/subscribe c1 ["/users/yods/pm10-1"] f {:qos [0]})
+    (mh/subscribe c2 ["/users/yods/pm10-1"] f {:qos [0]})
+    (dotimes [i 13]
+      (mh/publish c1 "/users/yods/pm10-1" "" 0))
+    (dotimes [i 13]
+      (mh/publish c2 "/users/yods/pm10-1" "" 0))
+    (await l)
+    (mh/disconnect-and-close c1)
+    (mh/disconnect-and-close c2)))
