@@ -71,7 +71,7 @@
 (defn ^:private maybe-disconnect-existing
   "Disconnects existing client with the given client id, if any.
 
-   See section 3.1 of MQTT specification.."
+   See section 3.1 of MQTT specification."
   [^String client-id {:keys [connections-by-ctx connections-by-client-id]}]
   (if-let [state (get @connections-by-client-id client-id)]
     (let [other-ctx (:ctx state)
