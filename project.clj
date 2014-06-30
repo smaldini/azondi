@@ -42,6 +42,7 @@
 
                  [juxt.modular/cljs "0.5.0"]
                  [juxt.modular/mqtt "0.5.0"]
+                 [juxt.modular/ring "0.5.0"]
                  [juxt.modular/netty "0.5.0"]
 
 
