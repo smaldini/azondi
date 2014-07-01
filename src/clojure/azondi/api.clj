@@ -161,12 +161,15 @@
              (delete-user! db user))
 
            (let [u (create-user! db name user email password)
+                 _ (create-api-key db user)
                  ;;_ (set-api-key uesrs user)
                  ;;api-key (get-api-key user)
                  ]
              ;; We create the api-key, in order to return. This is
              ;; really just to help with the tests. Is this appropriate?
-             {:response-body {:api-key "12345"}}))
+             {:response-body {:api-key (get-api-key db user)
+                              :user u}}))
+
    :handle-created (fn [{body :response-body}] body)})
 
 (defn reset-user-password-resource [db]
@@ -379,6 +382,11 @@
 (defrecord UserAuthorizer []
   Authorizer
   (authorized? [this request requirement]
+    (infof "Authorizing %s against requirement %s"
+           (dissoc request :modular.bidi/routes :modular.bidi/handlers)
+           requirement
+           )
+    (infof "Authenticator is: %s" (:authenticator this))
     (= (:cylon/user (authenticate (:authenticator this) request))
        (:user requirement))))
 

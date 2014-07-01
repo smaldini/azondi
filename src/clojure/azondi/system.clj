@@ -129,7 +129,6 @@
      :apikey-authenticator (new-apikey-authenticator)
      :authenticator (new-composite-disjunctive-authenticator :session-authenticator :apikey-authenticator)
      :authorizer (new-user-authorizer)
-     ;;new-authenticator-request-middleware
 
      :sse (let [sse-ch (async/chan 64)
                 ;; SSE splits on client-id
@@ -155,10 +154,10 @@
 
    :webserver {:request-handler :webhead}
    :webhead {:request-handler :webrouter,
-             :authenticator-middleware :session-authenticator}
+             }
    :webrouter [:webapp :api #_:sse #_:main-cljs-builder :login-form]
    ;; TODO API will need to be a composite authenticator over the cookie one and the custom API one so that the UI will work
-   :api {:authenticator :apikey-authenticator}})
+   })
 
 (defn new-prod-system []
   (let [s-map (-> (configurable-system-map (config))

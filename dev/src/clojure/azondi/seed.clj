@@ -9,29 +9,35 @@
   (str "http://localhost:8010/api/1.0" route))
 
 (defn seed-data! []
-  (request :put (make-uri "/users/yods")
-           :data {:password "password"
-                  :name "Yodit Stanton"
-                  :email "yodit@atomicdatalabs.com"})
+  (infof "Creating yods")
 
-  (request :post (make-uri "/users/yods/devices/")
-           :auth ["yods" "password"]
-           :data {:name "Arduino 1" :description "Some arduino lying around"}
-           :data {:name "Arduino 2" :description "A broken arduino"}
-           :data {:name "Pollution sensor" :description ""})
+  (let [response (request :put (make-uri "/users/yods")
+                          :data {:password "password"
+                                 :name "Yodit Stanton"
+                                 :email "yodit@atomicdatalabs.com"})
+        api-key (-> response :body :api-key)]
+    (doseq [data
+            [{:name "Arduino 1" :description "Some arduino lying around"}
+             {:name "Arduino 2" :description "A broken arduino"}
+             {:name "Pollution sensor" :description ""}]]
+      (request :post (make-uri "/users/yods/devices/")
+               :apikey api-key
+               :data data)))
 
-  (request :put (make-uri "/users/malcolm")
-           :data {:password "password"
-                  :name "Malcolm Sparks"
-                  :email "malcolm@juxt.pro"})
+  (infof "Creating malcolm")
 
-  (request :post (make-uri "/users/malcolm/devices/")
-           :auth ["malcolm" "password"]
-           :data {:name "S3-1" :description "MQTTitude on Samsung Galaxy S3"})
+  (let [response (request :put (make-uri "/users/malcolm")
+                          :data {:password "password"
+                                 :name "Malcolm Sparks"
+                                 :email "malcolm@juxt.pro"})
+        api-key (-> response :body :api-key)]
+    (doseq [data
+            [{:name "S3-1" :description "MQTTitude on Samsung Galaxy S3"}
+             {:name "S3-2" :description "MQTTitude (test) on Samsung Galaxy S3"}]]
+      (request :post (make-uri "/users/malcolm/devices/")
+               :apikey api-key
+               :data data)))
 
-  (request :post (make-uri "/users/malcolm/devices/")
-           :auth ["malcolm" "password"]
-           :data {:name "S3-2" :description "MQTTitude (test) on Samsung Galaxy S3"})
 
   (request :put (make-uri "/users/mk")
            :data {:password "password"

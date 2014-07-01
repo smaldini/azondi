@@ -19,6 +19,7 @@
   (verify-user [this uid password]
     (infof "Verifying user: %s against password %s" uid password)
     (infof "User in database is: %s" (get-user (:database this) uid))
+    (infof "Database is %s" (-> this :database :database))
     (= password (:password (get-user (:database this) uid)))))
 
 (defn new-dev-user-domain []
