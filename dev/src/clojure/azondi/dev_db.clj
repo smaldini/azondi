@@ -92,7 +92,13 @@
 
   (patch-topic! [this topic data]
     (dosync
-     (alter (-> this :database :topics) update-in [topic] merge data))))
+     (alter (-> this :database :topics) update-in [topic] merge data)))
+
+  ;; API keys
+  (find-user-by-api-key [this apikey]
+    (throw (ex-info "TODO" {})))
+
+)
 
 (defn new-inmemory-datastore []
   (->InmemoryDatastore))

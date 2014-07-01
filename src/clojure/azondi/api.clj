@@ -13,12 +13,13 @@
    [cheshire.core :refer (decode decode-stream encode)]
    [schema.core :as s]
    [camel-snake-kebab :refer (->kebab-case-keyword ->camelCaseString)]
-   [azondi.db :refer (get-users get-user delete-user! create-user! devices-by-owner get-device delete-device! create-device! patch-device! topics-by-owner get-topic delete-topic! create-topic! patch-topic! set-device-password! get-api-key delete-api-key create-api-key reset-user-password)]
+   [azondi.db :refer (get-users get-user delete-user! create-user! devices-by-owner get-device delete-device! create-device! patch-device! topics-by-owner get-topic delete-topic! create-topic! patch-topic! set-device-password! get-api-key delete-api-key create-api-key reset-user-password find-user-by-api-key)]
    [hiccup.core :refer (html)]
    [clojure.walk :refer (postwalk)]
    liberator.representation
    [modular.bidi :refer (WebService)]
-   [cylon.authentication :refer (Authenticator)]
+   [cylon.authentication :refer (Authenticator authenticate)]
+   [cylon.authorization :refer (Authorizer authorized?)]
    )
   )
 
@@ -203,10 +204,13 @@
     (= (-> request :route-params :user)
        (:cylon/user request))))
 
-(defn devices-resource [db]
+(defn devices-resource [db authorizer]
   {:available-media-types #{"application/json"}
    :allowed-methods #{:get :post}
-   ;;:allowed? same-user
+
+   :authorized? (fn [{{{user :user :as rp} :route-params :as request} :request}]
+                  (authorized? authorizer request rp))
+
    :handle-ok (fn [{{{user :user} :route-params :as req} :request}]
                 (encode {:user user
                          :devices (->>
@@ -231,11 +235,14 @@
   (when-let [auth (get (:headers req) "authorization")]
     (second (re-matches #"api-key\s([0-9a-f-]+)" auth))))
 
-(defn device-resource [db]
+(defn device-resource [db authorizer]
   {:available-media-types #{"application/json"}
    :allowed-methods #{:get :put :delete}
    ;;:allowed? same-user
    :known-content-type? #{"application/json"}
+
+   :authorized? (fn [{{{user :user :as rp} :route-params :as request} :request}]
+                  (authorized? authorizer request rp))
 
    :handle-unauthorized (fn [_] (encode {:error "Unauthorized"}))
 
@@ -279,7 +286,6 @@
                                 (topics-by-owner db user)
                                 (map #(select-keys % [:owner :description :unit :topic]))
                                 (map #(reduce-kv (fn [acc k v] (assoc acc (->camelCaseString k) v)) {} %)))}]
-                  (infof "GET TOPICS RETURNING: %s" body)
                   (encode body)))})
 
 (defn topic-resource [db]
@@ -302,12 +308,8 @@
                body :body
                {{user :user} :route-params} :request}]
            (if-not existing
-             (do
-               (infof "TOPIC CREATING: new is %s" (assoc body :topic topic :owner user))
-               (create-topic! db (assoc body :topic topic :owner user)))
-             (do
-               (infof "TOPIC PATCHING: existing is %s, new is " existing (assoc body :owner user))
-               (patch-topic! db topic (assoc body :owner user)))))
+             (create-topic! db (assoc body :topic topic :owner user))
+             (patch-topic! db topic (assoc body :owner user))))
 
    :delete! (fn [{topic :topic}] (delete-topic! db topic))
    :handle-ok (fn [{topic :topic existing :existing}] existing)
@@ -334,12 +336,12 @@
    :handle-created (fn [{apikey :apikey}]
                      (->js apikey))})
 
-(defn handlers [db]
+(defn handlers [db authorizer]
   {::welcome (resource (welcome-resource))
    ::users (resource (users-resource db))
    ::user (resource (user-resource db))
-   ::devices (resource (devices-resource db))
-   ::device (resource (device-resource db))
+   ::devices (resource (devices-resource db authorizer))
+   ::device (resource (device-resource db authorizer))
    ::reset-password (resource (reset-device-password-resource db))
    ::topics (resource (topics-resource db))
    ::topic (resource (topic-resource db))
@@ -365,20 +367,34 @@
 
 (defrecord Api []
   WebService
-  (request-handlers [this] (handlers (:database this)))
+  (request-handlers [this] (handlers (:database this) (:authorizer this)))
   (routes [_] routes)
   (uri-context [_] "/api/1.0"))
 
 (defn new-api [& {:as opts}]
-  (component/using (->Api) [:database :authenticator]))
+  (component/using (->Api) [:database :authorizer]))
+
+;; Authorization
+
+(defrecord UserAuthorizer []
+  Authorizer
+  (authorized? [this request requirement]
+    (= (:cylon/user (authenticate (:authenticator this) request))
+       (:user requirement))))
+
+(defn new-user-authorizer []
+  (component/using (->UserAuthorizer) [:authenticator]))
 
 ;; Authentication
 
 (defrecord ApiKeyAuthenticator []
   Authenticator
-  (authenticate [_ request]
-    nil
-    ))
+  (authenticate [this request]
+    (when-let [header (get-in request [:headers "authorization"])]
+      (when-let [api-key (second (re-matches #"\Qapikey\E\s+(.*)" header))]
+        (when-let [user (find-user-by-api-key (:database this) api-key)]
+          {:cylon/user user
+           :cylon/authentication-method :api-key})))))
 
 (defn new-apikey-authenticator []
-  (->ApiKeyAuthenticator))
+  (component/using (->ApiKeyAuthenticator) [:database]))

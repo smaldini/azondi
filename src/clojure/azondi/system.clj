@@ -22,6 +22,7 @@
    [cylon.bootstrap-login-form :refer (new-bootstrap-login-form-renderer)]
    [cylon.impl.session :refer (new-atom-backed-session-store
                                new-cookie-authenticator)]
+   [cylon.impl.authentication :refer (new-composite-disjunctive-authenticator)]
    ;;[cylon.impl.webrequest :refer (new-authenticator-request-middleware)]
    ;; We require this to ensure we can use Cylon default authenticators as Ring middleware
    ;;cylon.impl.webrequest
@@ -36,7 +37,7 @@
    [azondi.sse :refer (new-event-service)]
    [azondi.postgres :refer (new-database)]
    [azondi.cassandra :as cass]
-   [azondi.api :refer (new-api new-apikey-authenticator)]
+   [azondi.api :refer (new-api new-apikey-authenticator new-user-authorizer)]
    [azondi.webapp :refer (new-webapp)]
 
    )
@@ -126,6 +127,8 @@
 
      :session-authenticator (new-cookie-authenticator)
      :apikey-authenticator (new-apikey-authenticator)
+     :authenticator (new-composite-disjunctive-authenticator :session-authenticator :apikey-authenticator)
+     :authorizer (new-user-authorizer)
      ;;new-authenticator-request-middleware
 
      :sse (let [sse-ch (async/chan 64)

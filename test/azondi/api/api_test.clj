@@ -7,11 +7,14 @@
    [modular.bidi :refer (new-router routes uri-context)]
    [bidi.bidi :refer (path-for)]
    [azondi.webapp :refer (new-webapp)]
-   [azondi.api :refer (new-api new-apikey-authenticator)]
+   [azondi.api :refer (new-api new-user-authorizer new-apikey-authenticator)]
    [cylon.impl.login-form :refer (new-login-form)]
+   [cylon.impl.authentication :refer (new-composite-disjunctive-authenticator
+                                      new-http-basic-authenticator)]
    [azondi.http :refer (request)]
    [azondi.dev-db :refer (new-inmemory-datastore)]
-   [azondi.db :refer (get-user)]))
+   [azondi.db :refer (get-user)]
+   [azondi.dev-system :refer (new-dev-user-domain)]))
 
 (def PORT 8099)
 
@@ -24,13 +27,18 @@
     :webrouter (new-router)
     :database (new-inmemory-datastore)
     :api (new-api :uri-context "/api/1.0")
-    :apikey-authenticator (new-apikey-authenticator))
+    :authorizer (new-user-authorizer)
+    :http-authenticator (new-http-basic-authenticator)
+    :authenticator (new-composite-disjunctive-authenticator
+                    :http-authenticator
+                    ;;(new-apikey-authorizer)
+                    )
+    :user-domain (new-dev-user-domain))
 
    {:webserver {:request-handler :webhead}
-    :webhead {:request-handler :webrouter,
-              #_:authenticator-middleware #_:authenticator}
+    :webhead {:request-handler :webrouter}
     :webrouter [:api]
-    :api {:authenticator :apikey-authenticator}}))
+    }))
 
 (def ^:dynamic *system* nil)
 
@@ -45,7 +53,7 @@
   (with-system (new-api-system)
     (f)))
 
-(use-fixtures :once system-fixture)
+(use-fixtures :each system-fixture)
 
 (defn make-uri [target & args]
   (format "http://localhost:%d%s%s"
