@@ -29,9 +29,10 @@
     :api (new-api :uri-context "/api/1.0")
     :authorizer (new-user-authorizer)
     :http-authenticator (new-http-basic-authenticator)
+    :apikey-authenticator (new-apikey-authenticator)
     :authenticator (new-composite-disjunctive-authenticator
                     :http-authenticator
-                    ;;(new-apikey-authorizer)
+                    :apikey-authenticator
                     )
     :user-domain (new-dev-user-domain))
 
