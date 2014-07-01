@@ -13,7 +13,7 @@
                                       new-http-basic-authenticator)]
    [azondi.http :refer (request)]
    [azondi.dev-db :refer (new-inmemory-datastore)]
-   [azondi.db :refer (get-user)]
+   [azondi.db :refer (get-user create-api-key get-api-key)]
    [azondi.dev-system :refer (new-dev-user-domain)]))
 
 (def PORT 8099)
@@ -205,3 +205,42 @@
 
             (let [topics-response (request :get topics-uri :auth ["alice" "shock"])]
               (is (= (-> topics-response :body :topics count) 0)))))))))
+
+
+(deftest test-users-via-apikey
+  (testing "user path"
+    (is (= (make-uri :azondi.api/user :user "alice")
+           (format "http://localhost:%d/api/1.0/users/alice" PORT))))
+
+  (testing "create user with api key"
+    (let [db (-> *system* :database)
+          response
+          (request :put (make-uri :azondi.api/user :user "alice")
+                   :data {:password "lewis"
+                          :name "Alice Cheung"
+                          :email "alice@example.org"
+                          })]
+      (is (= (:status response) 201))
+      ;; Do we have the user in the database?
+      (is (get-user db "alice"))
+
+      ;; Create an API key for alice
+      (create-api-key db "alice")
+
+      (let [apikey (get-api-key db "alice")]
+        (let [uri (make-uri :azondi.api/devices :user "alice")]
+          (is (= uri (format "http://localhost:%d/api/1.0/users/alice/devices/" PORT)))
+
+          #_(testing "create device without apikey"
+              (let [response (request :post uri :data {} :expected 401)]
+
+                ;; TODO This needs to return JSON, but it doesn't
+                (is (= 401 (:status response))))
+              )
+
+          (testing "create device with apikey"
+            (let [response (request :post uri :data {} :apikey apikey)]
+
+              ;; This needs to return a client id and password in the result
+              (is (= 201 (:status response)))
+              )))))))

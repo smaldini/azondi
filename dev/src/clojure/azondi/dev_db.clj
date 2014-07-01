@@ -13,7 +13,8 @@
     (assoc this :database {:last-client-id (ref 1000)
                            :users (ref {})
                            :devices (ref {})
-                           :topics (ref {})}))
+                           :topics (ref {})
+                           :apikeys (ref {})}))
   (stop [this] this)
 
   Datastore
@@ -95,8 +96,21 @@
      (alter (-> this :database :topics) update-in [topic] merge data)))
 
   ;; API keys
+  (create-api-key [this user]
+    (let [apikey (str (java.util.UUID/randomUUID))]
+      (dosync
+       (alter (-> this :database :apikeys) assoc user apikey))))
+
+  (get-api-key [this user]
+    (-> this :database :apikeys deref (get user)))
+
+  (delete-api-key [this user]
+    (throw (ex-info "TODO" {}))
+    )
+
   (find-user-by-api-key [this apikey]
-    (throw (ex-info "TODO" {})))
+    (ffirst (filter #(= apikey (second %)) (-> this :database :apikeys deref)))
+    )
 
 )
 
