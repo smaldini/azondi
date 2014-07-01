@@ -121,7 +121,7 @@
      ;; API
      :api (new-api :uri-context "/api/1.0")
      :webserver (new-webserver :port 8010)
-     :webhead (new-web-request-handler-head)
+;;     :webhead (new-web-request-handler-head)
      :webrouter (new-router)
      :webapp (new-webapp)
 
@@ -152,9 +152,9 @@
    #_:ws #_[:reactor :database]
    #_:main-cljs-builder #_[:cljs-core :cljs-main #_:cljs-logo]
 
-   :webserver {:request-handler :webhead}
-   :webhead {:request-handler :webrouter,
-             }
+;;   :webserver {:request-handler :webhead}
+;;   :webhead {:request-handler :webrouter}
+   :webserver {:request-handler :webrouter}
    :webrouter [:webapp :api #_:sse #_:main-cljs-builder :login-form]
    ;; TODO API will need to be a composite authenticator over the cookie one and the custom API one so that the UI will work
    })

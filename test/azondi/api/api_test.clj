@@ -23,7 +23,7 @@
 
    (component/system-map
     :webserver (new-webserver :port PORT)
-    :webhead (new-web-request-handler-head)
+;;    :webhead (new-web-request-handler-head)
     :webrouter (new-router)
     :database (new-inmemory-datastore)
     :api (new-api :uri-context "/api/1.0")
@@ -36,8 +36,8 @@
                     )
     :user-domain (new-dev-user-domain))
 
-   {:webserver {:request-handler :webhead}
-    :webhead {:request-handler :webrouter}
+   {:webserver {:request-handler :webrouter}
+    ;;:webhead {:request-handler :webrouter}
     :webrouter [:api]
     }))
 

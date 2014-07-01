@@ -38,7 +38,6 @@
                :apikey api-key
                :data data)))
 
-
   (request :put (make-uri "/users/mk")
            :data {:password "password"
                   :name "Michael Klishin"
