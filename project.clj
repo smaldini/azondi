@@ -43,8 +43,9 @@
                  [juxt.modular/cljs "0.5.0-SNAPSHOT"]
                  [juxt.modular/mqtt "0.1.0"]
                  [juxt.modular/netty "0.1.0"]
-                 ;;[juxt.modular/http-kit "0.5.0-SNAPSHOT"]
-                 ;;[juxt.modular/bidi "0.5.0-SNAPSHOT"]
+                 [juxt.modular/http-kit "0.5.0"]
+                 [juxt.modular/http-kit-events "0.5.0-SNAPSHOT"]
+                 [juxt.modular/bidi "0.5.0"]
 
                  ;;[bidi "1.10.3"]
                  [hiccup "1.0.5"]
@@ -52,8 +53,9 @@
                  [compojure "1.1.8"]
                  [markdown-clj "0.9.36"]
 
-                 ;;[cylon "0.2.0-SNAPSHOT"]
-                 ;;[http-kit "2.1.16"]
+                 ;; Security
+
+                 [cylon "0.3.0"]
 
                  ;; Logging
 
@@ -74,9 +76,6 @@
                  [sablono "0.2.6" :exclusions [com.facebook/react org.clojure/clojurescript]]
                  [om "0.6.0"]
 
-                 #_[com.facebook/react "0.9.0.2"]
-                 #_[com.facebook/react "0.9.0.1"]
-
                  [org.clojure/core.async "0.1.267.0-0d7780-alpha"]
                  [jarohen/chord "0.3.1"]
 
@@ -94,12 +93,8 @@
                                   ]
                    :source-paths
                    ["dev/src/clojure" "src/cljs"
-                    "/home/malcolm/src/cylon/src"
-                    "/home/malcolm/src/cylon/contrib/bootstrap-login-form/src"
-
-                    "/home/malcolm/src/modular/modules/http-kit/src"
-                    "/home/malcolm/src/modular/modules/ring/src"
-                    "/home/malcolm/src/modular/modules/bidi/src"
+                   ;; "/home/malcolm/src/cylon/src"
+                    ;;"/home/malcolm/src/cylon/contrib/bootstrap-login-form/src"
                     ]
                    :resource-paths ["test/resources"
                                     "dev/src/sql"

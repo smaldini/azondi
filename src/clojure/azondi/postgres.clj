@@ -73,6 +73,11 @@
       (j/update! (conn this) :devices {:device_password_hash pwd-hash} ["client_id = ?" client-id])))
 
   (allowed-device? [this client-id username pwd]
+    ;; TODO We should be consistent in the type of client-id used in
+    ;; function signatures - in this case, the type is String, whereas
+    ;; in all other function signatures the type is a long. I'm fixing
+    ;; the inmemory database to align with this current design, but we
+    ;; should change the design towards consistency.
     (let [device (first (j/query (conn this) ["SELECT * FROM devices WHERE client_id = ? AND owner_user_id = ? LIMIT 1;"
                                               (Long/valueOf client-id) username]))]
       (and device

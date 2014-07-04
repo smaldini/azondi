@@ -19,7 +19,7 @@
    [modular.ring :refer (new-web-request-handler-head)]
    [modular.bidi :refer (new-router)]
    [cylon.impl.login-form :refer (new-login-form)]
-   [cylon.bootstrap-login-form :refer (new-bootstrap-login-form-renderer)]
+   ;;[cylon.bootstrap-login-form :refer (new-bootstrap-login-form-renderer)]
    [cylon.impl.session :refer (new-atom-backed-session-store
                                new-cookie-authenticator)]
    [cylon.impl.authentication :refer (new-composite-disjunctive-authenticator)]
@@ -115,6 +115,7 @@
      :authenticator (new-composite-disjunctive-authenticator :session-authenticator :apikey-authenticator)
      :authorizer (new-user-authorizer)
 
+     ;; Server Sent Events (part of HTML5 spec.)
      :sse (let [sse-ch (async/chan 64)
                 ;; SSE splits on client-id
                 sse-pub (async/pub (async/tap debug-mult sse-ch) :client-id)]
@@ -138,7 +139,7 @@
    :main-cljs-builder [:cljs-core :cljs-main #_:cljs-logo]
 
    :webserver {:request-handler :webrouter}
-   :webrouter [:webapp :api #_:sse :main-cljs-builder :login-form]
+   :webrouter [:webapp :api :sse :main-cljs-builder :login-form]
    })
 
 (defn new-prod-system []
