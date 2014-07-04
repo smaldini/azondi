@@ -18,12 +18,13 @@
 
 (def PORT 8099)
 
-(defn new-api-system []
+(defn new-api-system
+  "Define a minimal system which is just enough for the tests in this
+  namespace to run"
+  []
   (component/system-using
-
    (component/system-map
     :webserver (new-webserver :port PORT)
-;;    :webhead (new-web-request-handler-head)
     :webrouter (new-router)
     :database (new-inmemory-datastore)
     :api (new-api :uri-context "/api/1.0")
@@ -37,9 +38,10 @@
     :user-domain (new-dev-user-domain))
 
    {:webserver {:request-handler :webrouter}
-    ;;:webhead {:request-handler :webrouter}
     :webrouter [:api]
     }))
+
+;; The tests use a fixture which establishes a system for each test run.
 
 (def ^:dynamic *system* nil)
 
@@ -55,6 +57,8 @@
     (f)))
 
 (use-fixtures :each system-fixture)
+
+;; Construct a URI to hit a request handler target
 
 (defn make-uri [target & args]
   (format "http://localhost:%d%s%s"
@@ -231,16 +235,12 @@
         (let [uri (make-uri :azondi.api/devices :user "alice")]
           (is (= uri (format "http://localhost:%d/api/1.0/users/alice/devices/" PORT)))
 
-          #_(testing "create device without apikey"
+          (testing "create device without apikey"
               (let [response (request :post uri :data {} :expected 401)]
-
-                ;; TODO This needs to return JSON, but it doesn't
-                (is (= 401 (:status response))))
-              )
+                (is (= 401 (:status response)))))
 
           (testing "create device with apikey"
             (let [response (request :post uri :data {} :apikey apikey)]
 
               ;; This needs to return a client id and password in the result
-              (is (= 201 (:status response)))
-              )))))))
+              (is (= 201 (:status response))))))))))

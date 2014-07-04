@@ -28,4 +28,6 @@
       (println "Error status returned on HTTP request")
       (pprint response)
       (throw (ex-info (format "Unexpected status, response status is %d with body %s" (:status response) (pr-str (:body response))) {})))
-    (update-in response [:body] (comp ->clj decode))))
+    (if (< (or expected 200) 400)
+      (update-in response [:body] (comp ->clj decode))
+      response)))
