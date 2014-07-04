@@ -40,14 +40,13 @@
 
                  ;; Pre-built components supplied by modular
 
-                 [juxt.modular/cljs "0.5.0-SNAPSHOT"]
+                 [juxt.modular/cljs "0.5.0"]
                  [juxt.modular/mqtt "0.1.0"]
                  [juxt.modular/netty "0.1.0"]
-                 [juxt.modular/http-kit "0.5.0"]
-                 [juxt.modular/http-kit-events "0.5.0-SNAPSHOT"]
-                 [juxt.modular/bidi "0.5.0"]
+                 [juxt.modular/http-kit "0.5.1"]
+                 [juxt.modular/http-kit-events "0.5.1"]
+                 [juxt.modular/bidi "0.5.1"]
 
-                 ;;[bidi "1.10.3"]
                  [hiccup "1.0.5"]
                  [garden "1.1.5" :exclusions [org.clojure/clojure org.clojure/clojurescript]]
                  [compojure "1.1.8"]
@@ -79,26 +78,15 @@
                  [org.clojure/core.async "0.1.267.0-0d7780-alpha"]
                  [jarohen/chord "0.3.1"]
 
-                 ;;[org.clojars.ideal-knee/dommy "0.1.3-SNAPSHOT"]
-
-                 ;; Security
-                 ;;[cylon/bootstrap-login-form "0.1.0-SNAPSHOT"]
                  ]
 
   :jvm-opts ["-Xss8m" "-Xmx1g" "-Duser.timezone=UTC"]
   :main azondi.main
   :repl-options {:init-ns user}
   :profiles {:dev {:dependencies [[org.clojure/tools.namespace "0.2.4"]
-                                  [clojurewerkz/machine_head "1.0.0-beta7"]
-                                  ]
-                   :source-paths
-                   ["dev/src/clojure" "src/cljs"
-                   ;; "/home/malcolm/src/cylon/src"
-                    ;;"/home/malcolm/src/cylon/contrib/bootstrap-login-form/src"
-                    ]
-                   :resource-paths ["test/resources"
-                                    "dev/src/sql"
-                                    "dev/src/cql"]}
+                                  [clojurewerkz/machine_head "1.0.0-beta7"]]
+                   :source-paths ["dev/src/clojure" "src/cljs"]
+                   :resource-paths ["test/resources" "dev/src/sql" "dev/src/cql"]}
 
              :uberjar {:main azondi.main
                        :aot [azondi.main]}})
