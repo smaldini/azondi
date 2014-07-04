@@ -86,12 +86,12 @@
      ;; component.
 
      ;; MQTT
-     ;;:mqtt-decoder (new-mqtt-decoder)
-;;     :mqtt-encoder (new-mqtt-encoder)
-;;     :mqtt-handler (new-netty-mqtt-handler debug-ch)
-;;     :mqtt-server (new-netty-server {:port 1883})
-;;     :reactor (new-reactor)
-;;     :ws (new-websocket-bridge {:port 8083})
+     :mqtt-decoder (new-mqtt-decoder)
+     :mqtt-encoder (new-mqtt-encoder)
+     :mqtt-handler (new-netty-mqtt-handler debug-ch)
+     :mqtt-server (new-netty-server {:port 1883})
+     :reactor (new-reactor)
+     :ws (new-websocket-bridge {:port 8083})
 
      ;; Webserver and routing
 
@@ -127,21 +127,18 @@
      ;; won't survive system reset but will do for now
      :session-store (new-atom-backed-session-store)
 
-;;     :topic-injector (new-topic-injector)
-     #_:metrics #_(new-metrics {:hostname (.. java.net.InetAddress getLocalHost getHostName)
+     :topic-injector (new-topic-injector)
+     :metrics (new-metrics {:hostname (.. java.net.InetAddress getLocalHost getHostName)
                             :prefix   "azondi"}))))
 
 (defn new-dependency-map [system-map]
-  {#_:mqtt-handler #_{:db :database}
-   #_:mqtt-server #_[:mqtt-handler :mqtt-decoder :mqtt-encoder]
-   #_:ws #_[:reactor :database]
+  {:mqtt-handler {:db :database}
+   :mqtt-server [:mqtt-handler :mqtt-decoder :mqtt-encoder]
+   :ws [:reactor :database]
    :main-cljs-builder [:cljs-core :cljs-main #_:cljs-logo]
 
-;;   :webserver {:request-handler :webhead}
-;;   :webhead {:request-handler :webrouter}
    :webserver {:request-handler :webrouter}
-   :webrouter [:webapp :api #_:sse #_:main-cljs-builder :login-form]
-   ;; TODO API will need to be a composite authenticator over the cookie one and the custom API one so that the UI will work
+   :webrouter [:webapp :api #_:sse :main-cljs-builder :login-form]
    })
 
 (defn new-prod-system []

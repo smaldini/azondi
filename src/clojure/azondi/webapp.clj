@@ -71,7 +71,7 @@
         ;; React
         ["js/" (->ResourcesMaybe {:prefix "react/"})]
 
-        ["cljs/" {:get (->Files {:dir "target/cljs"})}]
+        ;;["cljs/" {:get (->Files {:dir "target/cljs"})}]
         ["help" :help]
         ["about" :about]
         ["terms" :terms]
