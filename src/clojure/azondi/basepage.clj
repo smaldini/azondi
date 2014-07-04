@@ -139,11 +139,13 @@
          [:div#ankha]]
         [:script {:src "js/jquery.min.js"}]
         [:script {:src "js/bootstrap.min.js"}]
-        [:script {:src "js/react-0.9.0.js"}]
+
         ;;cljs
+        [:script {:src "js/react.js"}]
         [:script {:src "cljs/cljs.js"}]
         [:script {:src "cljs/azondi.js"}]
-        [:script {:src "cljs/logo.js"}]
+
+        ;;[:script {:src "cljs/logo.js"}]
         [:script {:src "js/helpers.js"}]]
        [:div#footer {:class "navbar-default navbar-fixed-bottom"}
         [:ul.footer-list
@@ -167,7 +169,7 @@
    [:div
     [:h2 "Devices"]
     [:div#content [:p.loading "Loading..."]]]
-   [:script "azondi.main.devices_page('yods');" ]))
+   [:script (format "azondi.main.devices_page('%s');" (:cylon/user req))]))
 
 (defn topics-page [req]
   (base-page req
@@ -175,6 +177,13 @@
     [:h2 "Topics"]
     [:div#content [:p.loading "Loading..."]]]
    [:script "azondi.main.topics_page('yods');" ]))
+
+(defn simple-page [req]
+  (base-page req
+   [:div
+    [:h2 "Simple"]
+    [:div#content [:p.loading "Loading..."]]]
+   [:script "simple.page();" ]))
 
 (defn reset-password-page [req]
   (base-page req

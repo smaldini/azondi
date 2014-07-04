@@ -32,7 +32,7 @@
 
   (create-device! [this user password]
     (dosync
-     (let [client-id (str (alter (-> this :database :last-client-id) inc))
+     (let [client-id (long (alter (-> this :database :last-client-id) inc))
            device (merge {} {:client-id client-id :user user :password password})]
        (alter (-> this :database :devices) assoc client-id device)
        (dissoc device :user))))

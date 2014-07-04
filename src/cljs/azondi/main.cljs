@@ -57,7 +57,7 @@
                                   :method :get
                                   :uri uri)
             ]
-        
+
         (go
           (>! ajax-send {})
           (let [r (<! ajax-recv)]
@@ -650,4 +650,3 @@
 
 (defn ^:export test-card []
   (om/root test-card-page-component app-model {:target (. js/document (getElementById "content"))}))
-

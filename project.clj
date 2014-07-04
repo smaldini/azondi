@@ -12,7 +12,7 @@
                  [com.stuartsierra/component "0.2.1"]
 
                  ;; Front end
-                 [org.clojure/clojurescript "0.0-2138"
+                 #_[org.clojure/clojurescript "0.0-2138"
                   :exclusions [org.apache.ant/ant]]
 
                  ;; Back-end
@@ -48,7 +48,7 @@
 
                  ;;[bidi "1.10.3"]
                  [hiccup "1.0.5"]
-                 [garden "1.1.5"]
+                 [garden "1.1.5" :exclusions [org.clojure/clojure org.clojure/clojurescript]]
                  [compojure "1.1.8"]
                  [markdown-clj "0.9.36"]
 
@@ -70,8 +70,13 @@
 
                  ;; ClojureScript libraries
 
-                 [sablono "0.2.6" :exclusions [com.facebook/react]]
-                 [om "0.6.2"]
+                 [org.clojure/clojurescript "0.0-2173"]
+                 [sablono "0.2.6" :exclusions [com.facebook/react org.clojure/clojurescript]]
+                 [om "0.6.0"]
+
+                 #_[com.facebook/react "0.9.0.2"]
+                 #_[com.facebook/react "0.9.0.1"]
+
                  [org.clojure/core.async "0.1.267.0-0d7780-alpha"]
                  [jarohen/chord "0.3.1"]
 

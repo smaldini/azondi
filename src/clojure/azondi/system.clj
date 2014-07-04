@@ -12,7 +12,7 @@
    [schema.core :as s]
 
    ;; Pre-baked components
-   [modular.cljs :refer :all]
+   [modular.cljs :refer (new-cljs-builder new-cljs-module)]
    [modular.netty :refer (new-netty-server)]
    [modular.netty.mqtt :refer (new-mqtt-decoder new-mqtt-encoder)]
    [modular.http-kit :refer (new-webserver)]
@@ -75,22 +75,6 @@
    (config-from-classpath)
    (user-config)))
 
-(defn new-azondi-cljs-builder [& {:as opts}]
-  (->> opts
-       (merge {:id ::default
-               :context (if-let [id (:id opts)]
-                              (format "/cljs-%s/" (name id))
-                              "/cljs/")
-               :source-path "src-cljs"
-               :target-dir (if-let [id (:id opts)]
-                             (str "resources/public/cljs/" (name id))
-                             "resources/public/cljs")
-               :work-dir "target/cljs-work"
-               :optimizations :none
-               :pretty-print true})
-       (s/validate new-cljs-builder-schema)
-       map->ClojureScriptBuilder))
-
 (defn configurable-system-map
   [config]
   (let [debug-ch (async/chan 64)
@@ -111,19 +95,20 @@
 
      ;; Webserver and routing
 
-;;     :cljs-core (new-cljs-module :name :cljs :mains ['cljs.core] :dependencies #{})
-;;     :cljs-main (new-cljs-module :name :azondi :mains ['azondi.main] :dependencies #{:cljs})
-;;     :cljs-logo (new-cljs-module :name :logo :mains ['azondi.logo] :dependencies #{:cljs})
+     :cljs-core (new-cljs-module :name :cljs :mains ['cljs.core] :dependencies #{})
+     :cljs-main (new-cljs-module :name :azondi :mains ['azondi.main] :dependencies #{:cljs})
+
+     ;;:cljs-logo (new-cljs-module :name :logo :mains ['azondi.logo] :dependencies #{:cljs})
 ;;     :cljs-reset (new-cljs-module :name :reset-password :mains ['azondi.reset-password] :dependencies #{:cljs})
 
-     #_:main-cljs-builder #_(new-azondi-cljs-builder :source-path "src/cljs")
+     :main-cljs-builder (new-cljs-builder :source-path "src/cljs")
 
      ;; API
-     :api (new-api :uri-context "/api/1.0")
      :webserver (new-webserver :port 8010)
-;;     :webhead (new-web-request-handler-head)
+
      :webrouter (new-router)
      :webapp (new-webapp)
+     :api (new-api :uri-context "/api/1.0")
 
      :session-authenticator (new-cookie-authenticator)
      :apikey-authenticator (new-apikey-authenticator)
@@ -150,7 +135,7 @@
   {#_:mqtt-handler #_{:db :database}
    #_:mqtt-server #_[:mqtt-handler :mqtt-decoder :mqtt-encoder]
    #_:ws #_[:reactor :database]
-   #_:main-cljs-builder #_[:cljs-core :cljs-main #_:cljs-logo]
+   :main-cljs-builder [:cljs-core :cljs-main #_:cljs-logo]
 
 ;;   :webserver {:request-handler :webhead}
 ;;   :webhead {:request-handler :webrouter}
