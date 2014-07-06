@@ -32,9 +32,8 @@
                                                    :password "device-1-pwd"})
         l  (CountDownLatch. 50)]
     (is (mh/connected? c))
-    (mh/subscribe c ["/users/yods/pm10-1"] (fn [^String topic meta ^bytes payload]
-                                             (.countDown l))
-                  {:qos [0]})
+    (mh/subscribe c {"/users/yods/pm10-1" 0} (fn [^String topic meta ^bytes payload]
+                                               (.countDown l)))
     (dotimes [i 100]
       (mh/publish c "/users/yods/pm10-1" "" 0))
     (await l)
@@ -47,9 +46,10 @@
                                                     :password "device-2-pwd"})
         l  (CountDownLatch. 50)
         f  (fn [^String topic meta ^bytes payload]
-             (.countDown l))]
-    (mh/subscribe c1 ["/users/yods/pm10-1"] f {:qos [0]})
-    (mh/subscribe c2 ["/users/yods/pm10-1"] f {:qos [0]})
+             (.countDown l))
+        m  {"/users/yods/pm10-1" 0}]
+    (mh/subscribe c1 m f)
+    (mh/subscribe c2 m f)
     (dotimes [i 13]
       (mh/publish c1 "/users/yods/pm10-1" "" 0))
     (dotimes [i 13]
