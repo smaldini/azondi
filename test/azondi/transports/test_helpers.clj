@@ -1,4 +1,4 @@
-(ns azondi.test-helpers
+(ns azondi.transports.test-helpers
   (:require [clojure.java.io :as io]
             [clojure.java.jdbc :as psql]
             [clojure.java.shell :as sh]
@@ -48,7 +48,8 @@
     (sh/sh "dropdb"   "-U" test-postgresql-user test-postgresql-db)
     (sh/sh "createdb" "-U" test-postgresql-user test-postgresql-db)
     (psql/execute! db [schema-sql] :transaction? false)
-    (psql/execute! db [seed-sql])))
+    (psql/execute! db [seed-sql])
+    (println (psql/query db ["SELECT * FROM devices;"]))))
 
 (defn load-cassandra-schema!
   []
@@ -71,7 +72,8 @@
                                                      :created_at]})
                   (if-not-exists))))
 
-(dev/init)
+(dev/set-env! :messaging)
+(dev/init :messaging)
 
 ;;
 ;; API

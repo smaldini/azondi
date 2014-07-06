@@ -3,7 +3,7 @@
             [azondi.transports.mqtt :as mqtt]
             [clojurewerkz.machine-head.client :as mh]
             [clojurewerkz.machine-head.durability :as md]
-            [azondi.test-helpers :as th])
+            [azondi.transports.test-helpers :as th])
   (:import [java.util.concurrent CountDownLatch TimeUnit]
            java.util.UUID))
 
