@@ -33,9 +33,10 @@
    [azondi.bridges.ws :refer (new-websocket-bridge)]
    [azondi.topics :refer (new-topic-injector)]
    [azondi.metrics :refer (new-metrics)]
+   [azondi.messages :refer (new-message-archiver)]
 
    [azondi.sse :refer (new-event-service)]
-   [azondi.postgres :refer (new-database)]
+   [azondi.postgres :refer (new-database new-postgres-user-domain)]
    [azondi.cassandra :as cass]
    [azondi.api :refer (new-api new-apikey-authenticator new-user-authorizer)]
    [azondi.webapp :refer (new-webapp)]
@@ -71,7 +72,7 @@
   "Return a map of the static configuration used in the component
   constructors."
   []
-  (merge 
+  (merge
    (config-from-classpath)
    (user-config)))
 
@@ -130,7 +131,14 @@
 
      :topic-injector (new-topic-injector)
      :metrics (new-metrics {:hostname (.. java.net.InetAddress getLocalHost getHostName)
-                            :prefix   "azondi"}))))
+                            :prefix "azondi"})
+
+     :database (new-database (get config :postgres))
+     :cassandra (cass/new-database
+                 (get config :cassandra {:keyspace "opensensors" :hosts ["127.0.0.1"]}))
+     :message-archiver (new-message-archiver)
+     :user-domain (new-postgres-user-domain)
+     )))
 
 (defn new-dependency-map [system-map]
   {:mqtt-handler {:db :database}
@@ -143,9 +151,6 @@
    })
 
 (defn new-prod-system []
-  (let [s-map (-> (configurable-system-map (config))
-                  (assoc :database (new-database (get (config) :postgres))
-                         :cassandra (cass/new-database (get (config) :cassandra {:keyspace "opensensors" :hosts ["127.0.0.1"]}))))
+  (let [s-map (configurable-system-map (config))
         d-map (new-dependency-map s-map)]
-
     (component/system-using s-map d-map)))

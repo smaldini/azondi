@@ -1,13 +1,17 @@
 (ns azondi.postgres
   "Database protocol implementation for PostgreSQL"
-  (:require [clojure.java.jdbc :as j]
-            [schema.core :as s]
-            [com.stuartsierra.component :as component]
-            [clojure.java.jdbc :as j]
-            [azondi.db :refer (Datastore)]
-            [azondi.passwords :as sc]
-            [azondi.helpers :refer (process-maps)]
-            [camel-snake-kebab :as csk]))
+  (:require
+   [clojure.tools.logging :refer :all]
+   [clojure.java.jdbc :as j]
+   [schema.core :as s]
+   [com.stuartsierra.component :as component]
+   [clojure.java.jdbc :as j]
+   [azondi.db :refer (Datastore get-user)]
+   [azondi.passwords :as sc]
+   [azondi.helpers :refer (process-maps)]
+   [azondi.passwords :as pwd]
+   [camel-snake-kebab :as csk]
+   [cylon.user :refer (UserDomain)]))
 
 (defn conn [this]
   (get this :connection))
@@ -145,3 +149,16 @@
                     :user s/Str
                     :password s/Str})
        map->Database))
+
+
+(defrecord PostgresUserDomain []
+  UserDomain
+  (verify-user [this uid password]
+    (let [user (get-user (:database this) uid)]
+      (infof "Verifying user: %s against password %s" uid password)
+      (infof "User in database is: %s" user)
+      (and (not (nil? user))
+           (pwd/verify password (:password_hash user uid))))))
+
+(defn new-postgres-user-domain []
+  (component/using (->PostgresUserDomain) [:database]))
