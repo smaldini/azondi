@@ -19,41 +19,45 @@
 ;; Publishing
 ;;
 
-(deftest test-publishing-empty-messages-to-existing-public-topic
-  (let [c  (mh/connect "tcp://127.0.0.1:1883" "1" {:username "yods"
-                                                   :password "device-1-pwd"})]
-    (is (mh/connected? c))
-    (dotimes [i 1000]
-      (mh/publish c "/users/yods/pm10-1" "" 0))
-    (mh/disconnect-and-close c)))
+(let [uri "tcp://127.0.0.1:1883"]
+  (deftest test-publishing-empty-messages-to-existing-public-topic
+    (let [c  (mh/connect uri "1" {:username "yods"
+                                  :password "device-1-pwd"})
+          t  "/users/yods/pm10-1"]
+      (is (mh/connected? c))
+      (dotimes [i 1000]
+        (mh/publish c t "" 0))
+      (mh/disconnect-and-close c)))
 
-(deftest test-publishing-and-consuming-messages-to-existing-public-topic
-  (let [c  (mh/connect "tcp://127.0.0.1:1883" "1" {:username "yods"
-                                                   :password "device-1-pwd"})
-        l  (CountDownLatch. 50)]
-    (is (mh/connected? c))
-    (mh/subscribe c {"/users/yods/pm10-1" 0} (fn [^String topic meta ^bytes payload]
-                                               (.countDown l)))
-    (dotimes [i 100]
-      (mh/publish c "/users/yods/pm10-1" "" 0))
-    (await l)
-    (mh/disconnect-and-close c)))
+  (deftest test-publishing-and-consuming-messages-to-existing-public-topic
+    (let [c  (mh/connect uri "1" {:username "yods"
+                                  :password "device-1-pwd"})
+          l  (CountDownLatch. 50)
+          t  "/users/yods/pm10-1"]
+      (is (mh/connected? c))
+      (mh/subscribe c {t 0} (fn [^String topic meta ^bytes payload]
+                              (.countDown l)))
+      (dotimes [i 100]
+        (mh/publish c t "" 0))
+      (await l)
+      (mh/disconnect-and-close c)))
 
-(deftest test-publishing-and-consuming-messages-with-multiple-consumers
-  (let [c1  (mh/connect "tcp://127.0.0.1:1883" "1" {:username "yods"
-                                                    :password "device-1-pwd"})
-        c2  (mh/connect "tcp://127.0.0.1:1883" "2" {:username "yods"
-                                                    :password "device-2-pwd"})
-        l  (CountDownLatch. 50)
-        f  (fn [^String topic meta ^bytes payload]
-             (.countDown l))
-        m  {"/users/yods/pm10-1" 0}]
-    (mh/subscribe c1 m f)
-    (mh/subscribe c2 m f)
-    (dotimes [i 13]
-      (mh/publish c1 "/users/yods/pm10-1" "" 0))
-    (dotimes [i 13]
-      (mh/publish c2 "/users/yods/pm10-1" "" 0))
-    (await l)
-    (mh/disconnect-and-close c1)
-    (mh/disconnect-and-close c2)))
+  (deftest test-publishing-and-consuming-messages-with-multiple-consumers
+    (let [c1  (mh/connect uri "1" {:username "yods"
+                                   :password "device-1-pwd"})
+          c2  (mh/connect uri "2" {:username "yods"
+                                   :password "device-2-pwd"})
+          l  (CountDownLatch. 50)
+          f  (fn [^String topic meta ^bytes payload]
+               (.countDown l))
+          t  "/users/yods/pm10-1"
+          m  {t 0}]
+      (mh/subscribe c1 m f)
+      (mh/subscribe c2 m f)
+      (dotimes [i 13]
+        (mh/publish c1 t "" 0))
+      (dotimes [i 13]
+        (mh/publish c2 t "" 0))
+      (await l)
+      (mh/disconnect-and-close c1)
+      (mh/disconnect-and-close c2))))
