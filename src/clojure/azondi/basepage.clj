@@ -176,7 +176,7 @@
    [:div
     [:h2 "Topics"]
     [:div#content [:p.loading "Loading..."]]]
-   [:script "azondi.main.topics_page('yods');" ]))
+   [:script (format "azondi.main.topics_page('%s');" (:cylon/user req)) ]))
 
 (defn simple-page [req]
   (base-page req
