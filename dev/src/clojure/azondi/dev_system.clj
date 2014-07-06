@@ -22,47 +22,68 @@
 (defn new-dev-user-domain []
   (component/using (->DevUserDomain) [:database]))
 
+(defn ui-system
+  []
+  (let [c (config)
+        s-map
+        (->
+         (configurable-system-map (config))
+
+         (assoc
+             :database (new-inmemory-datastore)
+             :seed (new-seed-data)
+             ;;:api-tests (azondi.api-tests/new-api-tests)
+             :user-domain (new-dev-user-domain)
+             )
+         (dissoc :cassandra :message-archiver))
+
+        d-map (new-dependency-map s-map)]
+    (component/system-using s-map d-map)))
+
+(defn pg-system
+  []
+  (let [c (config)
+        s-map
+        (->
+         (configurable-system-map (config))
+         (assoc
+             :database (new-database (get c :postgres))
+             :user-domain (new-postgres-user-domain))
+         (dissoc :cassandra :message-archiver :topic-injector))
+        d-map (new-dependency-map s-map)]
+    (component/system-using s-map d-map)))
+
+(defn messaging-system
+  []
+  (let [c (config)
+        s-map
+        (->
+         (configurable-system-map (config))
+         (assoc
+             :database (new-database (get c :postgres))
+             :user-domain (new-postgres-user-domain))
+         (dissoc :webapp :webrouter :webserver :api :sse :login-form
+                 :cljs-core :cljs-main :main-cljs-builder
+                 :session-authenticator :apikey-authenticator :authenticator :authorizer :session-store))
+        d-map (-> (new-dependency-map s-map)
+                  (dissoc :main-cljs-builder :webserver :webrouter))]
+    (component/system-using s-map d-map)))
+
+(defn production-system
+  []
+  (let [c (config)
+        s-map (configurable-system-map (config))
+        d-map (new-dependency-map s-map)]
+    (component/system-using s-map d-map)))
+
 (defn new-dev-system
   "Create a development system"
-  [& [env]]
+  [env]
+  (println (format "ENV: %s" env))
   (cond
-   (= env :ui)
-   (let [c (config)
-         s-map
-         (->
-          (configurable-system-map (config))
-
-          (assoc
-              :database (new-inmemory-datastore)
-              :seed (new-seed-data)
-              ;;:api-tests (azondi.api-tests/new-api-tests)
-              :user-domain (new-dev-user-domain)
-              )
-          (dissoc :cassandra :message-archiver))
-
-         d-map (new-dependency-map s-map)]
-     (component/system-using s-map d-map))
-
-   (= env :pg)
-   (let [c (config)
-         db (new-inmemory-datastore)
-         s-map
-         (->
-          (configurable-system-map (config))
-
-          (assoc
-              :database (new-database (get c :postgres))
-              :user-domain (new-postgres-user-domain))
-
-          (dissoc :cassandra :message-archiver))
-
-         d-map (new-dependency-map s-map)]
-     (component/system-using s-map d-map))
+   (= env :ui)        (ui-system)
+   (= env :pg)        (pg-system)
+   (= env :messaging) (messaging-system)
 
    :else ; PROD
-   (let [c (config)
-         s-map (configurable-system-map (config))
-         d-map (new-dependency-map s-map)]
-     (component/system-using s-map d-map))
-
-   ))
+   (production-system)))
