@@ -1,4 +1,5 @@
 (ns azondi.transports.mqtt.publishing-test
+  (:refer-clojure :exclude [await])
   (:require [clojure.test :refer :all]
             [azondi.transports.mqtt :as mqtt]
             [clojurewerkz.machine-head.client :as mh]
