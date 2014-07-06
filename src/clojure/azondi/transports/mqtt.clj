@@ -428,11 +428,11 @@
         :publish (handle-publish ctx msg handler-state)
         :pingreq (handle-pingreq ctx handler-state)
         :disconnect (handle-disconnect ctx handler-state)))
-    (channelInactive [^ChannelHandlerContext ctx]
+    #_ (channelInactive [^ChannelHandlerContext ctx]
       (handle-closed-tcp-connection ctx handler-state)
       (mct/dec! (:mqtt-connections-active metrics))
       (abort ctx))
-    (userEventTriggered [^ChannelHandlerContext ctx evt]
+    #_ (userEventTriggered [^ChannelHandlerContext ctx evt]
       (when (instance? IdleStateEvent evt)
         (do (handle-timeout ctx handler-state)
             (abort ctx))))
