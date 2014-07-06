@@ -25,6 +25,18 @@
 (defn new-dev-user-domain []
   (component/using (->DevUserDomain) [:database]))
 
+(defrecord PostgresUserDomain []
+  UserDomain
+  (verify-user [this uid password]
+    (let [user (get-user (:database this) uid)]
+      (infof "Verifying user: %s against password %s" uid password)
+      (infof "User in database is: %s" user)
+      (and (not (nil? user))
+           (pwd/verify password (:password_hash user uid))))))
+
+(defn new-postgres-user-domain []
+  (component/using (->PostgresUserDomain) [:database]))
+
 (defn new-dev-system
   "Create a development system"
   [& [env]]
@@ -54,6 +66,21 @@
               :seed (new-seed-data)
               ;;:api-tests (azondi.api-tests/new-api-tests)
               :user-domain (new-dev-user-domain)
+              ))
+
+         d-map (new-dependency-map s-map)]
+     (component/system-using s-map d-map))
+
+   (= env "pg")
+   (let [c (config)
+         db (new-inmemory-datastore)
+         s-map
+         (->
+          (configurable-system-map (config))
+
+          (assoc
+              :database (new-database (get c :postgres))
+              :user-domain (new-postgres-user-domain)
               ))
 
          d-map (new-dependency-map s-map)]
