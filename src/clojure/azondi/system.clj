@@ -58,11 +58,11 @@
     (read-file f)
     {}))
 
-(defn ^:private user-config
+(defn user-config
   []
   (config-from (io/file (System/getProperty "user.home") ".azondi.edn")))
 
-(defn ^:private config-from-classpath
+(defn config-from-classpath
   []
   (if-let [res (io/resource "azondi.edn")]
     (config-from (io/file res))
