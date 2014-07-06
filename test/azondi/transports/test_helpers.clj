@@ -72,8 +72,9 @@
                                                      :created_at]})
                   (if-not-exists))))
 
-(dev/set-env! :messaging)
-(dev/init :messaging (config-from-classpath))
+;; MS: Commenting out because these cause problems resetting the prod system
+;;(dev/set-env! :messaging)
+;;(dev/init :messaging (config-from-classpath))
 
 ;;
 ;; API
