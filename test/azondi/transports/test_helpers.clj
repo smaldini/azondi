@@ -3,6 +3,7 @@
             [clojure.java.jdbc :as psql]
             [clojure.java.shell :as sh]
             dev
+            [azondi.config :refer [user-config config-from-classpath]]
             [clojurewerkz.cassaforte.client :as cc]
             [clojurewerkz.cassaforte.cql    :as cql]
             [clojurewerkz.cassaforte.query :refer :all]))
@@ -48,8 +49,7 @@
     (sh/sh "dropdb"   "-U" test-postgresql-user test-postgresql-db)
     (sh/sh "createdb" "-U" test-postgresql-user test-postgresql-db)
     (psql/execute! db [schema-sql] :transaction? false)
-    (psql/execute! db [seed-sql])
-    (println (psql/query db ["SELECT * FROM devices;"]))))
+    (psql/execute! db [seed-sql])))
 
 (defn load-cassandra-schema!
   []
@@ -73,7 +73,7 @@
                   (if-not-exists))))
 
 (dev/set-env! :messaging)
-(dev/init :messaging)
+(dev/init :messaging (config-from-classpath))
 
 ;;
 ;; API

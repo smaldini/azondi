@@ -15,9 +15,11 @@
   "Constructs the current development system."
   ([]
      (init env/env))
-  ([m]
+  ([env]
+     (init env/env nil))
+  ([env m]
      (alter-var-root #'system
-                     (constantly (new-dev-system m)))))
+                     (constantly (new-dev-system env m)))))
 
 (defn start
   "Starts the current development system."

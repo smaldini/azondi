@@ -23,67 +23,82 @@
   (component/using (->DevUserDomain) [:database]))
 
 (defn ui-system
-  []
-  (let [c (config)
-        s-map
-        (->
-         (configurable-system-map (config))
+  ([]
+     (ui-system nil))
+  ([m]
+     (let [c (merge (config) m)
+           s-map
+           (->
+            (configurable-system-map (config))
 
-         (assoc
-             :database (new-inmemory-datastore)
-             :seed (new-seed-data)
-             ;;:api-tests (azondi.api-tests/new-api-tests)
-             :user-domain (new-dev-user-domain)
-             )
-         (dissoc :cassandra :message-archiver))
+            (assoc
+                :database (new-inmemory-datastore)
+                :seed (new-seed-data)
+                ;;:api-tests (azondi.api-tests/new-api-tests)
+                :user-domain (new-dev-user-domain)
+                )
+            (dissoc :cassandra :message-archiver))
 
-        d-map (new-dependency-map s-map)]
-    (component/system-using s-map d-map)))
+           d-map (new-dependency-map s-map)]
+       (component/system-using s-map d-map))))
 
 (defn pg-system
-  []
-  (let [c (config)
-        s-map
-        (->
-         (configurable-system-map (config))
-         (assoc
-             :database (new-database (get c :postgres))
-             :user-domain (new-postgres-user-domain))
-         (dissoc :cassandra :message-archiver :topic-injector))
-        d-map (new-dependency-map s-map)]
-    (component/system-using s-map d-map)))
+  ([]
+     (pg-system nil))
+  ([m]
+     (let [c (merge (config) m)
+           s-map
+           (->
+            (configurable-system-map (config))
+            (assoc
+                :database (new-database (get c :postgres))
+                :user-domain (new-postgres-user-domain))
+            (dissoc :cassandra :message-archiver :topic-injector))
+           d-map (new-dependency-map s-map)]
+       (component/system-using s-map d-map))))
 
 (defn messaging-system
-  []
-  (let [c (config)
-        s-map
-        (->
-         (configurable-system-map (config))
-         (assoc
-             :database (new-database (get c :postgres))
-             :user-domain (new-postgres-user-domain))
-         (dissoc :webapp :webrouter :webserver :api :sse :login-form
-                 :cljs-core :cljs-main :main-cljs-builder
-                 :session-authenticator :apikey-authenticator :authenticator :authorizer :session-store))
-        d-map (-> (new-dependency-map s-map)
-                  (dissoc :main-cljs-builder :webserver :webrouter))]
-    (component/system-using s-map d-map)))
+  ([]
+     (messaging-system nil))
+  ([m]
+     (let [c (merge (config) m)
+           s-map
+           (->
+            (configurable-system-map (config))
+            (assoc
+                :database (new-database (get c :postgres))
+                :user-domain (new-postgres-user-domain))
+            (dissoc :webapp :webrouter :webserver :api :sse :login-form
+                    :cljs-core :cljs-main :main-cljs-builder
+                    :session-authenticator :apikey-authenticator :authenticator :authorizer :session-store))
+           d-map (-> (new-dependency-map s-map)
+                     (dissoc :main-cljs-builder :webserver :webrouter))]
+       (component/system-using s-map d-map))))
 
 (defn production-system
-  []
-  (let [c (config)
-        s-map (configurable-system-map (config))
-        d-map (new-dependency-map s-map)]
-    (component/system-using s-map d-map)))
+  ([]
+     (production-system nil))
+  ([m]
+     (let [c     (merge (config) m)
+           s-map (configurable-system-map (config))
+           d-map (new-dependency-map s-map)]
+       (component/system-using s-map d-map))))
 
 (defn new-dev-system
   "Create a development system"
-  [env]
-  (println (format "ENV: %s" env))
-  (cond
-   (= env :ui)        (ui-system)
-   (= env :pg)        (pg-system)
-   (= env :messaging) (messaging-system)
+  ([env]
+     (cond
+      (= env :ui)        (ui-system nil)
+      (= env :pg)        (pg-system nil)
+      (= env :messaging) (messaging-system nil)
 
-   :else ; PROD
-   (production-system)))
+      :else ; PROD
+      (production-system nil)))
+  ([env m]
+     (cond
+      (= env :ui)        (ui-system m)
+      (= env :pg)        (pg-system m)
+      (= env :messaging) (messaging-system m)
+
+      :else ; PROD
+      (production-system m))))

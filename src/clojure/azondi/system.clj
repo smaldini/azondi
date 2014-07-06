@@ -1,12 +1,9 @@
 (ns azondi.system
   "(Component-based) system configuration and inter-component dependencies"
-  (:refer-clojure :exclude (read))
   (:require
    [com.stuartsierra.component :as component :refer (system-map system-using)]
-   [clojure.java.io :as io]
-   [clojure.tools.reader :refer (read)]
+   [azondi.config :refer [user-config config-from-classpath]]
    [clojure.string :as str]
-   [clojure.tools.reader.reader-types :refer (indexing-push-back-reader)]
    [clojure.core.async :as async]
    [clojure.tools.logging :refer :all]
    [schema.core :as s]
@@ -43,30 +40,6 @@
 
    )
   (:import [modular.cljs ClojureScriptBuilder]))
-
-(defn ^:private read-file
-  [f]
-  (read
-   ;; This indexing-push-back-reader gives better information if the
-   ;; file is misconfigured.
-   (indexing-push-back-reader
-    (java.io.PushbackReader. (io/reader f)))))
-
-(defn ^:private config-from
-  [f]
-  (if (.exists f)
-    (read-file f)
-    {}))
-
-(defn user-config
-  []
-  (config-from (io/file (System/getProperty "user.home") ".azondi.edn")))
-
-(defn config-from-classpath
-  []
-  (if-let [res (io/resource "azondi.edn")]
-    (config-from (io/file res))
-    {}))
 
 (defn config
   "Return a map of the static configuration used in the component
