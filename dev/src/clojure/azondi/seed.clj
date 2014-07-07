@@ -26,15 +26,15 @@
 
   (infof "Creating malcolm")
 
-  (let [response (request :put (make-uri "/users/malcolm")
-                          :data {:password "password"
+  (let [response (request :put (make-uri "/users/malcolmsparks")
+                          :data {:password "malcolmsparks-pwd"
                                  :name "Malcolm Sparks"
                                  :email "malcolm@juxt.pro"})
         api-key (-> response :body :api-key)]
     (doseq [data
             [{:name "S3-1" :description "MQTTitude on Samsung Galaxy S3"}
              {:name "S3-2" :description "MQTTitude (test) on Samsung Galaxy S3"}]]
-      (request :post (make-uri "/users/malcolm/devices/")
+      (request :post (make-uri "/users/malcolmsparks/devices/")
                :apikey api-key
                :data data)))
 
