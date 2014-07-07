@@ -146,7 +146,9 @@
         [:script {:src "cljs/azondi.js"}]
 
         ;;[:script {:src "cljs/logo.js"}]
-        [:script {:src "js/helpers.js"}]]
+        [:script {:src "js/helpers.js"}]
+        [:script {:src "js/jquery.session.js"}]]
+       
        [:div#footer {:class "navbar-default navbar-fixed-bottom"}
         [:ul.footer-list
          [:li "&copy; 2014 open sensors ltd"]
@@ -203,8 +205,8 @@
 ;; add api key
 ;; add user id
 ;; reset the api key
-(defn api-page []
-  (base-page
+(defn api-page [req]
+  (base-page req
    [:div
     [:div.row "Your user info:"]
     [:div.row
