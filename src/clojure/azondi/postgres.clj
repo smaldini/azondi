@@ -74,7 +74,7 @@
 
   (set-device-password! [this client-id p]
     (let [pwd-hash (sc/encrypt p)]
-      (j/update! (conn this) :devices {:device_password_hash pwd-hash} ["client_id = ?" client-id])))
+      (j/update! (conn this) :devices {:device_password_hash pwd-hash} ["client_id = ?" (Long/parseLong client-id)])))
 
   (allowed-device? [this client-id username pwd]
     ;; TODO We should be consistent in the type of client-id used in
