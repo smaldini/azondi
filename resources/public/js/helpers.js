@@ -13,10 +13,10 @@ $("#passwordVerif2").on('input', function() {
 
 
 $('#reset-password-btn').click(function (e) {
+    var user =  $.session.get ('user');
     e.preventDefault();
     $.ajax({
-	//this needs amending based on uuid in the session
-	url: "/api/1.0/users/yods/reset-password",
+	url: "/api/1.0/users/" + user + "/reset-password",
 	type: "POST",
 	data: JSON.stringify({ password: document.getElementById("passwordVerif1").value }),
 	contentType: "application/json; charset=utf-8",
@@ -27,8 +27,7 @@ $('#reset-password-btn').click(function (e) {
  });
 
 function populate_api_page () {
-       	//this needs amending based on uuid in the session
-    user =  $.session.get ('user');
+    var user =  $.session.get ('user');
     $.ajax({
      	url: "api/1.0/users/" + user + "/api-key",
     	type: "GET",
@@ -45,8 +44,8 @@ function populate_api_page () {
 }
 
 $ ('#api-info-api-key-link').on ('click', function () {
-    //this needs amending based on uuid in the session
-    user =  $.session.get ('user');
+   
+    var user =  $.session.get ('user');
     $.ajax ({
 	url: "api/1.0/users/" + user + "/api-key",
 	type: "POST",
