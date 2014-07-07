@@ -100,70 +100,70 @@
       [:link {:href "//netdna.bootstrapcdn.com/font-awesome/4.1.0/css/font-awesome.min.css" :rel "stylesheet"}]
       [:link {:href "css/bootstrap.min.css" :rel "stylesheet"}]
       [:link {:href "css/style.css" :rel "stylesheet"}]
-
-      [:body
-       [:div#wrap
-        [:nav {:class "navbar navbar-default" :role "navigation"}
-         [:div.container-fluid
-          [:div.navbar-header
-           [:button.navbar-toggle {:type "buton" :data-toggle "collapse" :data-target "#bs-example-navbar-collapse-1"}
-            [:span.sr-only "Toggle navigation"]
-            [:span.icon-bar]
-            [:span.icon-bar]
-            [:span.icon-bar]]
-           [:a#home-logo.navbar-brand {:href "/"} [:img {:src "imgs/osio.svg"}]]
-           [:ul {:class "nav navbar-nav"}
-            [:li [:a {:href "/services"} "Services"]]]]
-          [:div {:class "collapse navbar-collapse" :id "bs-example-navbar-collapse-1"}
-           [:ul {:class "nav navbar-nav navbar-right"}
-            (for [menu menus
-                  :when (displayed? menu session)]
-              (if (= :navbar (:location menu))
-                (if (:children menu)
-                  [:li.dropdown [:a.dropdown-toggle {:href "#" :data-toggle "dropdown"} (:label menu) [:b.caret]]
-                   [:ul.dropdown-menu
-                    (for [child (:children menu)
-                          :when (displayed? child session)]
-                      [:li [:a {:href (:target child)} (:label child)]])]]
-                  [:li [:a {:href (:target menu)} (:label menu)]]
-                  )))
-            (when-let [user (:cylon/user req)]
-              [:li [:a user]])]]]]
-        logo-area
-        [:div.row
-         [:div.col-sm-2
-          [:div.sidebar-nav
-           (side-menu session)]]
-         [:div.col-sm-9
-          body]
-         [:div#ankha]]
-        [:script {:src "js/jquery.min.js"}]
-        [:script {:src "js/bootstrap.min.js"}]
-
-        ;;cljs
-        [:script {:src "js/react.js"}]
-        [:script {:src "cljs/cljs.js"}]
-        [:script {:src "cljs/azondi.js"}]
-
-        ;;[:script {:src "cljs/logo.js"}]
-        [:script {:src "js/helpers.js"}]
-        [:script {:src "js/jquery.session.js"}]]
+      [:script {:src "js/jquery.min.js"}]
+      [:script {:src "js/bootstrap.min.js"}]
+      [:script {:src "js/jquery.session.js"}]]
+     [:body
+      [:div#wrap
+       [:nav {:class "navbar navbar-default" :role "navigation"}
+        [:div.container-fluid
+         [:div.navbar-header
+          [:button.navbar-toggle {:type "buton" :data-toggle "collapse" :data-target "#bs-example-navbar-collapse-1"}
+           [:span.sr-only "Toggle navigation"]
+           [:span.icon-bar]
+           [:span.icon-bar]
+           [:span.icon-bar]]
+          [:a#home-logo.navbar-brand {:href "/"} [:img {:src "imgs/osio.svg"}]]
+          [:ul {:class "nav navbar-nav"}
+           [:li [:a {:href "/services"} "Services"]]]]
+         [:div {:class "collapse navbar-collapse" :id "bs-example-navbar-collapse-1"}
+          [:ul {:class "nav navbar-nav navbar-right"}
+           (for [menu menus
+                 :when (displayed? menu session)]
+             (if (= :navbar (:location menu))
+               (if (:children menu)
+                 [:li.dropdown [:a.dropdown-toggle {:href "#" :data-toggle "dropdown"} (:label menu) [:b.caret]]
+                  [:ul.dropdown-menu
+                   (for [child (:children menu)
+                         :when (displayed? child session)]
+                     [:li [:a {:href (:target child)} (:label child)]])]]
+                 [:li [:a {:href (:target menu)} (:label menu)]]
+                 )))
+           (when-let [user (:cylon/user req)]
+             [:li [:a user]]
+             [:script (format "$.session.set('user', '%s')" user)])]]]]
+       logo-area
+       [:div.row
+        [:div.col-sm-2
+         [:div.sidebar-nav
+          (side-menu session)]]
+        [:div.col-sm-9
+         body]
+        [:div#ankha]]
        
-       [:div#footer {:class "navbar-default navbar-fixed-bottom"}
-        [:ul.footer-list
-         [:li "&copy; 2014 open sensors ltd"]
-         [:li [:a {:href "/about"} "About Us"]]
-         [:li [:a {:href "http://blog.opensensors.IO"} "Blog"]]
-         [:li [:a {:href "/terms"} "Terms"]]
-         [:li [:a {:href "https://twitter.com/opensensorsio"}
-               [:img {:src "imgs/glyphicons_social_31_twitter.png"}]]]
-         [:li [:a {:href "mailto:hello@opensensors.io?subject=website%20enquiry"}
-               [:img {:src "imgs/glyphicons_010_envelope.png"}]]]]]
-       ;; extenal libs
+       ;;cljs
+       [:script {:src "js/react.js"}]
+       [:script {:src "cljs/cljs.js"}]
+       [:script {:src "cljs/azondi.js"}]
 
+       [:script {:src "cljs/logo.js"}]
+       [:script {:src "js/helpers.js"}]
        ]
-      scr
-      ])))
+      
+      [:div#footer {:class "navbar-default navbar-fixed-bottom"}
+       [:ul.footer-list
+        [:li "&copy; 2014 open sensors ltd"]
+        [:li [:a {:href "/about"} "About Us"]]
+        [:li [:a {:href "http://blog.opensensors.IO"} "Blog"]]
+        [:li [:a {:href "/terms"} "Terms"]]
+        [:li [:a {:href "https://twitter.com/opensensorsio"}
+              [:img {:src "imgs/glyphicons_social_31_twitter.png"}]]]
+        [:li [:a {:href "mailto:hello@opensensors.io?subject=website%20enquiry"}
+              [:img {:src "imgs/glyphicons_010_envelope.png"}]]]]]
+      ;; extenal libs
+      ]
+     scr
+      )))
 
 ;;; We need to pull out the user details from the session
 (defn devices-page [req]
