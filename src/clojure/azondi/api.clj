@@ -287,7 +287,7 @@
                       {:user user
                        :topics (->>
                                 (topics-by-owner db user)
-                                (map #(select-keys % [:owner :description :unit :topic]))
+                                (map #(select-keys % [:owner :description :unit :topic :public]))
                                 (map #(reduce-kv (fn [acc k v] (assoc acc (->camelCaseString k) v)) {} %)))}]
                   (encode body)))})
 

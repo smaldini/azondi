@@ -371,13 +371,17 @@
        [:table.table.table-hover.table-condensed.tbl
         [:thead
          [:tr
+          [:th]
           [:th "Topic"]
           [:th "Description"]
           [:th "Unit of Measure"]]]
 
         [:tbody
-         (for [{:keys [topic description unit]} (:topics app-state)]
+         (for [{:keys [topic description unit public]} (:topics app-state)]
            [:tr
+            [:td (if (= true public)
+                   [:i {:class "fa fa-users"}]
+                   [:i {:class "fa fa-lock"}])]
             [:td
              [:a
               {:onClick              ; if we click on one of the topics
@@ -405,7 +409,7 @@
                                      ;; so we merge in empty string
                                      ;; defaults!
                                      (merge {:name "" :description "" :unit "" :topic ""}
-                                            (select-keys body [:name :description :unit :topic]))))))))}
+                                            (select-keys body [:name :description :unit :topic :public]))))))))}
               topic]]
             [:td description]
             [:td unit]
@@ -568,6 +572,7 @@
                           ))
                       :placeholder "optional unit of measure e.g. PM25, celcius"}]]]
 
+           
            [:div.control-group
             [:div.controls
              [:input.btn {:name "action" :type "submit" :value "Apply"}]]]]
