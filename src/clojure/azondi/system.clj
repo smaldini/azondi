@@ -37,6 +37,7 @@
    [azondi.cassandra :as cass]
    [azondi.api :refer (new-api new-apikey-authenticator new-user-authorizer)]
    [azondi.webapp :refer (new-webapp)]
+   [azondi.login :refer (new-custom-login-form-renderer)]
 
    )
   (:import [modular.cljs ClojureScriptBuilder]))
@@ -97,7 +98,9 @@
 
      ;; Security
 
-     :login-form (new-login-form) ; start with the login form
+     :login-form (new-login-form
+                  :renderer (new-custom-login-form-renderer)
+                  ) ; start with the login form
      ;; Cylon login-forms depend on a session-store. This default impl
      ;; won't survive system reset but will do for now
      :session-store (new-atom-backed-session-store)
