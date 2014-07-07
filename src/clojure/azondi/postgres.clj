@@ -26,6 +26,37 @@
   [^String topic]
   (last (.split topic "/")))
 
+;; these methods that ending with star work type validation
+(s/defn set-device-password!* [component :- (s/protocol Datastore)
+                               client-id :- s/Str
+                               p :- s/Str]
+  (let [pwd-hash (sc/encrypt p)]
+    (j/update! (conn component) :devices {:device_password_hash pwd-hash} ["client_id = ?" (Long/parseLong client-id)])))
+
+(s/defn get-device* [component :- (s/protocol Datastore)
+                     client-id :- s/Str]
+  (psql->clj (-> (first (j/query (conn component) ["SELECT * FROM devices WHERE client_id = ?;" (Long/parseLong client-id)]))
+                 (dissoc :device_password_hash))))
+
+(s/defn delete-device!* [component :- (s/protocol Datastore)
+                         client-id :- s/Str]
+  (j/delete! (conn component) :devices ["client_id = ?" (Long/parseLong client-id)]))
+
+(s/defn allowed-device?* [component :- (s/protocol Datastore)
+                          client-id :- s/Str
+                          username :- s/Str
+                          pwd :- s/Str]
+  (let [device (first (j/query (conn component) ["SELECT * FROM devices WHERE client_id = ? AND owner_user_id = ? LIMIT 1;"
+                                            (Long/valueOf client-id) username]))]
+    (and device
+         (:device_password_hash device)
+         (sc/verify pwd (:device_password_hash device)))))
+
+(s/defn patch-device!* [component :- (s/protocol Datastore)
+                        client-id :- s/Str
+                        data :- s/Str]
+  (j/update! (conn component) :devices data ["client_id = ?" (Long/parseLong client-id)]))
+
 (defrecord Database [host port dbname user password]
   component/Lifecycle
   (start [this]
@@ -66,30 +97,19 @@
                      (dissoc :created_on)))))
 
   (get-device [this client-id]
-    (psql->clj (-> (first (j/query (conn this) ["SELECT * FROM devices WHERE client_id = ?;" client-id]))
-                   (dissoc :device_password_hash))))
+    (get-device* this client-id))
 
   (delete-device! [this client-id]
-    (j/delete! (conn this) :devices ["client_id = ?" client-id]))
+    (delete-device!* this client-id))
 
   (set-device-password! [this client-id p]
-    (let [pwd-hash (sc/encrypt p)]
-      (j/update! (conn this) :devices {:device_password_hash pwd-hash} ["client_id = ?" (Long/parseLong client-id)])))
+    (set-device-password!* this client-id p))
 
   (allowed-device? [this client-id username pwd]
-    ;; TODO We should be consistent in the type of client-id used in
-    ;; function signatures - in this case, the type is String, whereas
-    ;; in all other function signatures the type is a long. I'm fixing
-    ;; the inmemory database to align with this current design, but we
-    ;; should change the design towards consistency.
-    (let [device (first (j/query (conn this) ["SELECT * FROM devices WHERE client_id = ? AND owner_user_id = ? LIMIT 1;"
-                                              (Long/valueOf client-id) username]))]
-      (and device
-           (:device_password_hash device)
-           (sc/verify pwd (:device_password_hash device)))))
+    (allowed-device?* this client-id username pwd))
 
   (patch-device! [this client-id data]
-    (j/update! (conn this) :devices data ["client_id = ?" client-id]))
+    (patch-device!* this client-id data))
 
   (topic-of-owner [this user topic]
     (clj->psql (first

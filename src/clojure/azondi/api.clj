@@ -251,17 +251,17 @@
 
    :exists? (fn [{{{user :user client-id :client-id} :route-params} :request}]
               (when (and (get-user db user)
-                         (get-device db (Long/parseLong client-id)))
+                         (get-device db  (str client-id)))
                 {:user user
                  :client-id client-id}))
 
    :processable? (create-schema-check device-attributes-schema)
    :handle-unprocessable-entity handle-unprocessable-entity
 
-   :put! (fn [{client-id :client-id body :body}] (patch-device! db (Long/parseLong client-id) body))
-   :delete! (fn [{client-id :client-id}] (delete-device! db (Long/parseLong client-id)))
+   :put! (fn [{client-id :client-id body :body}] (patch-device! db (str client-id) body))
+   :delete! (fn [{client-id :client-id}] (delete-device! db (str client-id)))
 
-   :handle-ok (fn [{client-id :client-id}] (get-device db (Long/parseLong client-id)))
+   :handle-ok (fn [{client-id :client-id}] (get-device db (str client-id)))
    :handle-created (fn [_] {:message "Patched"})})
 
 (defn reset-device-password-resource [db]
@@ -270,7 +270,7 @@
    ;;:allowed? same-user
    :post! (fn [{{{:keys [client-id]} :route-params} :request}]
             (let [p (generate-device-password)]
-              (set-device-password! db client-id p)
+              (set-device-password! db (str client-id) p)
               {:password p}))
    :handle-created (fn [{password :password}] {:password password})})
 
