@@ -96,6 +96,11 @@
     (dosync
      (alter (-> this :database :topics) update-in [topic] merge data)))
 
+  ;;subscriptions
+  (subscriptions-by-owner [this user] nil)
+  (create-subscription [this user topic] nil)
+  (unsubscribe [this user topic] nil)
+
   ;; API keys
   (create-api-key [this user]
     (let [apikey (str (java.util.UUID/randomUUID))]
@@ -112,7 +117,7 @@
     )
 
   (find-user-by-api-key [this apikey]
-    (ffirst (filter #(= apikey (second %)) (-> this :database :apikeys deref)))
+    (ffirst (filter #(= apikey (:api (second %))) (-> this :database :apikeys deref)))
     )
 
   )

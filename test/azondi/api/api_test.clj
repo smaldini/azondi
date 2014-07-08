@@ -231,7 +231,8 @@
       ;; Create an API key for alice
       (create-api-key db "alice")
 
-      (let [apikey (get-api-key db "alice")]
+      (let [apikey (:api (get-api-key db "alice"))]
+        (is (not (nil? apikey)))
         (let [uri (make-uri :azondi.api/devices :user "alice")]
           (is (= uri (format "http://localhost:%d/api/1.0/users/alice/devices/" PORT)))
 
