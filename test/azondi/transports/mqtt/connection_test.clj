@@ -15,7 +15,7 @@
 
 (let [uri "tcp://127.0.0.1:1883"]
   (deftest test-connect-disconnect-with-valid-credentials
-    (let [c  (mh/connect  "1" {:username "yods"
+    (let [c  (mh/connect uri "1" {:username "yods"
                                :password "device-1-pwd"})]
       (is (mh/connected? c))
       (mh/disconnect-and-close c)))
