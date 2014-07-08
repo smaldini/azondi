@@ -115,7 +115,6 @@
         debug-mult (async/mult debug-ch)]
     (component/system-using
      (component/system-map
-      ;; MQTT
       :mqtt-decoder (new-mqtt-decoder)
       :mqtt-encoder (new-mqtt-encoder)
       :mqtt-handler (new-netty-mqtt-handler debug-ch)
@@ -125,10 +124,9 @@
       :topic-injector (new-topic-injector)
       :metrics (new-metrics {:hostname (.. java.net.InetAddress getLocalHost getHostName)
                              :prefix "azondi"})
-
       :database (new-database {:host "127.0.0.1"
-                               :dbname "opensensors_test"
-                               :user "azondi"
+                               :dbname test-postgresql-db
+                               :user test-postgresql-user
                                :password "opendata"})
       :cassandra (cass/new-database
                   {:keyspace "opensensors_test"
@@ -138,13 +136,15 @@
      {:mqtt-handler {:db :database}
       :mqtt-server [:mqtt-handler :mqtt-decoder :mqtt-encoder]})))
 
-(defmacro with-system [system & body]
+(defmacro with-system
+  [system & body]
   `(let [s# (component/start ~system)]
      (try
        (binding [*system* s#] ~@body)
        (finally
          (component/stop s#)))))
 
-(defn with-system-fixture [f]
+(defn with-system-fixture
+  [f]
   (with-system (new-messaging-system)
     (f)))

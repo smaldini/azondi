@@ -46,7 +46,6 @@
                           client-id :- s/Str
                           username :- s/Str
                           pwd :- s/Str]
-  (println (j/query (conn component) ["SELECT * FROM devices;"]))
   (let [device (first (j/query (conn component) ["SELECT * FROM devices WHERE client_id = ? AND owner_user_id = ? LIMIT 1;"
                                             (Long/valueOf client-id) username]))]
     (and device
