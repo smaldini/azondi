@@ -23,7 +23,7 @@ $('#reset-password-btn').click(function (e) {
 	dataType: "json",
 	success: function(data){window.location.href = "/";},
 	failure: function(errMsg) {
-        alert(errMsg);}});    
+        alert(errMsg);}});
  });
 
 function populate_api_page () {
@@ -35,16 +35,16 @@ function populate_api_page () {
     	dataType: "json",
     	success: function(data){console.log (data);
 				$('#api-info-user-id').replaceWith("<span#api-info-user-id>"+ data.user + "</span>");
-				 $('#api-info-api-key-view').empty ().append ("<span#api-info-api-key-view>"+ data.api + "</span>");
+				 $('.api-info-api-key-view').empty ().append ("<span#api-info-api-key-view>"+ data.api + "</span>");
 				 $ ('#uuid-api-view').empty ().append ("<span#uuid-api-view>?user=" + data.user + "&API=" + data.api + "</span>");
-				 
+
 			       },
     	failure: function(errMsg) {
-        alert(errMsg);}});  
+        alert(errMsg);}});
 }
 
 $ ('#api-info-api-key-link').on ('click', function () {
-   
+
     var user =  $.session.get ('user');
     $.ajax ({
 	url: "api/1.0/users/" + user + "/api-key",

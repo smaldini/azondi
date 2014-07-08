@@ -140,7 +140,7 @@
         [:div.col-sm-9
          body]
         [:div#ankha]]
-       
+
        ;;cljs
        [:script {:src "js/react.js"}]
        [:script {:src "cljs/cljs.js"}]
@@ -149,7 +149,7 @@
        [:script {:src "cljs/logo.js"}]
        [:script {:src "js/helpers.js"}]
        ]
-      
+
       [:div#footer {:class "navbar-default navbar-fixed-bottom"}
        [:ul.footer-list
         [:li "&copy; 2014 open sensors ltd"]
@@ -210,22 +210,18 @@
    [:div
     [:div.row "Your user info:"]
     [:div.row
-     [:span "user: "] [:strong [:span#api-info-user-id ]]
+     [:span "user-id: "] [:strong [:span#api-info-user-id ]]
      ]
     [:div.row
-     [:span "API: "]  [:strong [:span#api-info-api-key-view ]]]
+     [:span "api-key: "] [:strong [:span.api-info-api-key-view]]]
+
     [:div.row
      [:a#api-info-api-key-link {:href "#"} "reset the API key..."]]
-    [:div.row
-     [:span "please add:"]
-     [:pre
-      [:span#uuid-api-view]
-      ]
-     [:span " to your API calls."]]
+
     [:hr]
     [:div "All of the API calls should be made to " [:code "opensensors.IO"]]
     [:div "Authorization is achieved by adding the following HTTP header"]
-    [:pre#api-authorisation-key "Authorization: api-key "]
+    [:pre#api-authorisation-key "Authorization: api-key " [:span.api-info-api-key-view]]
     [:h3#api-devices-url]
     [:p "Send a PUT request to this address to create new devices for your user. The API expects a JSON map with optional entries describing the device's metadata. Each PUT will return a JSON map, containing the following entries :-"]
     [:ul
