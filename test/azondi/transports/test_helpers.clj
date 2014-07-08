@@ -2,11 +2,22 @@
   (:require [clojure.java.io :as io]
             [clojure.java.jdbc :as psql]
             [clojure.java.shell :as sh]
-            dev
+            [clojure.core.async :as async]
+            [com.stuartsierra.component :as component :refer (system-map system-using)]
             [azondi.config :refer [user-config config-from-classpath]]
             [clojurewerkz.cassaforte.client :as cc]
             [clojurewerkz.cassaforte.cql    :as cql]
-            [clojurewerkz.cassaforte.query :refer :all]))
+            [clojurewerkz.cassaforte.query :refer :all]
+            [modular.netty :refer (new-netty-server)]
+            [modular.netty.mqtt :refer (new-mqtt-decoder new-mqtt-encoder)]
+            [azondi.transports.mqtt :refer (new-netty-mqtt-handler)]
+            [azondi.reactor :refer (new-reactor)]
+            [azondi.bridges.ws :refer (new-websocket-bridge)]
+            [azondi.topics :refer (new-topic-injector)]
+            [azondi.metrics :refer (new-metrics)]
+            [azondi.messages :refer (new-message-archiver)]
+            [azondi.postgres :refer (new-database new-postgres-user-domain)]
+            [azondi.cassandra :as cass]))
 
 
 ;;
@@ -61,20 +72,16 @@
                          (if-not-exists))
     (cql/use-keyspace s test-cassandra-ks)
     (cql/create-table s "messages"
-                  (column-definitions {:device_id     :text
-                                       :date_and_hour :text
-                                       :created_at    :timestamp
-                                       :topic         :text
-                                       :owner         :text
-                                       :payload       :blob
-                                       :content_type  :text
-                                       :primary-key [[:device_id :date_and_hour]
-                                                     :created_at]})
-                  (if-not-exists))))
-
-;; MS: Commenting out because these cause problems resetting the prod system
-;;(dev/set-env! :messaging)
-;;(dev/init :messaging (config-from-classpath))
+                      (column-definitions {:device_id     :text
+                                           :date_and_hour :text
+                                           :created_at    :timestamp
+                                           :topic         :text
+                                           :owner         :text
+                                           :payload       :blob
+                                           :content_type  :text
+                                           :primary-key [[:device_id :date_and_hour]
+                                                         :created_at]})
+                      (if-not-exists))))
 
 ;;
 ;; API
@@ -99,8 +106,45 @@
   (maybe-load-schema)
   (f))
 
-(defn with-system-fixture
-  [f]
-  (dev/start)
-  (f)
-  (dev/stop))
+(def ^:dynamic *system* nil)
+
+(defn new-messaging-system
+  "Define a minimal system which is just enough for the messaging tests to run"
+  []
+  (let [debug-ch (async/chan 64)
+        debug-mult (async/mult debug-ch)]
+    (component/system-using
+     (component/system-map
+      ;; MQTT
+      :mqtt-decoder (new-mqtt-decoder)
+      :mqtt-encoder (new-mqtt-encoder)
+      :mqtt-handler (new-netty-mqtt-handler debug-ch)
+      :mqtt-server (new-netty-server {:port 1883})
+      :reactor (new-reactor)
+      :ws (new-websocket-bridge {:port 8083})
+      :topic-injector (new-topic-injector)
+      :metrics (new-metrics {:hostname (.. java.net.InetAddress getLocalHost getHostName)
+                             :prefix "azondi"})
+
+      :database (new-database {:host "127.0.0.1"
+                               :dbname "opensensors_test"
+                               :user "azondi"
+                               :password "opendata"})
+      :cassandra (cass/new-database
+                  {:keyspace "opensensors_test"
+                   :hosts ["127.0.0.1"]})
+      :message-archiver (new-message-archiver)
+      :user-domain (new-postgres-user-domain))
+     {:mqtt-handler {:db :database}
+      :mqtt-server [:mqtt-handler :mqtt-decoder :mqtt-encoder]})))
+
+(defmacro with-system [system & body]
+  `(let [s# (component/start ~system)]
+     (try
+       (binding [*system* s#] ~@body)
+       (finally
+         (component/stop s#)))))
+
+(defn with-system-fixture [f]
+  (with-system (new-messaging-system)
+    (f)))

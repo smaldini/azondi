@@ -1,6 +1,0 @@
-{:postgres {:host "127.0.0.1"
-            :dbname "opensensors_test"
-            :user "azondi"
-            :password "opendata"}
- :cassandra {:keyspace "opensensors_test"
-             :hosts ["127.0.0.1"]}}
