@@ -21,7 +21,7 @@
              {:name "Arduino 2" :description "A broken arduino"}
              {:name "Pollution sensor" :description ""}]]
       (request :post (make-uri "/users/yods/devices/")
-               :apikey api-key
+               :api-key api-key
                :data data)))
 
   (infof "Creating malcolm")

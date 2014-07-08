@@ -1,35 +1,89 @@
 (ns azondi.db
-  (:require [com.stuartsierra.component :as component])
-  )
+  (:require
+   [azondi.db.protocol :as p]
+   [schema.core :as s]))
 
-(defprotocol Datastore
-  (create-user! [_ name user email pw])
-  (get-users [_])
-  (get-user [_ user])
-  (delete-user! [_ user])
-  (reset-user-password [_ user password])
-  (devices-by-owner [_ user])
-  (create-device! [_ user pw])
-  (get-device [_ client-id])
-  (delete-device! [_ client-id])
-  (set-device-password! [_ client-id p])
-  (allowed-device? [_ client-id user p])
-  ;;topics
-  (topic-of-owner [_ user topic])
-  (topics-by-owner [_ user])
-  (create-topic! [_ topic])
-  (maybe-create-topic! [_ topic])
-  (get-topic [_ topic-id])
-  (delete-topic! [_ topic-id])
-  (patch-device! [_ client-id data])
-  (patch-topic! [_ topic-id data])
-  ;;subscriptions
-  (subscriptions-by-owner [_ user])
-  (create-subscription [_ user topic])
-  (unsubscribe [_ user topic])
-    ;;api
-  (get-api-key [_ user])
-  (delete-api-key [_ user])
-  (create-api-key [_ user])
-  (find-user-by-api-key [_ apikey])
-  )
+
+;; We dispatch on the protocol via these wrappers which allow us to add
+;; schema validation
+
+(s/defn create-user! [component name user email pw]
+  (p/create-user! component name user email pw))
+
+(s/defn get-users [component]
+  (p/get-users component))
+
+(s/defn get-user [component user]
+  (p/get-user component user))
+
+(s/defn delete-user! [component user]
+  (p/delete-user! component user))
+
+(s/defn reset-user-password [component user password]
+  (p/reset-user-password component user password))
+
+(s/defn devices-by-owner [component user]
+  (p/devices-by-owner component user))
+
+(s/defn create-device! [component user pw]
+  (p/create-device! component user pw))
+
+(s/defn get-device [component client-id]
+  (p/get-device component client-id))
+
+(s/defn delete-device! [component client-id]
+  (p/delete-device! component client-id))
+
+(s/defn set-device-password! [component client-id p]
+  (p/set-device-password! component client-id p))
+
+(s/defn allowed-device? [component client-id user p]
+  (p/allowed-device? component client-id user p))
+
+(s/defn topic-of-owner [component user topic]
+  (p/topic-of-owner component user topic))
+
+(s/defn topics-by-owner [component user]
+  (p/topics-by-owner component user))
+
+(s/defn create-topic! [component topic]
+  (p/create-topic! component topic))
+
+(s/defn maybe-create-topic! [component topic]
+  (p/maybe-create-topic! component topic))
+
+(s/defn get-topic [component topic-id]
+  (p/get-topic component topic-id))
+
+(s/defn delete-topic! [component topic-id]
+  (p/delete-topic! component topic-id))
+
+(s/defn patch-device! [component client-id data]
+  (p/patch-device! component client-id data))
+
+(s/defn patch-topic! [component topic-id data]
+  (p/patch-topic! component topic-id data))
+
+(s/defn subscriptions-by-owner [component user]
+  (p/subscriptions-by-owner component user))
+
+(s/defn create-subscription [component user topic]
+  (p/create-subscription component user topic))
+
+(s/defn unsubscribe [component user topic]
+  (p/unsubscribe component user topic))
+
+(s/defn get-api-key :- {:id s/Str
+                        :created_on s/Inst
+                        :api s/Str}
+  [component user]
+  (p/get-api-key component user))
+
+(s/defn delete-api-key [component user]
+  (p/delete-api-key component user))
+
+(s/defn create-api-key [component user]
+  (p/create-api-key component user))
+
+(s/defn find-user-by-api-key [component apikey]
+  (p/find-user-by-api-key component apikey))

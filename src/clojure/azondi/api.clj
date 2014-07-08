@@ -167,7 +167,7 @@
                  ]
              ;; We create the api-key, in order to return. This is
              ;; really just to help with the tests. Is this appropriate?
-             {:response-body {:api-key (get-api-key db user)
+             {:response-body {:api-key (:api (get-api-key db user))
                               :user u}}))
 
    :handle-created (fn [{body :response-body}] body)})
@@ -351,7 +351,7 @@
    :delete! (fn [{body :body {{user :user} :route-params} :request}]
               (let [topic (get-in (->clj (read-json-body body)) [:topic])]
                 (unsubscribe db user topic)))
-   
+
    :handle-created (fn [{body :response-body}] body)})
 
 (defn api-resource [db]
@@ -359,8 +359,9 @@
    :allowed-methods #{:get :post}
    :known-content-type? #{"application/json"}
    :exists? (fn [{{{user :user} :route-params} :request}]
+              (println "API key:" (get-api-key db user))
               (let [apikey (-> (get-api-key db user)
-                                     (select-keys [:api]))]
+                               (select-keys [:api]))]
                   {:user user :apikey apikey}))
    :handle-ok (fn [{user :user apikey :apikey}]
                 (assoc apikey :user user))
@@ -375,6 +376,11 @@
    :handle-created (fn [{apikey :apikey}]
                      (->js apikey))})
 
+(defn wrap-with-fn-validation [h]
+  (fn [req]
+    (s/with-fn-validation
+      (h req))))
+
 (defn handlers [db authorizer]
   {::welcome (resource (welcome-resource))
    ::users (resource (users-resource db))
@@ -385,7 +391,7 @@
    ::topics (resource (topics-resource db))
    ::topic (resource (topic-resource db))
    ::subscriptions (resource (subscriptions-resource db authorizer))
-   ::api-key (resource (api-resource db))
+   ::api-key (-> db api-resource resource wrap-with-fn-validation)
    ::reset-user-password (resource (reset-user-password-resource db))})
 
 (def routes

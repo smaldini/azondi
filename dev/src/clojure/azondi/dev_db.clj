@@ -3,7 +3,7 @@
    [com.stuartsierra.component :as component]
    [clojure.tools.logging :refer :all]
    azondi.db)
-  (:import (azondi.db Datastore)))
+  (:import (azondi.db.protocol Datastore)))
 
 ;; In memory implementation
 
@@ -100,7 +100,9 @@
   (create-api-key [this user]
     (let [apikey (str (java.util.UUID/randomUUID))]
       (dosync
-       (alter (-> this :database :apikeys) assoc user apikey))))
+       (alter (-> this :database :apikeys) assoc user {:id user
+                                                       :created_on (java.util.Date.)
+                                                       :api apikey}))))
 
   (get-api-key [this user]
     (-> this :database :apikeys deref (get user)))
@@ -113,7 +115,7 @@
     (ffirst (filter #(= apikey (second %)) (-> this :database :apikeys deref)))
     )
 
-)
+  )
 
 (defn new-inmemory-datastore []
   (->InmemoryDatastore))
