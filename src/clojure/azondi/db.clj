@@ -1,6 +1,6 @@
 (ns azondi.db
   (:require [com.stuartsierra.component :as component])
-)
+  )
 
 (defprotocol Datastore
   (create-user! [_ name user email pw])
@@ -23,7 +23,11 @@
   (delete-topic! [_ topic-id])
   (patch-device! [_ client-id data])
   (patch-topic! [_ topic-id data])
-  ;;api
+  ;;subscriptions
+  (subscriptions-by-owner [_ user])
+  (create-subscription [_ user topic])
+  (unsubscribe [_ user topic])
+    ;;api
   (get-api-key [_ user])
   (delete-api-key [_ user])
   (create-api-key [_ user])

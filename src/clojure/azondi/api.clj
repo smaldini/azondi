@@ -13,7 +13,7 @@
    [cheshire.core :refer (decode decode-stream encode)]
    [schema.core :as s]
    [camel-snake-kebab :refer (->kebab-case-keyword ->camelCaseString)]
-   [azondi.db :refer (get-users get-user delete-user! create-user! devices-by-owner get-device delete-device! create-device! patch-device! topics-by-owner get-topic delete-topic! create-topic! patch-topic! set-device-password! get-api-key delete-api-key create-api-key reset-user-password find-user-by-api-key)]
+   [azondi.db :refer (get-users get-user delete-user! create-user! devices-by-owner get-device delete-device! create-device! patch-device! topics-by-owner get-topic delete-topic! create-topic! patch-topic! set-device-password! get-api-key delete-api-key create-api-key reset-user-password find-user-by-api-key create-subscription)]
    [hiccup.core :refer (html)]
    [clojure.walk :refer (postwalk)]
    liberator.representation
@@ -311,7 +311,9 @@
                body :body
                {{user :user} :route-params} :request}]
            (if-not existing
-             (create-topic! db (assoc body :topic topic :owner user))
+             (do
+               (create-subscription db user topic)
+               (create-topic! db (assoc body :topic topic :owner user)))
              (patch-topic! db topic (assoc body :owner user))))
 
    :delete! (fn [{topic :topic}] (delete-topic! db topic))

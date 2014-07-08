@@ -69,7 +69,6 @@
   (stop [this] this)
   Datastore
 
-
   (create-user! [this name user email password]
     (let [p (sc/encrypt password)
           role "user"]
@@ -111,6 +110,15 @@
   (patch-device! [this client-id data]
     (patch-device!* this client-id data))
 
+  (subscriptions-by-owner [this user]
+    (psql->clj (j/query (conn this) ["SELECT * from subscriptions WHERE user_id = ?;" user])))
+
+  (create-subscription [this user topic]
+    (psql->clj (-> (first (j/insert! (conn this) :subscriptions {:user_id user :topic topic})))))
+
+  (unsubscribe [this user topic]
+    (j/delete! (conn this) :subscriptions ["user_id = ?" user]))
+  
   (topic-of-owner [this user topic]
     (clj->psql (first
                 (j/query (conn this)
