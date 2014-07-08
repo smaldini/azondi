@@ -38,7 +38,7 @@
        (dissoc device :user))))
 
   (get-device [this client-id]
-    (dissoc (-> this :database :devices deref (get client-id)) :password))
+    (-> this :database :devices deref (get client-id) (dissoc :password)))
 
   (delete-device! [this client-id]
     (dosync

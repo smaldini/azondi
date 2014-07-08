@@ -13,7 +13,11 @@
 (s/defn get-users [component]
   (p/get-users component))
 
-(s/defn get-user [component user]
+(s/defn get-user :- (s/maybe {:user s/Str
+                              :name s/Str
+                              :email s/Str
+                              :password s/Str})
+  [component user]
   (p/get-user component user))
 
 (s/defn delete-user! [component user]
@@ -28,10 +32,13 @@
 (s/defn create-device! [component user pw]
   (p/create-device! component user pw))
 
-(s/defn get-device [component client-id]
+(s/defn get-device :- {:client-id s/Str
+                       :user s/Str}
+  [component :- (s/protocol p/Datastore)
+   client-id :- s/Str]
   (p/get-device component client-id))
 
-(s/defn delete-device! [component client-id]
+(s/defn delete-device! [component client-id :- s/Str]
   (p/delete-device! component client-id))
 
 (s/defn set-device-password! [component client-id p]

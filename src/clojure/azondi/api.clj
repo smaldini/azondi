@@ -391,7 +391,7 @@
    ::topics (resource (topics-resource db))
    ::topic (resource (topic-resource db))
    ::subscriptions (resource (subscriptions-resource db authorizer))
-   ::api-key (-> db api-resource resource wrap-with-fn-validation)
+   ::api-key (-> db api-resource resource)
    ::reset-user-password (resource (reset-user-password-resource db))})
 
 (def routes

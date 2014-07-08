@@ -14,7 +14,8 @@
    [azondi.http :refer (request)]
    [azondi.dev-db :refer (new-inmemory-datastore)]
    [azondi.db :refer (get-user create-api-key get-api-key)]
-   [azondi.dev-system :refer (new-dev-user-domain)]))
+   [azondi.dev-system :refer (new-dev-user-domain)]
+   [schema.core :as s]))
 
 (def PORT 8099)
 
@@ -54,13 +55,16 @@
 
 (defn system-fixture [f]
   (with-system (new-api-system)
-    (f)))
+    (s/with-fn-validation
+      (f))))
 
 (use-fixtures :each system-fixture)
 
+;;(use-fixtures :each (fn [f] (s/with-fn-validation ())))
+
 ;; Construct a URI to hit a request handler target
 
-(defn make-uri [target & args]
+(s/defn make-uri [target :- s/Keyword & args]
   (format "http://localhost:%d%s%s"
           (-> *system* :webserver :port)
           (uri-context (-> *system* :api))
