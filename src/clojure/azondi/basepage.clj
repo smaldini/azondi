@@ -161,8 +161,8 @@
         [:li [:a {:href "mailto:hello@opensensors.io?subject=website%20enquiry"}
               [:img {:src "imgs/glyphicons_010_envelope.png"}]]]]]
       ;; extenal libs
-      ]
-     scr
+      
+      scr]
       )))
 
 ;;; We need to pull out the user details from the session

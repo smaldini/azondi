@@ -53,6 +53,8 @@ INSERT INTO topics (unit, name, topic, public, owner)
             VALUES ('PM10', 'pm10', '/users/yods/pm10-1', true, 'yods');
 INSERT INTO topics (unit, name, topic, public, owner)
             VALUES ('PM10', 'pm10-2', '/users/yods/pm10-2', true, 'yods');
+INSERT INTO topics (unit, name, topic, public, owner)
+            VALUES ('celcius', 'temprature', '/users/yods/e12/temp1', true, 'yods');
 
 INSERT INTO topics (unit, name, topic, public, owner)
             VALUES ('PM10', 'pm10-private', '/users/yods/pm10-private', false, 'yods');
@@ -63,11 +65,11 @@ INSERT INTO topics (unit, name, topic, public, owner)
 --
 
 INSERT INTO subscriptions (user_id, topic)
-            VALUES ('michaelklishin', 'yods/device1/sensor1');
+            VALUES ('michaelklishin', '/users/yods/pm10-1');
 INSERT INTO subscriptions (user_id, topic)
-            VALUES ('michaelklishin', 'yods/device1/sensor2');
+            VALUES ('michaelklishin', '/users/yods/pm10-2');
 INSERT INTO subscriptions (user_id, topic)
-            VALUES ('michaelklishin', 'yods/device2/sensor1');
+            VALUES ('michaelklishin', '/users/yods/e12/temp1');
 
 --
 -- WS bridge session tokens
