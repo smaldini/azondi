@@ -13,7 +13,7 @@
    [cheshire.core :refer (decode decode-stream encode)]
    [schema.core :as s]
    [camel-snake-kebab :refer (->kebab-case-keyword ->camelCaseString)]
-   [azondi.db :refer (get-users get-user delete-user! create-user! devices-by-owner get-device delete-device! create-device! patch-device! topics-by-owner get-topic delete-topic! create-topic! patch-topic! set-device-password! get-api-key delete-api-key create-api-key reset-user-password find-user-by-api-key create-subscription)]
+   [azondi.db :refer (get-users get-user delete-user! create-user! devices-by-owner get-device delete-device! create-device! patch-device! topics-by-owner get-topic delete-topic! create-topic! patch-topic! set-device-password! get-api-key delete-api-key create-api-key reset-user-password find-user-by-api-key create-subscription unsubscribe subscriptions-by-owner)]
    [hiccup.core :refer (html)]
    [clojure.walk :refer (postwalk)]
    liberator.representation
@@ -264,6 +264,7 @@
    :handle-ok (fn [{client-id :client-id}] (get-device db (str client-id)))
    :handle-created (fn [_] {:message "Patched"})})
 
+
 (defn reset-device-password-resource [db]
   {:available-media-types #{"application/json"}
    :allowed-methods #{:post}
@@ -320,6 +321,39 @@
    :handle-ok (fn [{topic :topic existing :existing}] existing)
    :handle-created (fn [_] {:message "Patched"})})
 
+
+(def subscriptions-attributes-schema
+  {(s/required-key :topic) s/Str})
+
+(defn subscriptions-resource [db authorizer]
+  {:available-media-types #{"application/json"}
+   :allowed-methods #{:get :post :delete}
+   :known-content-type? #{"application/json"}
+   :authorized? (fn [{{{user :user :as rp} :route-params :as request} :request}]
+                  (authorized? authorizer request rp))
+
+   :handle-unauthorized (fn [_] (encode {:error "Unauthorized"}))
+   :handle-ok (fn [{{{user :user} :route-params :as req} :request}]
+                (encode {:user user
+                         :subscriptions (->>
+                                         (subscriptions-by-owner db user)
+                                         (map #(select-keys % [:topic]))
+                                         (map #(reduce-kv (fn [acc k v] (assoc acc (->camelCaseString k) v)) {} %)))}))
+   :processable? (create-schema-check subscriptions-attributes-schema)
+
+   :handle-unprocessable-entity handle-unprocessable-entity
+
+   :post! (fn [{body :body {{user :user} :route-params} :request}]
+            {:subscription
+             (let [topic (get-in (->clj (read-json-body body)) [:topic])]
+               (create-subscription db user topic))})
+
+   :delete! (fn [{body :body {{user :user} :route-params} :request}]
+              (let [topic (get-in (->clj (read-json-body body)) [:topic])]
+                (unsubscribe db user topic)))
+   
+   :handle-created (fn [{body :response-body}] body)})
+
 (defn api-resource [db]
   {:available-media-types #{"application/json"}
    :allowed-methods #{:get :post}
@@ -350,6 +384,7 @@
    ::reset-password (resource (reset-device-password-resource db))
    ::topics (resource (topics-resource db))
    ::topic (resource (topic-resource db))
+   ::subscriptions (resource (subscriptions-resource db authorizer))
    ::api-key (resource (api-resource db))
    ::reset-user-password (resource (reset-user-password-resource db))})
 
@@ -366,6 +401,8 @@
                           "/topics/" ::topics
                           "/topics" (->Redirect 307 ::topics)
                           ["/topics/" :topic-name] ::topic
+                          "/subscriptions/" ::subscriptions
+                          "/subscriptions" (->Redirect 307 ::subscriptions)
                           "/api-key/" ::api-key
                           "/api-key" (->Redirect 307 ::api-key)
                           "/reset-password" ::reset-user-password}}])
