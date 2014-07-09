@@ -148,5 +148,5 @@
 
 (s/defn find-user-by-api-key
   [component :- (s/protocol p/Datastore)
-   apikey :- s/Str]
-  (p/find-user-by-api-key component apikey))
+   api-key :- s/Str]
+  (p/find-user-by-api-key component api-key))

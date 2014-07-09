@@ -35,7 +35,7 @@
             [{:name "S3-1" :description "MQTTitude on Samsung Galaxy S3"}
              {:name "S3-2" :description "MQTTitude (test) on Samsung Galaxy S3"}]]
       (request :post (make-uri "/users/malcolmsparks/devices/")
-               :apikey api-key
+               :api-key api-key
                :data data)))
 
   (request :put (make-uri "/users/mk")

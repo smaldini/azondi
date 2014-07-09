@@ -5,7 +5,7 @@
    [clojure.pprint :refer (pprint)]
    [azondi.api :refer (->js ->clj)]))
 
-(defn request [method uri & {:keys [data apikey expected auth]}]
+(defn request [method uri & {:keys [data api-key expected auth]}]
   (let [response
         @(http-request
           (merge
@@ -15,8 +15,8 @@
             (merge
              {"Content-Type" "application/json"
               "Accept" "application/json"}
-             (when apikey
-               {"Authorization" (str "apikey " apikey)}))}
+             (when api-key
+               {"Authorization" (str "api-key " api-key)}))}
            (when auth {:basic-auth auth})
            (when data {:body (str (encode (->js data)))}))
           identity)]

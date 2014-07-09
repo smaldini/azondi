@@ -29,5 +29,5 @@
   (get-api-key [_ user])
   (delete-api-key [_ user])
   (create-api-key [_ user])
-  (find-user-by-api-key [_ apikey])
+  (find-user-by-api-key [_ api-key])
   )

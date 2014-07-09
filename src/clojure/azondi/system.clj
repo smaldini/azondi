@@ -35,7 +35,7 @@
    [azondi.sse :refer (new-event-service)]
    [azondi.postgres :refer (new-database new-postgres-user-domain)]
    [azondi.cassandra :as cass]
-   [azondi.api :refer (new-api new-apikey-authenticator new-user-authorizer)]
+   [azondi.api :refer (new-api new-api-key-authenticator new-user-authorizer)]
    [azondi.webapp :refer (new-webapp)]
    [azondi.login :refer (new-custom-login-form-renderer)]
 
@@ -86,8 +86,8 @@
      :api (new-api :uri-context "/api/1.0")
 
      :session-authenticator (new-cookie-authenticator)
-     :apikey-authenticator (new-apikey-authenticator)
-     :authenticator (new-composite-disjunctive-authenticator :session-authenticator :apikey-authenticator)
+     :api-key-authenticator (new-api-key-authenticator)
+     :authenticator (new-composite-disjunctive-authenticator :session-authenticator :api-key-authenticator)
      :authorizer (new-user-authorizer)
 
      ;; Server Sent Events (part of HTML5 spec.)

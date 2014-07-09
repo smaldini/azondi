@@ -359,40 +359,44 @@
    :allowed-methods #{:get :post}
    :known-content-type? #{"application/json"}
    :exists? (fn [{{{user :user} :route-params} :request}]
-              (println "API key:" (get-api-key db user))
-              (let [apikey (-> (get-api-key db user)
-                               (select-keys [:api]))]
-                  {:user user :apikey apikey}))
-   :handle-ok (fn [{user :user apikey :apikey}]
-                (assoc apikey :user user))
+              (let [api-key (-> (get-api-key db user)
+                                (select-keys [:api]))]
+                {:user user :api-key api-key}))
+   :handle-ok (fn [{user :user api-key :api-key}]
+                (assoc api-key :user user))
    :post! (fn [{body :body {{user :user} :route-params} :request}]
-            {:apikey
+            {:api-key
              (if (get-api-key db user)
                (do
                  (delete-api-key db user)
                  (create-api-key db user))
                (create-api-key db user))})
 
-   :handle-created (fn [{apikey :apikey}]
-                     (->js apikey))})
+   :handle-created (fn [{api-key :api-key}]
+                     (->js api-key))})
 
 (defn wrap-with-fn-validation [h]
   (fn [req]
     (s/with-fn-validation
       (h req))))
 
+(defn apply-middleware-to-handlers [m middleware]
+  (reduce-kv (fn [a k v] (assoc a k (middleware v))) {} m))
+
 (defn handlers [db authorizer]
-  {::welcome (resource (welcome-resource))
-   ::users (resource (users-resource db))
-   ::user (resource (user-resource db))
-   ::devices (resource (devices-resource db authorizer))
-   ::device (resource (device-resource db authorizer))
-   ::reset-password (resource (reset-device-password-resource db))
-   ::topics (resource (topics-resource db))
-   ::topic (resource (topic-resource db))
-   ::subscriptions (resource (subscriptions-resource db authorizer))
-   ::api-key (-> db api-resource resource)
-   ::reset-user-password (resource (reset-user-password-resource db))})
+  (->
+   {::welcome (resource (welcome-resource))
+    ::users (resource (users-resource db))
+    ::user (resource (user-resource db))
+    ::devices (resource (devices-resource db authorizer))
+    ::device (resource (device-resource db authorizer))
+    ::reset-password (resource (reset-device-password-resource db))
+    ::topics (resource (topics-resource db))
+    ::topic (resource (topic-resource db))
+    ::subscriptions (resource (subscriptions-resource db authorizer))
+    ::api-key (-> db api-resource resource)
+    ::reset-user-password (resource (reset-user-password-resource db))}
+   (apply-middleware-to-handlers wrap-with-fn-validation)))
 
 (def routes
   ["" {"" ::welcome
@@ -444,10 +448,10 @@
   Authenticator
   (authenticate [this request]
     (when-let [header (get-in request [:headers "authorization"])]
-      (when-let [api-key (second (re-matches #"\Qapikey\E\s+(.*)" header))]
+      (when-let [api-key (second (re-matches #"\Qapi-key\E\s+(.*)" header))]
         (when-let [user (find-user-by-api-key (:database this) api-key)]
           {:cylon/user user
            :cylon/authentication-method :api-key})))))
 
-(defn new-apikey-authenticator []
+(defn new-api-key-authenticator []
   (component/using (->ApiKeyAuthenticator) [:database]))

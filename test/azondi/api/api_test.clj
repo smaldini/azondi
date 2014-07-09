@@ -7,7 +7,7 @@
    [modular.bidi :refer (new-router routes uri-context)]
    [bidi.bidi :refer (path-for)]
    [azondi.webapp :refer (new-webapp)]
-   [azondi.api :refer (new-api new-user-authorizer new-apikey-authenticator)]
+   [azondi.api :refer (new-api new-user-authorizer new-api-key-authenticator)]
    [cylon.impl.login-form :refer (new-login-form)]
    [cylon.impl.authentication :refer (new-composite-disjunctive-authenticator
                                       new-http-basic-authenticator)]
@@ -31,10 +31,10 @@
     :api (new-api :uri-context "/api/1.0")
     :authorizer (new-user-authorizer)
     :http-authenticator (new-http-basic-authenticator)
-    :apikey-authenticator (new-apikey-authenticator)
+    :api-key-authenticator (new-api-key-authenticator)
     :authenticator (new-composite-disjunctive-authenticator
                     :http-authenticator
-                    :apikey-authenticator
+                    :api-key-authenticator
                     )
     :user-domain (new-dev-user-domain))
 
@@ -215,7 +215,7 @@
               (is (= (-> topics-response :body :topics count) 0)))))))))
 
 
-(deftest test-users-via-apikey
+(deftest test-users-via-api-key
   (testing "user path"
     (is (= (make-uri :azondi.api/user :user "alice")
            (format "http://localhost:%d/api/1.0/users/alice" PORT))))
@@ -235,17 +235,17 @@
       ;; Create an API key for alice
       (create-api-key db "alice")
 
-      (let [apikey (:api (get-api-key db "alice"))]
-        (is (not (nil? apikey)))
+      (let [api-key (:api (get-api-key db "alice"))]
+        (is (not (nil? api-key)))
         (let [uri (make-uri :azondi.api/devices :user "alice")]
           (is (= uri (format "http://localhost:%d/api/1.0/users/alice/devices/" PORT)))
 
-          (testing "create device without apikey"
+          (testing "create device without api-key"
               (let [response (request :post uri :data {} :expected 401)]
                 (is (= 401 (:status response)))))
 
-          (testing "create device with apikey"
-            (let [response (request :post uri :data {} :apikey apikey)]
+          (testing "create device with api-key"
+            (let [response (request :post uri :data {} :api-key api-key)]
 
               ;; This needs to return a client id and password in the result
               (is (= 201 (:status response))))))))))
