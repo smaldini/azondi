@@ -89,9 +89,9 @@
 
 (defn load-schema!
   []
-  (println "[fixutres] Loading PostgreSQL schema")
+  (println "[fixtures] Loading PostgreSQL schema")
   (load-postgresql-schema!)
-  (println "[fixutres] Loading Cassandra schema")
+  (println "[fixtures] Loading Cassandra schema")
   (load-cassandra-schema!))
 
 (defn maybe-load-schema
