@@ -2,13 +2,14 @@
   (:require
    [com.stuartsierra.component :as component]
    [clojure.java.io :as io]
-   [bidi.bidi :refer (make-handler ->ResourcesMaybe ->Files)]
+   [bidi.bidi :refer (make-handler ->ResourcesMaybe ->Files path-for)]
    [modular.bidi :refer (WebService)]
    [markdown.core :as md]
-   [hiccup.core :refer (html)]
+   [hiccup.core :refer (html h)]
    [azondi.basepage :refer :all]
    [org.httpkit.server :refer (run-server)]
    [cylon.authentication :refer (authenticate)]
+   [cylon.authorization :refer (authorized?)]
    ))
 
 (defn md->html
@@ -16,13 +17,24 @@
   [r]
   (md/md-to-html-string (slurp r)))
 
-(defn handlers [authenticator]
+(defn restrict-to-valid-user [authorizer page]
+  (fn [req]
+    (if-let [user (authorized? authorizer req nil)]
+      {:status 200 :body (page user)}
+      {:status 403
+       :body (base-page
+              nil
+              [:div
+               [:h1 "Unauthorized"]
+               [:p "Please "
+                [:a {:href (path-for (:modular.bidi/routes req) :login)} "login in"] " to continue"]])})))
+
+(defn handlers [authenticator authorizer]
   {:index
    (fn [req]
      {:status 200
-      :body (base-page
-             (authenticate authenticator req)
-             (md->html (io/resource "markdown/index.md")))})
+      :body (base-page (authenticate authenticator req) (md->html (io/resource "markdown/index.md")))})
+
    :help
    (fn [req]
      {:status 200
@@ -48,22 +60,16 @@
       :body (base-page
              (authenticate authenticator req)
              (md->html (io/resource "markdown/services.md")))})
-   :devices
-   (fn [req]
-     {:status 200 :body (devices-page (authenticate authenticator req))})
 
-   :topics
-   (fn [req]
-     {:status 200 :body (topics-page (authenticate authenticator req))})
+   :devices (restrict-to-valid-user authorizer devices-page)
 
-   :reset-password
-   (fn [req]
-     {:status 200 :body (reset-password-page (authenticate authenticator req))})
+   :topics (restrict-to-valid-user authorizer topics-page)
 
-   :api-docs-page
-   (fn [req]
-     {:status 200 :body (api-page (authenticate authenticator req))})
-     })
+   :reset-password (restrict-to-valid-user authorizer reset-password-page)
+
+   :api-docs-page (restrict-to-valid-user authorizer api-page)
+
+   })
 
 (def routes
   ["/" [["" :index]
@@ -84,12 +90,12 @@
 
 (defrecord WebApp []
   WebService
-  (request-handlers [this] (handlers (:authenticator this)))
+  (request-handlers [this] (handlers (:authenticator this) (:authorizer this)))
   (routes [_] routes)
   (uri-context [_] ""))
 
 (defn new-webapp []
-  (component/using (->WebApp) [:authenticator]))
+  (component/using (->WebApp) [:authenticator :authorizer]))
 
 ;; TODO Need a webservice to call
 ;; require : [metrics.ring.expose :refer [serve-metrics]]

@@ -20,6 +20,7 @@
    [cylon.impl.session :refer (new-atom-backed-session-store
                                new-cookie-authenticator)]
    [cylon.impl.authentication :refer (new-composite-disjunctive-authenticator)]
+   [cylon.impl.authorization :refer (new-valid-user-authorizer)]
    ;;[cylon.impl.webrequest :refer (new-authenticator-request-middleware)]
    ;; We require this to ensure we can use Cylon default authenticators as Ring middleware
    ;;cylon.impl.webrequest
@@ -90,6 +91,8 @@
      :authenticator (new-composite-disjunctive-authenticator :session-authenticator :api-key-authenticator)
      :authorizer (new-user-authorizer)
 
+     :valid-user-authorizer (new-valid-user-authorizer)
+
      ;; Server Sent Events (part of HTML5 spec.)
      :sse (let [sse-ch (async/chan 64)
                 ;; SSE splits on client-id
@@ -124,6 +127,8 @@
 
    :webserver {:request-handler :webrouter}
    :webrouter [:webapp :api :sse :main-cljs-builder :login-form]
+   :webapp {:authorizer :valid-user-authorizer}
+   :valid-user-authorizer {:authenticator :authenticator}
    })
 
 (defn new-prod-system []

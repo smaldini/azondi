@@ -54,7 +54,7 @@
 
                  ;; Security
 
-                 [cylon "0.3.0"]
+                 [cylon "0.3.1"]
 
                  ;; Logging
 

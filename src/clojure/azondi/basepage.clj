@@ -47,14 +47,14 @@
        [:animate {:attributeName "r" :begin "1s" :calcmode "linear" :dur "1s" :values="15; 4; 2; 1"}]]]]]])
 
 ;; MS: This is a bit of a hack that will have to do for now. A better solution is warranted.
-(defn displayed? [menu session]
+(defn displayed? [menu user]
   (case (:security menu)
-    :user session
+    :user user
     :all true
-    :none (nil? session)
+    :none (nil? user)
     true))
 
-(defn side-menu [session]
+(defn side-menu [user]
   [:div.navbar-default.navbar.sbar {:role "navigation"}
                      [:div.navbar-header.sbar
                       [:button {:type "button"
@@ -80,115 +80,105 @@
 
    [:ul
     (for [menu menus
-          :when (displayed? menu session)
+          :when (displayed? menu user)
           ]
       (when (= :sidebar (:location menu))
         [:li.side-menu-item [:a {:href (:target menu)} (:label menu)]]))]])
 
+(defn base-page [user body & scr]
+  (html5
+   [:head
+    [:meta {:charset "utf-8"}]
+    [:meta {:name "viewport" :content "width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"}]
+    [:meta {:property "dc:language" :content "en"}]
+    [:meta {:property "dc:title" :content "opensensors.IO"}]
+    [:meta {:property "dc:description" :content "opensensors.IO processes sensor data using azondi"}]
+    [:title "opensensors.IO"]
+    [:link {:href "//netdna.bootstrapcdn.com/font-awesome/4.1.0/css/font-awesome.min.css" :rel "stylesheet"}]
+    [:link {:href "css/bootstrap.min.css" :rel "stylesheet"}]
+    [:link {:href "css/style.css" :rel "stylesheet"}]
+    [:script {:src "js/jquery.min.js"}]
+    [:script {:src "js/bootstrap.min.js"}]
+    [:script {:src "js/jquery.session.js"}]]
+   [:body
+    [:div#wrap
+     [:nav {:class "navbar navbar-default" :role "navigation"}
+      [:div.container-fluid
+       [:div.navbar-header
+        [:button.navbar-toggle {:type "buton" :data-toggle "collapse" :data-target "#bs-example-navbar-collapse-1"}
+         [:span.sr-only "Toggle navigation"]
+         [:span.icon-bar]
+         [:span.icon-bar]
+         [:span.icon-bar]]
+        [:a#home-logo.navbar-brand {:href "/"} [:img {:src "imgs/osio.svg"}]]
+        [:ul {:class "nav navbar-nav"}
+         [:li [:a {:href "/services"} "Services"]]]]
+       [:div {:class "collapse navbar-collapse" :id "bs-example-navbar-collapse-1"}
+        [:ul {:class "nav navbar-nav navbar-right"}
+         (for [menu menus
+               :when (displayed? menu user)]
+           (if (= :navbar (:location menu))
+             (if (:children menu)
+               [:li.dropdown [:a.dropdown-toggle {:href "#" :data-toggle "dropdown"} (:label menu) [:b.caret]]
+                [:ul.dropdown-menu
+                 (for [child (:children menu)
+                       :when (displayed? child user)]
+                   [:li [:a {:href (:target child)} (:label child)]])]]
+               [:li [:a {:href (:target menu)} (:label menu)]]
+               )))
+         (when user
+           [:li [:a user]]
+           [:script (format "$.session.set('user', '%s')" user)])]]]]
+     logo-area
+     [:div.row
+      [:div.col-sm-2
+       [:div.sidebar-nav
+        (side-menu user)]]
+      [:div.col-sm-9
+       body]
+      [:div#ankha]]
 
+     ;;cljs
+     [:script {:src "js/react.js"}]
+     [:script {:src "cljs/cljs.js"}]
+     [:script {:src "cljs/azondi.js"}]
 
-(defn base-page [req body & scr]
-  (let [session (:session req)]
-    (html5
-     [:head
-      [:meta {:charset "utf-8"}]
-      [:meta {:name "viewport" :content "width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"}]
-      [:meta {:property "dc:language" :content "en"}]
-      [:meta {:property "dc:title" :content "opensensors.IO"}]
-      [:meta {:property "dc:description" :content "opensensors.IO processes sensor data using azondi"}]
-      [:title "opensensors.IO"]
-      [:link {:href "//netdna.bootstrapcdn.com/font-awesome/4.1.0/css/font-awesome.min.css" :rel "stylesheet"}]
-      [:link {:href "css/bootstrap.min.css" :rel "stylesheet"}]
-      [:link {:href "css/style.css" :rel "stylesheet"}]
-      [:script {:src "js/jquery.min.js"}]
-      [:script {:src "js/bootstrap.min.js"}]
-      [:script {:src "js/jquery.session.js"}]]
-     [:body
-      [:div#wrap
-       [:nav {:class "navbar navbar-default" :role "navigation"}
-        [:div.container-fluid
-         [:div.navbar-header
-          [:button.navbar-toggle {:type "buton" :data-toggle "collapse" :data-target "#bs-example-navbar-collapse-1"}
-           [:span.sr-only "Toggle navigation"]
-           [:span.icon-bar]
-           [:span.icon-bar]
-           [:span.icon-bar]]
-          [:a#home-logo.navbar-brand {:href "/"} [:img {:src "imgs/osio.svg"}]]
-          [:ul {:class "nav navbar-nav"}
-           [:li [:a {:href "/services"} "Services"]]]]
-         [:div {:class "collapse navbar-collapse" :id "bs-example-navbar-collapse-1"}
-          [:ul {:class "nav navbar-nav navbar-right"}
-           (for [menu menus
-                 :when (displayed? menu session)]
-             (if (= :navbar (:location menu))
-               (if (:children menu)
-                 [:li.dropdown [:a.dropdown-toggle {:href "#" :data-toggle "dropdown"} (:label menu) [:b.caret]]
-                  [:ul.dropdown-menu
-                   (for [child (:children menu)
-                         :when (displayed? child session)]
-                     [:li [:a {:href (:target child)} (:label child)]])]]
-                 [:li [:a {:href (:target menu)} (:label menu)]]
-                 )))
-           (when-let [user (:cylon/user req)]
-             [:li [:a user]]
-             [:script (format "$.session.set('user', '%s')" user)])]]]]
-       logo-area
-       [:div.row
-        [:div.col-sm-2
-         [:div.sidebar-nav
-          (side-menu session)]]
-        [:div.col-sm-9
-         body]
-        [:div#ankha]]
+     [:script {:src "cljs/logo.js"}]
+     [:script {:src "js/helpers.js"}]
+     ]
 
-       ;;cljs
-       [:script {:src "js/react.js"}]
-       [:script {:src "cljs/cljs.js"}]
-       [:script {:src "cljs/azondi.js"}]
+    [:div#footer {:class "navbar-default navbar-fixed-bottom"}
+     [:ul.footer-list
+      [:li "&copy; 2014 open sensors ltd"]
+      [:li [:a {:href "/about"} "About Us"]]
+      [:li [:a {:href "http://blog.opensensors.IO"} "Blog"]]
+      [:li [:a {:href "/terms"} "Terms"]]
+      [:li [:a {:href "https://twitter.com/opensensorsio"}
+            [:img {:src "imgs/glyphicons_social_31_twitter.png"}]]]
+      [:li [:a {:href "mailto:hello@opensensors.io?subject=website%20enquiry"}
+            [:img {:src "imgs/glyphicons_010_envelope.png"}]]]]]
+    ;; extenal libs
 
-       [:script {:src "cljs/logo.js"}]
-       [:script {:src "js/helpers.js"}]
-       ]
-
-      [:div#footer {:class "navbar-default navbar-fixed-bottom"}
-       [:ul.footer-list
-        [:li "&copy; 2014 open sensors ltd"]
-        [:li [:a {:href "/about"} "About Us"]]
-        [:li [:a {:href "http://blog.opensensors.IO"} "Blog"]]
-        [:li [:a {:href "/terms"} "Terms"]]
-        [:li [:a {:href "https://twitter.com/opensensorsio"}
-              [:img {:src "imgs/glyphicons_social_31_twitter.png"}]]]
-        [:li [:a {:href "mailto:hello@opensensors.io?subject=website%20enquiry"}
-              [:img {:src "imgs/glyphicons_010_envelope.png"}]]]]]
-      ;; extenal libs
-      
-      scr]
-      )))
+    scr]
+   ))
 
 ;;; We need to pull out the user details from the session
-(defn devices-page [req]
-  (base-page req
+(defn devices-page [user]
+  (base-page user
    [:div
     [:h2 "Devices"]
     [:div#content [:p.loading "Loading..."]]]
-   [:script (format "azondi.main.devices_page('%s');" (:cylon/user req))]))
+   [:script (format "azondi.main.devices_page('%s');" user)]))
 
-(defn topics-page [req]
-  (base-page req
+(defn topics-page [user]
+  (base-page user
    [:div
     [:h2 "Topics"]
     [:div#content [:p.loading "Loading..."]]]
-   [:script (format "azondi.main.topics_page('%s');" (:cylon/user req)) ]))
+   [:script (format "azondi.main.topics_page('%s');" user)]))
 
-(defn simple-page [req]
-  (base-page req
-   [:div
-    [:h2 "Simple"]
-    [:div#content [:p.loading "Loading..."]]]
-   [:script "simple.page();" ]))
-
-(defn reset-password-page [req]
-  (base-page req
+(defn reset-password-page [user]
+  (base-page user
    [:div#pword-reset
     [:h2 "Password Reset"]
     [:p "Change your password"]
@@ -205,12 +195,12 @@
 ;; add api key
 ;; add user id
 ;; reset the api key
-(defn api-page [req]
-  (base-page req
+(defn api-page [user]
+  (base-page user
    [:div
     [:div.row "Your user info:"]
     [:div.row
-     [:span "user-id: "] [:strong [:span#api-info-user-id ]]
+     [:span "user-id: "] [:strong [:span#api-info-user-id]]
      ]
     [:div.row
      [:span "api-key: "] [:strong [:span.api-info-api-key-view]]]
