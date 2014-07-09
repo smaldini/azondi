@@ -461,9 +461,13 @@
                      (let [value (.-value (.-target e))]
                        (om/update! app-state [:new-topic-name] value)))}]
           (when (not-empty (:new-topic-name app-state)) [:p "Topic will be created as " [:code (str "/users/" (:user app-state) "/" (:new-topic-name app-state))]])]
-         [:div.controls
-
-          [:input.btn.btn-primary {:type "submit" :value "Create user topic"}]]]]))))
+         [:p
+          [:div.controls
+           (if (not-empty (:new-topic-name app-state))
+             [:input.btn.btn-primary {:type "submit"
+                                      :value "Create user topic"}]
+             [:input.btn.btn-primary.disabled {:type "submit"
+                                               :value "Create user topic"}])]]]]))))
 
 ;; TODO This could be rewritten in terms of connect-device-debugger
 (defn connect-topic-debugger
@@ -572,7 +576,7 @@
                           ))
                       :placeholder "optional unit of measure e.g. PM25, celcius"}]]]
 
-           
+
            [:div.control-group
             [:div.controls
              [:input.btn {:name "action" :type "submit" :value "Apply"}]]]]
