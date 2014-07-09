@@ -45,8 +45,10 @@
    user pw]
   (p/create-device! component user pw))
 
-(s/defn get-device :- {:client-id s/Str
-                       :user s/Str}
+(s/defn get-device :- (s/maybe {:client-id s/Str
+                                :user s/Str
+                                (s/optional-key :name) s/Str
+                                (s/optional-key :description) s/Str})
   [component :- (s/protocol p/Datastore)
    client-id :- s/Str]
   (p/get-device component client-id))

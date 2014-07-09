@@ -251,7 +251,7 @@
 
    :exists? (fn [{{{user :user client-id :client-id} :route-params} :request}]
               (when (and (get-user db user)
-                         (get-device db  (str client-id)))
+                         (get-device db client-id))
                 {:user user
                  :client-id client-id}))
 
