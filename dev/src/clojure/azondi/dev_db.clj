@@ -116,8 +116,9 @@
     (throw (ex-info "TODO" {}))
     )
 
-  (find-user-by-api-key [this apikey]
-    (ffirst (filter #(= apikey (:api (second %))) (-> this :database :apikeys deref)))
+  (find-user-by-api-key [this api-key]
+    (infof "Finding user by api-key: %s" api-key)
+    (ffirst (filter #(= api-key (:api (second %))) (-> this :database :apikeys deref)))
     )
 
   )
