@@ -27,37 +27,6 @@
   [^String topic]
   (last (.split topic "/")))
 
-;; these methods that ending with star work type validation
-(s/defn set-device-password!* [component :- (s/protocol Datastore)
-                               client-id :- s/Str
-                               p :- s/Str]
-  (let [pwd-hash (sc/encrypt p)]
-    (j/update! (conn component) :devices {:device_password_hash pwd-hash} ["client_id = ?" (Long/parseLong client-id)])))
-
-(s/defn get-device* [component :- (s/protocol Datastore)
-                     client-id :- s/Str]
-  (psql->clj (-> (first (j/query (conn component) ["SELECT * FROM devices WHERE client_id = ?;" (Long/parseLong client-id)]))
-                 (dissoc :device_password_hash))))
-
-(s/defn delete-device!* [component :- (s/protocol Datastore)
-                         client-id :- s/Str]
-  (j/delete! (conn component) :devices ["client_id = ?" (Long/parseLong client-id)]))
-
-(s/defn allowed-device?* [component :- (s/protocol Datastore)
-                          client-id :- s/Str
-                          username :- s/Str
-                          pwd :- s/Str]
-  (let [device (first (j/query (conn component) ["SELECT * FROM devices WHERE client_id = ? AND owner_user_id = ? LIMIT 1;"
-                                            (Long/valueOf client-id) username]))]
-    (and device
-         (:device_password_hash device)
-         (sc/verify pwd (:device_password_hash device)))))
-
-(s/defn patch-device!* [component :- (s/protocol Datastore)
-                        client-id :- s/Str
-                        data :- s/Str]
-  (j/update! (conn component) :devices data ["client_id = ?" (Long/parseLong client-id)]))
-
 (defrecord Database [host port dbname user password]
   component/Lifecycle
   (start [this]
@@ -79,7 +48,11 @@
     (j/query (conn this) ["SELECT * FROM users;"]))
 
   (get-user [this user]
-    (first (j/query (conn this) ["SELECT * FROM users WHERE id = ?" user])))
+    (let [row (first (j/query (conn this) ["SELECT * FROM users WHERE id = ?" user]))]
+      {:user (:id row)
+       :name (:name row)
+       :email (:email row)
+       :password (:password_hash row)}))
 
   (delete-user! [this user]
     (j/delete! (conn this) :users ["id = ?" user]))
@@ -97,19 +70,29 @@
                      (dissoc :created_on)))))
 
   (get-device [this client-id]
-    (get-device* this client-id))
+    (let [row (first (j/query (conn this) ["SELECT * FROM devices WHERE client_id = ?;" (Long/parseLong client-id)]))]
+      (merge
+       {:client-id (str (:client-id row))
+        :user (:owner_user_id row)}
+       (when-let [description (:description row)] {:description description})
+       (when-let [name (:name row)] {:name name}))))
 
   (delete-device! [this client-id]
-    (delete-device!* this client-id))
+    (j/delete! (conn this) :devices ["client_id = ?" (Long/parseLong client-id)]))
 
   (set-device-password! [this client-id p]
-    (set-device-password!* this client-id p))
+    (let [pwd-hash (sc/encrypt p)]
+      (j/update! (conn this) :devices {:device_password_hash pwd-hash} ["client_id = ?" (Long/parseLong client-id)])))
 
   (allowed-device? [this client-id username pwd]
-    (allowed-device?* this client-id username pwd))
+    (let [device (first (j/query (conn this) ["SELECT * FROM devices WHERE client_id = ? AND owner_user_id = ? LIMIT 1;"
+                                              (Long/valueOf client-id) username]))]
+      (and device
+           (:device_password_hash device)
+           (sc/verify pwd (:device_password_hash device)))))
 
   (patch-device! [this client-id data]
-    (patch-device!* this client-id data))
+    (j/update! (conn this) :devices data ["client_id = ?" (Long/parseLong client-id)]))
 
   (subscriptions-by-owner [this user]
     (psql->clj (j/query (conn this) ["SELECT * from subscriptions WHERE user_id = ?;" user])))
@@ -187,7 +170,7 @@
       (infof "Verifying user: %s against password %s" uid password)
       (infof "User in database is: %s" user)
       (and (not (nil? user))
-           (pwd/verify password (:password_hash user uid))))))
+           (pwd/verify password (:password user uid))))))
 
 (defn new-postgres-user-domain []
   (component/using (->PostgresUserDomain) [:database]))
