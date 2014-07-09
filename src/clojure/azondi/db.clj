@@ -133,7 +133,7 @@
                         :created_on s/Inst
                         :api s/Str}
   [component :- (s/protocol p/Datastore)
-   user]
+   user :- s/Str]
   (p/get-api-key component user))
 
 (s/defn delete-api-key
