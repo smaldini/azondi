@@ -84,7 +84,12 @@
 
 (s/defn create-topic!
   [component :- (s/protocol p/Datastore)
-   topic]
+   topic :- {:topic s/Str
+             :owner s/Str
+             :public s/Bool
+             (s/optional-key :unit) s/Str
+             (s/optional-key :description) s/Str
+             }]
   (p/create-topic! component topic))
 
 (s/defn maybe-create-topic!
@@ -92,9 +97,13 @@
    topic]
   (p/maybe-create-topic! component topic))
 
-(s/defn get-topic
+(s/defn get-topic :- (s/maybe {:owner s/Str
+                               :topic s/Str
+                               :public s/Bool
+                               (s/optional-key :description) s/Str
+                               (s/optional-key :unit) s/Str})
   [component :- (s/protocol p/Datastore)
-   topic-id]
+   topic-id :- s/Str]
   (p/get-topic component topic-id))
 
 (s/defn delete-topic!

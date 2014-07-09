@@ -81,6 +81,7 @@
            {:body body}))
        (catch Exception e [false {:error {:error "Entity body did not contain valid JSON"}}])))))
 
+
 (defn handle-unprocessable-entity [{error :error}]
   (encode (update-in error [:details] ->js)))
 
@@ -276,7 +277,8 @@
    :handle-created (fn [{password :password}] {:password password})})
 
 (def topic-attributes-schema
-  {(s/optional-key :unit) s/Str
+  {:public s/Bool
+   (s/optional-key :unit) s/Str
    (s/optional-key :description) s/Str})
 
 (defn topics-resource [db]
@@ -298,6 +300,7 @@
    ;;:allowed? same-user
    :known-content-type? #{"application/json"}
    :exists? (fn [{{{user :user topic-name :topic-name} :route-params} :request}]
+              (infof "topic resource exists..?")
               (let [topic (str "/users/" user "/" topic-name)
                     existing (get-topic db topic)]
                 [existing
@@ -311,8 +314,10 @@
                existing :existing
                body :body
                {{user :user} :route-params} :request}]
+           (infof "topic put! body is %s" body )
            (if-not existing
              (do
+               (infof "Topic to put! is %s" (assoc body :topic topic :owner user))
                (create-subscription db user topic)
                (create-topic! db (assoc body :topic topic :owner user)))
              (patch-topic! db topic (assoc body :owner user))))

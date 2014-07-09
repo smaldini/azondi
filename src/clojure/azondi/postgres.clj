@@ -119,7 +119,7 @@
 
   (unsubscribe [this user topic]
     (j/delete! (conn this) :subscriptions ["user_id = ?" user]))
-  
+
   (topic-of-owner [this user topic]
     (clj->psql (first
                 (j/query (conn this)
@@ -130,7 +130,7 @@
 
   (create-topic! [this topic]
     (let [s (extract-topic-name (:topic topic))
-          t (clj->psql (merge topic {:public true :name s}))]
+          t (clj->psql (merge {:public true} topic {:name s}))]
       (psql->clj (-> (j/insert! (conn this) :topics t)
                      first
                      (dissoc :created_on))

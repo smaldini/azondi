@@ -140,6 +140,7 @@
                     :content {}})
                (let [{:keys [status body]} (<! ajax-recv)]
                  (when (= status 201)
+                   (println "Response to creating device is" [status body])
                    ;; Add the device to the list
                    (om/transact! app-state :devices #(conj % body))
                    ;; Set the current device to this new one
@@ -429,6 +430,10 @@
   "Click this button to register  new topic"
   [app-state owner]
   (reify
+    om/IInitState
+    (init-state [this]
+      {:visibility :public})
+
     om/IRender
     (render [this]
       (html
@@ -436,20 +441,8 @@
         {:onSubmit
          (fn [ev]
            (.preventDefault ev)
-           (let [ajax-send (chan)
-                 ajax-recv (ajaj< ajax-send :method :put)]
-             (go
-               (>! ajax-send
-                   {:uri (str "/api/1.0/users/" (:user @app-state) "/topics/" (:new-topic-name @app-state))
-                    :content {:description (or (get-in @app-state [:topic :description]) "")
-                              :unit (or (get-in @app-state [:topic :unit]) "")}
-                              })
 
-               (let [{:keys [status body]} (<! ajax-recv)]
-                 (println "Response to creating topic is" [status body])
-                 ;; TODO: Update topic detail
-                 )
-               (update-topics-list! (:user @app-state) app-state))))}
+           )}
 
         [:div.control-group
          [:div.controls
@@ -460,14 +453,54 @@
                    (fn [e]
                      (let [value (.-value (.-target e))]
                        (om/update! app-state [:new-topic-name] value)))}]
-          (when (not-empty (:new-topic-name app-state)) [:p "Topic will be created as " [:code (str "/users/" (:user app-state) "/" (:new-topic-name app-state))]])]
-         [:p
-          [:div.controls
-           (if (not-empty (:new-topic-name app-state))
-             [:input.btn.btn-primary {:type "submit"
-                                      :value "Create user topic"}]
-             [:input.btn.btn-primary.disabled {:type "submit"
-                                               :value "Create user topic"}])]]]]))))
+
+          ;; <button type="button" class="btn btn-default btn-lg">
+          ;;   <span class="glyphicon glyphicon-star"></span> Star
+          ;; </button>
+
+
+
+          (when (not-empty (:new-topic-name app-state)) [:p "Topic will be created as " [:code (str "/users/" (:user app-state) "/" (:new-topic-name app-state))] "(" (name (om/get-state owner :visibility)) ")"])]
+
+         [:div.controls
+          [:div.btn-group.btn-group-lg
+           [:button.btn.btn-default
+            {:type "button"
+             :onClick (fn [ev] (om/set-state! owner :visibility :public))}
+            [:span.fa.fa-users] " Public topic"]
+
+           [:button.btn.btn-default
+            {:type "button"
+             :onClick (fn [ev] (om/set-state! owner :visibility :private))}
+            [:span.fa.fa-lock] " Private topic"]]]
+
+         [:div.controls
+          (if (not-empty (:new-topic-name app-state))
+            [:input.btn.btn-primary
+             {:type "submit"
+              :onClick (fn [ev]
+                         (let [ajax-send (chan)
+                               ajax-recv (ajaj< ajax-send :method :put)]
+                           (go
+                             (>! ajax-send
+                                 {:uri (str "/api/1.0/users/" (:user @app-state) "/topics/" (:new-topic-name @app-state))
+                                  :content {:description (or (get-in @app-state [:topic :description]) "")
+                                            :unit (or (get-in @app-state [:topic :unit]) "")
+                                            :public (case (om/get-state owner :visibility)
+                                                      :public true
+                                                      :private false)}
+                                  })
+
+                             (let [{:keys [status body]} (<! ajax-recv)]
+                               (println "Response to creating topic is" [status body])
+                               ;; TODO: Update topic detail
+                               )
+                             (update-topics-list! (:user @app-state) app-state))))
+              :value "Create user topic"}]
+            [:input.btn.btn-primary.disabled {:type "submit"
+                                              :value "Create user topic"}]
+
+            )]]]))))
 
 ;; TODO This could be rewritten in terms of connect-device-debugger
 (defn connect-topic-debugger
