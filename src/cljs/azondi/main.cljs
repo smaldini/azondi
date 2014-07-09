@@ -449,16 +449,11 @@
           [:input {:id "name"
                    :type "text"
                    :placeholder "Name of new topic"
+                   :value (:new-topic-name app-state)
                    :onChange
                    (fn [e]
                      (let [value (.-value (.-target e))]
                        (om/update! app-state [:new-topic-name] value)))}]
-
-          ;; <button type="button" class="btn btn-default btn-lg">
-          ;;   <span class="glyphicon glyphicon-star"></span> Star
-          ;; </button>
-
-
 
           (when (not-empty (:new-topic-name app-state)) [:p "Topic will be created as " [:code (str "/users/" (:user app-state) "/" (:new-topic-name app-state))] "(" (name (om/get-state owner :visibility)) ")"])]
 
@@ -479,11 +474,14 @@
             [:input.btn.btn-primary
              {:type "submit"
               :onClick (fn [ev]
+
                          (let [ajax-send (chan)
-                               ajax-recv (ajaj< ajax-send :method :put)]
+                               ajax-recv (ajaj< ajax-send :method :put)
+                               topic-name (:new-topic-name @app-state)]
+                           (om/update! app-state [:new-topic-name] "")
                            (go
                              (>! ajax-send
-                                 {:uri (str "/api/1.0/users/" (:user @app-state) "/topics/" (:new-topic-name @app-state))
+                                 {:uri (str "/api/1.0/users/" (:user @app-state) "/topics/" topic-name)
                                   :content {:description (or (get-in @app-state [:topic :description]) "")
                                             :unit (or (get-in @app-state [:topic :unit]) "")
                                             :public (case (om/get-state owner :visibility)
@@ -495,7 +493,8 @@
                                (println "Response to creating topic is" [status body])
                                ;; TODO: Update topic detail
                                )
-                             (update-topics-list! (:user @app-state) app-state))))
+                             (update-topics-list! (:user @app-state) app-state)))
+                         )
               :value "Create user topic"}]
             [:input.btn.btn-primary.disabled {:type "submit"
                                               :value "Create user topic"}]
