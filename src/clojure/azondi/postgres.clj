@@ -48,7 +48,7 @@
     (j/query (conn this) ["SELECT * FROM users;"]))
 
   (get-user [this user]
-    (let [row (first (j/query (conn this) ["SELECT * FROM users WHERE id = ?" user]))]
+    (when-let [row (first (j/query (conn this) ["SELECT * FROM users WHERE id = ?" user]))]
       {:user (:id row)
        :name (:name row)
        :email (:email row)
@@ -166,11 +166,12 @@
 (defrecord PostgresUserDomain []
   UserDomain
   (verify-user [this uid password]
-    (let [user (get-user (:database this) uid)]
-      (infof "Verifying user: %s against password %s" uid password)
-      (infof "User in database is: %s" user)
-      (and (not (nil? user))
-           (pwd/verify password (:password user uid))))))
+    (s/with-fn-validation
+      (let [user (get-user (:database this) uid)]
+        (infof "Verifying user: %s against password %s" uid password)
+        (infof "User in database is: %s" user)
+        (and (not (nil? user))
+             (pwd/verify password (:password user uid)))))))
 
 (defn new-postgres-user-domain []
   (component/using (->PostgresUserDomain) [:database]))
