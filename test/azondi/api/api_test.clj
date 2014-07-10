@@ -162,10 +162,10 @@
             (is (contains? (:body response) :user))
             (is (contains? (:body response) :topics))
 
-            ;; Create a topic
+            ;; Create a public topic
             (request :put topic-uri
                      :auth ["alice" "shock"]
-                     :data {})
+                     :data {:public true})
 
             (let [topics-response (request :get topics-uri :auth ["alice" "shock"])]
               (is (contains? (:body response) :topics))
@@ -175,39 +175,45 @@
             (let [topic-response (request :get topic-uri :auth ["alice" "shock"])]
               (is (= (:body topic-response)
                      {:owner "alice",
-                      :topic "/users/alice/pollution",})))
+                      :topic "/users/alice/pollution"
+                      :public true})))
 
             ;; Patch the topic
             (request :put topic-uri
                      :auth ["alice" "shock"]
                      :data {:unit "PM25"
-                            :description "Forgot the description!"})
+                            :description "Forgot the description!"
+                            :public true})
 
             (let [topic-response (request :get topic-uri :auth ["alice" "shock"])]
               (is (= (:body topic-response)
                      {:owner "alice",
                       :topic "/users/alice/pollution",
                       :unit "PM25",
-                      :description "Forgot the description!"})))
+                      :description "Forgot the description!"
+                      :public true})))
 
             (request :put topic-uri
                      :auth ["alice" "shock"]
                      :data {:unit "PM25"
-                            :description "Dangerous atmospheric particulate matter"})
+                            :description "Dangerous atmospheric particulate matter"
+                            :public true})
 
             (let [topic-response (request :get topic-uri :auth ["alice" "shock"])]
               (is (= (:body topic-response)
                      {:owner "alice",
                       :topic "/users/alice/pollution",
                       :unit "PM25",
-                      :description "Dangerous atmospheric particulate matter"})))
+                      :description "Dangerous atmospheric particulate matter"
+                      :public true})))
 
             (let [topic-response (request :get topic-uri :auth ["alice" "shock"])]
               (is (= (:body topic-response)
                      {:owner "alice",
                       :topic "/users/alice/pollution",
                       :description "Dangerous atmospheric particulate matter",
-                      :unit "PM25"})))
+                      :unit "PM25"
+                      :public true})))
 
             (request :delete topic-uri :auth ["alice" "shock"])
 
