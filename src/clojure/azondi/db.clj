@@ -3,6 +3,8 @@
    [azondi.db.protocol :as p]
    [schema.core :as s]))
 
+;; Convenience schema
+(def StrNotEmpty (s/both s/Str (s/pred not-empty)))
 
 ;; We dispatch on the protocol via these wrappers which allow us to add
 ;; schema validation
@@ -45,28 +47,28 @@
    user pw]
   (p/create-device! component user pw))
 
-(s/defn get-device :- (s/maybe {:client-id s/Str
+(s/defn get-device :- (s/maybe {:client-id StrNotEmpty
                                 :user s/Str
                                 (s/optional-key :name) s/Str
                                 (s/optional-key :description) s/Str})
   [component :- (s/protocol p/Datastore)
-   client-id :- s/Str]
+   client-id :- StrNotEmpty]
   (p/get-device component client-id))
 
 (s/defn delete-device!
   [component :- (s/protocol p/Datastore)
-   client-id :- s/Str]
+   client-id :- StrNotEmpty]
   (p/delete-device! component client-id))
 
 (s/defn set-device-password!
   [component :- (s/protocol p/Datastore)
-   client-id :- s/Str
+   client-id :- StrNotEmpty
    p :- s/Str]
   (p/set-device-password! component client-id p))
 
 (s/defn allowed-device?
   [component :- (s/protocol p/Datastore)
-   client-id :- s/Str
+   client-id :- StrNotEmpty
    user
    p]
   (p/allowed-device? component client-id user p))
@@ -113,7 +115,7 @@
 
 (s/defn patch-device!
   [component :- (s/protocol p/Datastore)
-   client-id :- s/Str
+   client-id :- StrNotEmpty
    data]
   (p/patch-device! component client-id data))
 

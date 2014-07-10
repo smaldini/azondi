@@ -72,7 +72,7 @@
   (get-device [this client-id]
     (let [row (first (j/query (conn this) ["SELECT * FROM devices WHERE client_id = ?;" (Long/parseLong client-id)]))]
       (merge
-       {:client-id (str (:client-id row))
+       {:client-id (str (:client_id row))
         :user (:owner_user_id row)}
        (when-let [description (:description row)] {:description description})
        (when-let [name (:name row)] {:name name}))))

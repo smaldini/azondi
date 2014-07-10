@@ -84,25 +84,32 @@
                    {:onClick ; if we click on one of the devices
                     (fn [ev]
                       (.preventDefault ev) ; don't follow the link
-                      (let [ajax-send (chan)
+                      (let [uri (str uri-init "/users/" (:user @app-state) "/devices/" client-id)
+                            ajax-send (chan)
                             ajax-recv (ajaj< ajax-send
                                              :method :get
-                                             :uri (str uri-init "/users/" (:user @app-state) "/devices/" client-id)
+                                             :uri uri
                                              :content {})]
+                        (println "uri is" uri)
                         (go
                           (>! ajax-send {}) ; Trigger a 'GET' of the latest device details
                           (let [{:keys [status body] :as response} (<! ajax-recv)]
-                            (when (= status 200)
+                            (if (= status 200)
                               ;; Update the device in the app-state. This
                               ;; causes the device details component to
                               ;; refresh.
-                              (om/update! app-state :device
-                                          ;; We must avoid setting controlled
-                                          ;; component input values to nil,
-                                          ;; so we merge in empty string
-                                          ;; defaults!
-                                          (merge {:name "" :description ""}
-                                                 (select-keys body [:client-id :name :description]))))))))}
+                              (do
+                                (println "Updating device content with body:" body)
+                                (println "app-state: " @app-state)
+                                (om/update! app-state [:device]
+                                            ;; We must avoid setting controlled
+                                            ;; component input values to nil,
+                                            ;; so we merge in empty string
+                                            ;; defaults!
+                                            (merge {:name "" :description ""}
+                                                   (select-keys body [:client-id :name :description]))))
+                              (println "ERROR with GET on " uri ": " status body)
+                              )))))}
                    ;; We display the client-id as the link text
                    client-id]]
 

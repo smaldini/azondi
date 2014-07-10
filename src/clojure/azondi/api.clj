@@ -259,10 +259,15 @@
    :processable? (create-schema-check device-attributes-schema)
    :handle-unprocessable-entity handle-unprocessable-entity
 
-   :put! (fn [{client-id :client-id body :body}] (patch-device! db (str client-id) body))
-   :delete! (fn [{client-id :client-id}] (delete-device! db (str client-id)))
+   :put! (fn [{client-id :client-id body :body}] (patch-device! db client-id body))
+   :delete! (fn [{client-id :client-id}] (delete-device! db client-id))
 
-   :handle-ok (fn [{client-id :client-id}] (get-device db (str client-id)))
+   :handle-ok (fn [{client-id :client-id}]
+                (let [res
+                      (get-device db client-id)]
+                  (infof "get-device returning %s" res)
+                  res
+                  ))
    :handle-created (fn [_] {:message "Patched"})})
 
 
