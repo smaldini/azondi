@@ -395,7 +395,6 @@
               {:onClick              ; if we click on one of the topics
                (fn [ev]
                  (.preventDefault ev)   ; don't follow the link
-                 (println "Getting topic detail for" topic)
                  (let [uri (str "/api/1.0/users/" (:user @app-state) "/topics/" (subs topic (count (str "/users/" (:user @app-state) "/"))))
                        ajax-send (chan)
                        ajax-recv (ajaj< ajax-send
@@ -410,7 +409,6 @@
                          ;; Update the device in the app-state. This
                          ;; causes the device details component to
                          ;; refresh.
-                         (println "body returned is" body)
                          (om/update! app-state :topic
                                      ;; We must avoid setting controlled
                                      ;; component input values to nil,
@@ -567,7 +565,6 @@
                               ajax-recv (ajaj< ajax-send :method :put)]
                           (when-let [topic (get-in @app-state [:topic :topic])]
                             (let [uri (str "/api/1.0/users/" (:user @app-state) "/topics/"  (subs topic (count (str "/users/" (:user @app-state) "/"))))]
-                              (println "PUT to topic detail uri:" uri)
                               (go
                                 (>! ajax-send
                                     {:uri uri
