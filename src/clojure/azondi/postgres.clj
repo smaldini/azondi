@@ -129,9 +129,17 @@
                    topic, owner])))
 
   (get-topic [this topic-id]
-    (psql->clj
-     (-> (-> (first (j/query (conn this) ["SELECT * FROM topics WHERE topic = ?;" topic-id]))
-             (dissoc :created_on)))))
+    (when-let [row
+               (first (j/query (conn this) ["SELECT * FROM topics WHERE topic = ?;" topic-id]))]
+      (merge
+       {:owner (:owner row)
+        :topic (:topic row)
+        :public (:public row)
+        }
+       (when-let [x (:description row)] {:description x})
+       (when-let [x (:unit row)] {:unit x})
+       )
+      ))
 
   (delete-topic! [this topic-id]
     (j/delete! (conn this) :topics ["topic = ?" topic-id]))
