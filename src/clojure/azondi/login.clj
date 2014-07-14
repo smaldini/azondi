@@ -2,13 +2,15 @@
   (:require
    [cylon.impl.login-form :refer (LoginFormRenderer)]
    [hiccup.core :refer (html)]
-   [azondi.basepage :refer (base-page)]))
+   [azondi.basepage :refer (base-page)]
+   [com.stuartsierra.component :as component]
+   [cylon.authorization :refer (authorized?)]))
 
 (defrecord CustomLoginFormRenderer []
   LoginFormRenderer
   (render-login-form
     [this request {:keys [requested-uri action login-status fields]}]
-    (base-page request
+    (base-page (authorized? (:authorizer this) request nil)
                (html [:form.form-set {:method "POST"
                                       :action action
                                       :id "sign-in-form"}
@@ -29,4 +31,4 @@
                       ]))))
 
 (defn new-custom-login-form-renderer []
-  (->CustomLoginFormRenderer))
+  (component/using (->CustomLoginFormRenderer) [:authorizer]))

@@ -127,6 +127,7 @@
 
    :webserver {:request-handler :webrouter}
    :webrouter [:webapp :api :sse :main-cljs-builder :login-form]
+   :login-form {:authorizer :valid-user-authorizer}
    :webapp {:authorizer :valid-user-authorizer}
    :valid-user-authorizer {:authenticator :authenticator}
    })
