@@ -61,7 +61,9 @@
     (j/update! (conn this) :users {:password_hash (sc/encrypt password)} ["id = ?" user]))
 
   (devices-by-owner [this user]
-    (psql->clj (j/query (conn this) ["SELECT * FROM devices WHERE owner_user_id = ?;" user])))
+    (->> (psql->clj (j/query (conn this) ["SELECT * FROM devices WHERE owner_user_id = ?;" user]))
+                   (map #(-> (update-in % [:client-id] str)
+                             (dissoc :created-on :device-password-hash :owner-user-id :id)))))
 
   (create-device! [this user pwd]
     (let [data {:owner_user_id user :device_password_hash (sc/encrypt pwd)}]
