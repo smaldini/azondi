@@ -113,8 +113,8 @@
     (-> this :database :apikeys deref (get user)))
 
   (delete-api-key [this user]
-    (throw (ex-info "TODO" {}))
-    )
+    (dosync
+       (alter (-> this :database :apikeys) dissoc user)))
 
   (find-user-by-api-key [this api-key]
     (infof "Finding user by api-key: %s" api-key)
