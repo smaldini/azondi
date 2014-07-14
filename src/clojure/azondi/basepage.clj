@@ -41,7 +41,8 @@
    [:div.jumbotron
     [:div#logoarea {:class "vcenter"}
      ;;[:h2 "Big Data"]
-     ;;[:h2 "Small Devices"]
+     ;[:h2 "Small Devices"]
+     [:h1 "opensensors.IO" [:sup "beta"]]
      [:svg {:viewBox "0 20 1000 100"  :height "60"}
       [:circle {:cx 400 :cy 30 :fill "red" :opacity "1.0" :r "1"}
        [:animate {:attributeName "r" :begin "1s" :calcmode "linear" :dur "1s" :values="15; 4; 2; 1"}]]]]]])

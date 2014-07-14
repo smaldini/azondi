@@ -142,9 +142,9 @@
    topic]
   (p/unsubscribe component user topic))
 
-(s/defn get-api-key :- {:id s/Str
-                        :created_on s/Inst
-                        :api s/Str}
+(s/defn get-api-key :- (s/maybe {:id s/Str
+                                 :created_on s/Inst
+                                 :api s/Str})
   [component :- (s/protocol p/Datastore)
    user :- s/Str]
   (p/get-api-key component user))
