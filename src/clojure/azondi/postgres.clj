@@ -158,6 +158,9 @@
   (create-api-key [this user]
     (let [api (str (java.util.UUID/randomUUID))]
       (j/insert! (conn this) :api_keys {:id user :api api})))
+
+  (find-user-by-api-key [this api-key]
+    (:id (first (j/query (conn this) ["SELECT users.id FROM users,api_keys WHERE users.id = api_keys.id AND api_keys.api = ?" api-key]))))
   )
 
 (defn new-database
