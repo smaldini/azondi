@@ -199,7 +199,7 @@
 (defn api-page [user]
   (base-page user
    [:div
-    [:div.row "Your user info:"]
+    [:div.row [:h3 "API Information:"]]
     [:div.row
      [:span "user-id: "] [:strong [:span#api-info-user-id]]
      ]
@@ -211,6 +211,7 @@
 
     [:hr]
     [:div "All of the API calls should be made to " [:code "opensensors.IO"]]
+    [:h3 "Authentication"]
     [:div "Authorization is achieved by adding the following HTTP header"]
     [:pre#api-authorisation-key "Authorization: api-key " [:span.api-info-api-key-view]]
     [:h3#api-devices-url]
