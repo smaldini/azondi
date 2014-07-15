@@ -132,14 +132,14 @@
    :email s/Str
    })
 
-(defn user-resource [db]
+(defn user-resource [db authorizer]
   {:available-media-types #{"application/json" "text/html"}
    :allowed-methods #{:put :get}
 
-   ;; We only allow local access
-   :allowed?
-   (fn [{{:keys [remote-addr request-method]} :request}]
-     (= remote-addr "127.0.0.1"))
+   :authorized? (fn [{{{user :user :as rp} :route-params :as request} :request}]
+                  (authorized? authorizer request rp))
+
+   :handle-unauthorized (fn [_] (encode {:error "Unauthorized"}))
 
    :known-content-type? #{"application/json"}
    :processable? (create-schema-check new-user-schema)
@@ -173,10 +173,15 @@
 
    :handle-created (fn [{body :response-body}] body)})
 
-(defn reset-user-password-resource [db]
+(defn reset-user-password-resource [db authorizer]
   {:available-media-types #{"application/json"}
    :allowed-methods #{:post}
-   ;;:allowed? same-user
+
+   :authorized? (fn [{{{user :user :as rp} :route-params :as request} :request}]
+                  (authorized? authorizer request rp))
+
+   :handle-unauthorized (fn [_] (encode {:error "Unauthorized"}))
+
    :post! (fn [{{body :body {user :user} :route-params} :request}]
             (let [password (get-in (->clj (read-json-body body)) [:password])]
               (reset-user-password db user password)
@@ -198,15 +203,6 @@
                          )
         random-char (fn [] (nth valid-chars (rand (count valid-chars))))]
     (apply str (take 8 (repeatedly random-char)))))
-
-#_(defn same-user
-  "Ensure a resource can only be accessed by the user who owns the
-  object (device, topic, etc.)"
-  [{request :request}]
-  ;; Fortunately, this is a very simple algorithm
-  (when (not-empty (-> request :route-params :user))
-    (= (-> request :route-params :user)
-       (:cylon/user request))))
 
 (defn devices-resource [db authorizer]
   {:available-media-types #{"application/json"}
@@ -234,10 +230,6 @@
                    (assoc :password p)))})
 
    :handle-created (fn [{device :device}] (->js device))})
-
-(defn extract-api-key [req]
-  (when-let [auth (get (:headers req) "authorization")]
-    (second (re-matches #"api-key\s([0-9a-f-]+)" auth))))
 
 (defn device-resource [db authorizer]
   {:available-media-types #{"application/json"}
@@ -271,10 +263,15 @@
    :handle-created (fn [_] {:message "Patched"})})
 
 
-(defn reset-device-password-resource [db]
+(defn reset-device-password-resource [db authorizer]
   {:available-media-types #{"application/json"}
    :allowed-methods #{:post}
-   ;;:allowed? same-user
+
+   :authorized? (fn [{{{user :user :as rp} :route-params :as request} :request}]
+                  (authorized? authorizer request rp))
+
+   :handle-unauthorized (fn [_] (encode {:error "Unauthorized"}))
+
    :post! (fn [{{{:keys [client-id]} :route-params} :request}]
             (let [p (generate-device-password)]
               (set-device-password! db (str client-id) p)
@@ -286,10 +283,15 @@
    (s/optional-key :unit) s/Str
    (s/optional-key :description) s/Str})
 
-(defn topics-resource [db]
+(defn topics-resource [db authorizer]
   {:available-media-types #{"application/json"}
    :allowed-methods #{:get}
-   ;;:allowed? same-user
+
+   :authorized? (fn [{{{user :user :as rp} :route-params :as request} :request}]
+                  (authorized? authorizer request rp))
+
+   :handle-unauthorized (fn [_] (encode {:error "Unauthorized"}))
+
    :handle-ok (fn [{{{user :user} :route-params} :request}]
                 (let [body
                       {:user user
@@ -299,10 +301,15 @@
                                 (map #(reduce-kv (fn [acc k v] (assoc acc (->camelCaseString k) v)) {} %)))}]
                   (encode body)))})
 
-(defn topic-resource [db]
+(defn topic-resource [db authorizer]
   {:available-media-types #{"application/json"}
    :allowed-methods #{:get :put :delete}
-   ;;:allowed? same-user
+
+   :authorized? (fn [{{{user :user :as rp} :route-params :as request} :request}]
+                  (authorized? authorizer request rp))
+
+   :handle-unauthorized (fn [_] (encode {:error "Unauthorized"}))
+
    :known-content-type? #{"application/json"}
    :exists? (fn [{{{user :user topic-name :topic-name} :route-params} :request}]
               (infof "topic resource exists..?")
@@ -364,10 +371,16 @@
 
    :handle-created (fn [{body :response-body}] body)})
 
-(defn api-resource [db]
+(defn api-resource [db authorizer]
   {:available-media-types #{"application/json"}
    :allowed-methods #{:get :post}
    :known-content-type? #{"application/json"}
+
+   :authorized? (fn [{{{user :user :as rp} :route-params :as request} :request}]
+                  (authorized? authorizer request rp))
+
+   :handle-unauthorized (fn [_] (encode {:error "Unauthorized"}))
+
    :exists? (fn [{{{user :user} :route-params} :request}]
               (let [api-key (-> (get-api-key db user)
                                 (select-keys [:api]))]
@@ -397,15 +410,15 @@
   (->
    {::welcome (resource (welcome-resource))
     ::users (resource (users-resource db))
-    ::user (resource (user-resource db))
+    ::user (resource (user-resource db authorizer))
     ::devices (resource (devices-resource db authorizer))
     ::device (resource (device-resource db authorizer))
-    ::reset-password (resource (reset-device-password-resource db))
-    ::topics (resource (topics-resource db))
-    ::topic (resource (topic-resource db))
+    ::reset-password (resource (reset-device-password-resource db authorizer))
+    ::topics (resource (topics-resource db authorizer))
+    ::topic (resource (topic-resource db authorizer))
     ::subscriptions (resource (subscriptions-resource db authorizer))
-    ::api-key (-> db api-resource resource)
-    ::reset-user-password (resource (reset-user-password-resource db))}
+    ::api-key (resource (api-resource db authorizer))
+    ::reset-user-password (resource (reset-user-password-resource db authorizer))}
    (apply-middleware-to-handlers wrap-with-fn-validation)))
 
 (def routes

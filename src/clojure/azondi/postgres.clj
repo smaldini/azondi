@@ -61,7 +61,9 @@
     (j/update! (conn this) :users {:password_hash (sc/encrypt password)} ["id = ?" user]))
 
   (devices-by-owner [this user]
-    (psql->clj (j/query (conn this) ["SELECT * FROM devices WHERE owner_user_id = ?;" user])))
+    (->> (psql->clj (j/query (conn this) ["SELECT * FROM devices WHERE owner_user_id = ?;" user]))
+                   (map #(-> (update-in % [:client-id] str)
+                             (dissoc :created-on :device-password-hash :owner-user-id :id)))))
 
   (create-device! [this user pwd]
     (let [data {:owner_user_id user :device_password_hash (sc/encrypt pwd)}]
@@ -156,6 +158,9 @@
   (create-api-key [this user]
     (let [api (str (java.util.UUID/randomUUID))]
       (j/insert! (conn this) :api_keys {:id user :api api})))
+
+  (find-user-by-api-key [this api-key]
+    (:id (first (j/query (conn this) ["SELECT users.id FROM users,api_keys WHERE users.id = api_keys.id AND api_keys.api = ?" api-key]))))
   )
 
 (defn new-database

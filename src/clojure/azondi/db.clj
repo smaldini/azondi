@@ -38,6 +38,9 @@
   (p/reset-user-password component user password))
 
 (s/defn devices-by-owner
+  :- (s/maybe [{:client-id StrNotEmpty
+                (s/optional-key :name) s/Any
+                 (s/optional-key :description) s/Any}])
   [component :- (s/protocol p/Datastore)
    user]
   (p/devices-by-owner component user))
