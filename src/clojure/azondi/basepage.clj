@@ -13,6 +13,10 @@
       :security :user
       :location :sidebar
       :target "/topics"}
+     {:label "API"
+      :security :user
+      :location :sidebar
+      :target "/api-docs"}
      {:label "Getting Started"
       :security :user
       :location :navbar
@@ -24,9 +28,7 @@
       :children [{:label "Reset Password"
                   :security :user
                   :target "/reset-password"}
-                 {:label "API"
-                  :security :user
-                  :target "/api-docs"}]}
+                 ]}
      {:label "Login"
       :security :none
       :location :navbar
@@ -199,29 +201,38 @@
 (defn api-page [user]
   (base-page user
    [:div
-    [:div.row [:h3 "API Information:"]]
     [:div.row
-     [:span "user-id: "] [:strong [:span#api-info-user-id]]
-     ]
-    [:div.row
-     [:span "api-key: "] [:strong [:span.api-info-api-key-view]]]
+     [:div#api-info.col-sm-10
+      [:div#your-api-keys
+      [:h3 "Your API Key"]
+      [:span "api-key: "] [:strong [:span.api-info-api-key-view]] [:br]
+       [:a#api-info-api-key-link {:href "#"} "reset your API key..."]]
 
-    [:div.row
-     [:a#api-info-api-key-link {:href "#"} "reset the API key..."]]
+      [:div
+       [:div "All API calls should be made to " [:code "opensensors.IO"]]
+       [:h3 [:b "Authentication"]]
+       [:div "Authorization is achieved by adding the following HTTP header"]
+       [:pre#api-authorisation-key "Authorization: api-key " [:span.api-info-api-key-view]]
+       "For example send a GET request to return your existing devices"
+       [:pre "curl -X GET -H 'Authorization: api-key " [:span.api-info-api-key-view] "' opensensors.IO/api/1.0/users/" [:span#api-info-user-id] "/devices/"]
+       [:hr]]
 
-    [:hr]
-    [:div "All of the API calls should be made to " [:code "opensensors.IO"]]
-    [:h3 "Authentication"]
-    [:div "Authorization is achieved by adding the following HTTP header"]
-    [:pre#api-authorisation-key "Authorization: api-key " [:span.api-info-api-key-view]]
-    [:h3#api-devices-url]
-    [:p "Send a PUT request to this address to create new devices for your user. The API expects a JSON map with optional entries describing the device's metadata. Each PUT will return a JSON map, containing the following entries :-"]
-    [:ul
-     [:li "client-id : the client id to use for your device when connecting to the opensensors.io MQTT broker"]
-     [:li "user : the user name to use when connecting (this is the same as your username)"]
-     [:li "password : the password to use when connecting"]
-     [:li "device-id : the device id, you can publish to any topics below this path"]]
+      [:div
+       [:h3 [:b "New Devices"]]
+       [:p "Send a POST request to this address to create new devices. Each POST will return a JSON map, containing the following entries :-"]
+       [:pre "curl -X POST -H 'Authorization: api-key " [:span.api-info-api-key-view] "' opensensors.IO/api/1.0/users/" [:span#api-info-user-id] "/devices/ -d '{}'"]
+       [:ul
+        [:li "client-id : the client id to use for your device when connecting to the opensensors.io MQTT broker"]
+        [:li "ownerUserId : the user name to use when connecting (this is the same as your username)"]
+        [:li "password : the password to use when connecting with the device"]
+        [:li "name : the name of the device"]
+        [:li "description : the description of the device"]]
+       [:hr]]
 
-    [:h3#api-topics-url]
-    [:p "Send a GET request this address to return your existing devices."]]
-   [:script "populate_api_page ()"]))
+      [:div
+       [:h3 [:b "Update Devices"]]
+       [:p "Send a PUT request to this address ending with a device id to update the device details. The request should have a JSON map with entries to be updated currently name and description"]
+       [:hr]]]]
+      ]
+   [:script "populate_api_page ()"]
+     ))
