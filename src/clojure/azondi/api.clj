@@ -14,6 +14,7 @@
    [schema.core :as s]
    [camel-snake-kebab :refer (->kebab-case-keyword ->camelCaseString)]
    [azondi.db :refer (get-users get-user delete-user! create-user! devices-by-owner get-device delete-device! create-device! patch-device! topics-by-owner get-topic delete-topic! create-topic! patch-topic! set-device-password! get-api-key delete-api-key create-api-key reset-user-password find-user-by-api-key create-subscription unsubscribe subscriptions-by-owner)]
+   [azondi.messages-db :refer (messages-by-owner)]
    [hiccup.core :refer (html)]
    [clojure.walk :refer (postwalk)]
    liberator.representation
@@ -96,6 +97,17 @@
                   "text/plain" welcome
                   "text/html" (html [:h1 welcome])
                   ("application/json" "application/edn") {:message welcome :current-date (java.util.Date.)}))})
+
+(defn messages-resource [messages-db authorized?]
+  {:allowed-methods #{:get}
+   :available-media-types #{"application/json"}
+   :authorized? (fn [r] true)
+   ;; TODO add authorizer
+   #_(fn [{{{user :user :as rp} :route-params :as request} :request}]
+     (authorized? authorizer request rp))
+   :handle-ok (fn [{{{user :user} :route-params :as req} :request}]
+                (encode {:user user
+                         :messages (map #(update-in % [:payload] str) (messages-by-owner messages-db user))}))})
 
 ;;;;; ----- USERS ----
 
@@ -406,7 +418,7 @@
 (defn apply-middleware-to-handlers [m middleware]
   (reduce-kv (fn [a k v] (assoc a k (middleware v))) {} m))
 
-(defn handlers [db authorizer]
+(defn handlers [db messages-db authorizer]
   (->
    {::welcome (resource (welcome-resource))
     ::users (resource (users-resource db))
@@ -418,7 +430,8 @@
     ::topic (resource (topic-resource db authorizer))
     ::subscriptions (resource (subscriptions-resource db authorizer))
     ::api-key (resource (api-resource db authorizer))
-    ::reset-user-password (resource (reset-user-password-resource db authorizer))}
+    ::reset-user-password (resource (reset-user-password-resource db authorizer))
+    ::messages (resource (messages-resource messages-db authorizer))}
    (apply-middleware-to-handlers wrap-with-fn-validation)))
 
 (def routes
@@ -438,16 +451,18 @@
                           "/subscriptions" (->Redirect 307 ::subscriptions)
                           "/api-key/" ::api-key
                           "/api-key" (->Redirect 307 ::api-key)
-                          "/reset-password" ::reset-user-password}}])
+                          "/reset-password" ::reset-user-password
+                          "/messages/" ::messages
+                          }}])
 
 (defrecord Api []
   WebService
-  (request-handlers [this] (handlers (:database this) (:authorizer this)))
+  (request-handlers [this] (handlers (:database this) (:cassandra this) (:authorizer this)))
   (routes [_] routes)
   (uri-context [_] "/api/1.0"))
 
 (defn new-api [& {:as opts}]
-  (component/using (->Api) [:database :authorizer]))
+  (component/using (->Api) [:database :authorizer :cassandra]))
 
 ;; Authorization
 
