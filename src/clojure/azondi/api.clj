@@ -13,7 +13,7 @@
    [cheshire.core :refer (decode decode-stream encode)]
    [schema.core :as s]
    [camel-snake-kebab :refer (->kebab-case-keyword ->camelCaseString)]
-   [azondi.db :refer (get-users get-user delete-user! create-user! devices-by-owner get-device delete-device! create-device! patch-device! topics-by-owner get-topic delete-topic! create-topic! patch-topic! set-device-password! get-api-key delete-api-key create-api-key reset-user-password find-user-by-api-key create-subscription unsubscribe subscriptions-by-owner)]
+   [azondi.db :refer (get-users get-user delete-user! create-user! devices-by-owner get-device delete-device! create-device! patch-device! topics-by-owner get-topic delete-topic! create-topic! patch-topic! set-device-password! get-api-key delete-api-key create-api-key reset-user-password find-user-by-api-key create-subscription unsubscribe subscriptions-by-owner get-ws-session-token delete-ws-session-token create-ws-session-token find-ws-session-by-token)]
    [hiccup.core :refer (html)]
    [clojure.walk :refer (postwalk)]
    liberator.representation
@@ -398,6 +398,32 @@
    :handle-created (fn [{api-key :api-key}]
                      (->js api-key))})
 
+(defn ws-resource [db authorizer]
+  {:available-media-types #{"application/json"}
+   :allowed-methods #{:get :post}
+   :known-content-type? #{"application/json"}
+   :authorized? (fn [{{{user :user :as rp} :route-params :as request} :request}]
+                  (authorized? authorizer request rp))
+
+   :handle-unauthorized (fn [_] (encode {:error "Unauthorized"}))
+
+   :exists? (fn [{{{user :user} :route-params} :request}]
+              (let [token (-> (get-ws-session-token db user)
+                                (select-keys [:token]))]
+                {:user user :token token}))
+   :handle-ok (fn [{user :user token :token}]
+                (assoc token :user user))
+   :post! (fn [{{{user :user} :route-params} :request}]
+            {:token
+             (if (get-ws-session-token db user)
+               (do
+                 (delete-ws-session-token db user)
+                 (create-ws-session-token db user))
+               (create-ws-session-token db user))})
+
+   :handle-created (fn [{token :token}]
+                     token)})
+
 (defn wrap-with-fn-validation [h]
   (fn [req]
     (s/with-fn-validation
@@ -418,7 +444,8 @@
     ::topic (resource (topic-resource db authorizer))
     ::subscriptions (resource (subscriptions-resource db authorizer))
     ::api-key (resource (api-resource db authorizer))
-    ::reset-user-password (resource (reset-user-password-resource db authorizer))}
+    ::reset-user-password (resource (reset-user-password-resource db authorizer))
+    ::ws-token (resource (ws-resource db authorizer))}
    (apply-middleware-to-handlers wrap-with-fn-validation)))
 
 (def routes
@@ -438,6 +465,8 @@
                           "/subscriptions" (->Redirect 307 ::subscriptions)
                           "/api-key/" ::api-key
                           "/api-key" (->Redirect 307 ::api-key)
+                          "/ws-token/" ::ws-token
+                          "/ws-token" (->Redirect 307 ::ws-token)
                           "/reset-password" ::reset-user-password}}])
 
 (defrecord Api []

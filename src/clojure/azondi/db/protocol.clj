@@ -30,4 +30,8 @@
   (delete-api-key [_ user])
   (create-api-key [_ user])
   (find-user-by-api-key [_ api-key])
-  )
+  ;;ws
+  (get-ws-session-token [_ user])
+  (delete-ws-session-token [_ user])
+  (create-ws-session-token [_ user])
+  (find-ws-session-by-token [_ token]))

@@ -161,6 +161,18 @@
 
   (find-user-by-api-key [this api-key]
     (:id (first (j/query (conn this) ["SELECT users.id FROM users,api_keys WHERE users.id = api_keys.id AND api_keys.api = ?" api-key]))))
+
+  (get-ws-session-token [this user]
+    (first (j/query (conn this) ["SELECT * FROM ws_session_tokens WHERE user_id = ?" user])))
+
+  (delete-ws-session-token [this user]
+    (j/delete! (conn this) :ws_session_tokens ["user_id = ?" user]))
+
+  (create-ws-session-token [this user]
+    (j/insert! (conn this) :ws_session_tokens {:user_id user :token (str (java.util.UUID/randomUUID))}))
+
+  (find-ws-session-by-token [this token]
+    (first (j/query (conn this) ["SELECT user_id from ws_session_tokens WHERE token = ?" token])))
   )
 
 (defn new-database

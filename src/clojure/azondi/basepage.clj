@@ -17,7 +17,11 @@
       :security :user
       :location :sidebar
       :target "/api-docs"}
-     {:label "Getting Started"
+    {:label "Web Sockets"
+      :security :user
+      :location :sidebar
+      :target "/web-sockets"}
+    {:label "Getting Started"
       :security :user
       :location :navbar
       :target "/help"}
@@ -204,8 +208,9 @@
     [:div.row
      [:div#api-info.col-sm-10
       [:div#your-api-keys
-      [:h3 "Your API Key"]
-      [:span "api-key: "] [:strong [:span.api-info-api-key-view]] [:br]
+       [:h3 "Your API Key"]
+       [:span "api-key: "] [:strong [:span.api-info-api-key-view]] [:br]
+       [:p "Please keep this information secure"] [:br]
        [:a#api-info-api-key-link {:href "#"} "reset your API key..."]]
 
       [:div
@@ -228,11 +233,23 @@
         [:li "name : the name of the device"]
         [:li "description : the description of the device"]]
        [:hr]]
-
       [:div
        [:h3 [:b "Update Devices"]]
        [:p "Send a PUT request to this address ending with a device id to update the device details. The request should have a JSON map with entries to be updated currently name and description"]
-       [:hr]]]]
-      ]
+       [:hr]]]]]
    [:script "populate_api_page ()"]
-     ))
+   ))
+
+(defn web-sockets [user]
+  (base-page user
+             [:div#web-socket-information.row
+              [:p "To use the real time device data streams in your websites or applications use the provided details"]
+              [:div#your-websocket-session
+               [:h3 [:b "Firehose Details"]] [:br]
+               [:span "Session Token ID: " [:strong [:span.ws-info-session-token]] [:br]]
+               [:br]
+               [:span#ws-session-url "URL: " [:strong [:span#ws-session-url-info]] [:br]]
+               [:br]
+               [:a#ws-info-ws-session-token-link {:href "#"} "reset your session id"]]
+              ]
+              [:script "populate_ws_page ()"]))

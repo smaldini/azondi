@@ -33,14 +33,11 @@ function populate_api_page () {
     	type: "GET",
     	contentType: "application/json; charset=utf-8",
     	dataType: "json",
-    	success: function(data){console.log (data);
-				$('#api-info-user-id').replaceWith("<span#api-info-user-id>"+ data.user + "</span>");
-				 $('.api-info-api-key-view').empty ().append ("<span#api-info-api-key-view>"+ data.api + "</span>");
-				 $ ('#uuid-api-view').empty ().append ("<span#uuid-api-view>?user=" + data.user + "&API=" + data.api + "</span>");
-
-			       },
-    	failure: function(errMsg) {
-        alert(errMsg);}});
+    	success: function(data){
+	    $('#api-info-user-id').replaceWith("<span#api-info-user-id>"+ data.user + "</span>");
+	    $('.api-info-api-key-view').empty ().append ("<span#api-info-api-key-view>"+ data.api + "</span>");
+	    $ ('#uuid-api-view').empty ().append ("<span#uuid-api-view>?user=" + data.user + "&API=" + data.api + "</span>");},
+    	failure: function(errMsg) {alert(errMsg);}});
 }
 
 $ ('#api-info-api-key-link').on ('click', function () {
@@ -55,3 +52,30 @@ $ ('#api-info-api-key-link').on ('click', function () {
 	failure: function(errMsg) {
             alert(errMsg);}});
 });
+
+function populate_ws_page () {
+    var user = $.session.get ('user');
+    $.ajax ({
+	url: "api/1.0/users/" + user + "/ws-token",
+	type: "GET",
+    	contentType: "application/json; charset=utf-8",
+    	dataType: "json",
+	success: function(data){
+	    $ ('#ws-session-url-info').empty ().append ("<span#ws-session-url-info> opensensors.IO/events/stream/users/" + user + "?token=" + data.token + "</span>" );
+	    $('.ws-info-session-token').empty().append ("<span.ws-info-session-token>"+ data.token + "</span>");
+	},
+    	failure: function(errMsg) {alert(errMsg);}});
+    }
+
+$ ('#ws-info-ws-session-token-link').on ('click', function () {
+    var user =  $.session.get ('user');
+    $.ajax ({
+	url: "api/1.0/users/" + user + "/ws-token",
+	type: "POST",
+	contentType: "application/json; charset=utf-8",
+    	dataType: "json",
+	success: function(data) {populate_ws_page ();},
+	failure: function(errMsg) {
+            alert(errMsg);}});
+});
+

@@ -166,3 +166,23 @@
   [component :- (s/protocol p/Datastore)
    api-key :- s/Str]
   (p/find-user-by-api-key component api-key))
+
+(s/defn get-ws-session-token
+   [component :- (s/protocol p/Datastore)
+    user :- s/Str]
+   (p/get-ws-session-token component user))
+
+(s/defn delete-ws-session-token
+  [component :- (s/protocol p/Datastore)
+   user]
+  (p/delete-ws-session-token component user))
+
+(s/defn create-ws-session-token
+  [component :- (s/protocol p/Datastore)
+   user]
+  (p/create-ws-session-token component user))
+
+(s/defn find-ws-session-by-token
+  [component :- (s/protocol p/Datastore)
+   token :- s/Str]
+  (p/find-ws-session-by-token component token))
