@@ -35,7 +35,7 @@
   (delete-ws-session-token [_ user])
   (create-ws-session-token [_ user])
   (find-ws-session-by-token [_ token]))
-  )
+
 
 
 (defprotocol Messagestore

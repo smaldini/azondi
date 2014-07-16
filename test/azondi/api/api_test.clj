@@ -15,7 +15,9 @@
    [azondi.dev-db :refer (new-inmemory-datastore)]
    [azondi.db :refer (get-user create-api-key get-api-key)]
    [azondi.dev-system :refer (new-dev-user-domain)]
-   [schema.core :as s]))
+   [azondi.cassandra :as cass]
+   [schema.core :as s]
+   [azondi.system :refer (config)]))
 
 (def PORT 8099)
 
@@ -28,6 +30,8 @@
     :webserver (new-webserver :port PORT)
     :webrouter (new-router)
     :database (new-inmemory-datastore)
+    :cassandra (cass/new-database
+                 (get (config) :cassandra {:keyspace "opensensors" :hosts ["127.0.0.1"]}))
     :api (new-api :uri-context "/api/1.0")
     :authorizer (new-user-authorizer)
     :http-authenticator (new-http-basic-authenticator)
