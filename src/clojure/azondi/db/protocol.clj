@@ -35,3 +35,13 @@
   (delete-ws-session-token [_ user])
   (create-ws-session-token [_ user])
   (find-ws-session-by-token [_ token]))
+  )
+
+
+(defprotocol Messagestore
+  (messages-by-owner [_ owner])
+  (messages-by-device [_ device-id])
+  (messages-by-topic [_ topic])
+  (archive-message! [_ data])
+  ;; messages by date??
+  )

@@ -16,3 +16,4 @@ resources/azondi.edn
 /src/clojure/azondi/menu_views.clj.bak
 /src/clojure/azondi/website.clj.bak
 /src/logo.cljs.bak
+*.DS_Store

@@ -26,6 +26,9 @@
                  [postgresql/postgresql "8.4-702.jdbc4"]
                  [clojurewerkz/cassaforte "2.0.0-beta1"]
 
+                 ;; HeapByteBuffer - String converter
+                 [byte-streams "0.1.11"]
+
                  ;; Metrics
                  [metrics-clojure          "2.2.0-beta1"]
                  [metrics-clojure-ring     "2.2.0-beta1"]

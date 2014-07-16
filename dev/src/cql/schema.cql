@@ -15,3 +15,7 @@ CREATE TABLE IF NOT EXISTS messages (
        content_type text,
        PRIMARY KEY ((device_id, date_and_hour), created_at)
 );
+
+CREATE INDEX ON messages (device_id);
+CREATE INDEX ON messages (owner);
+CREATE INDEX ON messages (topic);
