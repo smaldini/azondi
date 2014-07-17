@@ -89,24 +89,31 @@
 
   (testing "create user"
     (let [db (-> *system* :database)
+          _ (create-api-key db "alice")
+          api-key (:api (get-api-key db "alice"))
+
           response
           (request :put (make-uri :azondi.api/user :user "alice")
                    :data {:password "lewis"
                           :name "Alice Cheung"
                           :email "alice@example.org"
-                          })]
+                          }
+                   :api-key api-key)]
       (is (= (:status response) 201))
       ;; Do we have the user in the database?
       (is (get-user db "alice"))))
 
   (testing "overwrite user"
     (let [db (-> *system* :database)
+          api-key (:api (get-api-key db "alice"))
+
           response (request :put (make-uri :azondi.api/user :user "alice")
                             :expected 201
                             :data {:password "shock"
                                    :name "Alice Cooper"
                                    :email "alice@another.com"
-                                   })]
+                                   }
+                            :api-key api-key)]
       (is (not= (:email (get-user db "alice")) "alice@example.org"))
       (is (= (:email (get-user db "alice")) "alice@another.com"))
 
@@ -232,12 +239,14 @@
 
   (testing "create user with api key"
     (let [db (-> *system* :database)
+          _ (create-api-key db "alice")
           response
           (request :put (make-uri :azondi.api/user :user "alice")
                    :data {:password "lewis"
                           :name "Alice Cheung"
                           :email "alice@example.org"
-                          })]
+                          }
+                   :api-key (:api (get-api-key db "alice")))]
       (is (= (:status response) 201))
       ;; Do we have the user in the database?
       (is (get-user db "alice"))
