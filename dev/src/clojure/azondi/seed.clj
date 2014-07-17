@@ -2,6 +2,7 @@
   (:require
    [com.stuartsierra.component :as component]
    [azondi.http :refer (request)]
+   [azondi.db :refer (create-user!)]
    [clojure.tools.logging :refer :all]
    [bidi.bidi :refer (path-for)]))
 
@@ -55,3 +56,22 @@
 
 (defn new-seed-data []
   (component/using (->SeedData) [:webserver]))
+
+
+(defrecord DBSeedData []
+  component/Lifecycle
+  (start [this]
+    (try
+      (create-user! (:database this) "Yodit Stanton" "yods" "yodit@atomicdatalabs.com" "password")
+      (create-user! (:database this) "Malcolm Sparks" "malcolm" "malcolm@juxt.pro" "malcolmsparks-pwd")
+      (create-user! (:database this) "Michael Klishin" "mk" "michael@opensensors.io" "password")
+      (create-user! (:database this) "Juan A. Ruz" "juan" "juanantonioruz@gmail.com" "krakow")
+
+      (catch Exception e (errorf e "Error seeding data")))
+    this
+      )
+  (stop [this] this))
+
+
+(defn new-direct-db-seed-data []
+  (component/using (->DBSeedData) [:database]))

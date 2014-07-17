@@ -6,7 +6,7 @@
    [schema.core :as s]
    [com.stuartsierra.component :as component]
    [clojure.java.jdbc :as j]
-   [azondi.db.protocol :refer (Datastore)]
+   [azondi.db.protocol :refer (DataStore)]
    [azondi.db :refer (get-user)]
    [azondi.passwords :as sc]
    [azondi.helpers :refer (process-maps)]
@@ -37,7 +37,7 @@
             :user user
             :password password}))
   (stop [this] this)
-  Datastore
+  DataStore
 
   (create-user! [this name user email password]
     (let [p (sc/encrypt password)

@@ -6,9 +6,9 @@
    [azondi.system :refer (config configurable-system-map new-dependency-map new-prod-system)]
    [azondi.api-tests :refer (new-api-tests)]
    [azondi.db :refer (get-user create-user!)]
-   [azondi.db.protocol :refer (Datastore)]
-   [azondi.dev-db :refer (new-inmemory-datastore)]
-   [azondi.seed :refer (new-seed-data)]
+   [azondi.db.protocol :refer (DataStore)]
+   [azondi.dev-db :refer (new-inmemory-datastore new-inmemory-message-store)]
+   [azondi.seed :refer (new-seed-data new-direct-db-seed-data)]
    [azondi.postgres :refer (new-database new-postgres-user-domain)]
    [azondi.passwords :as pwd]
    [azondi.messages :refer (new-message-archiver)]
@@ -35,10 +35,13 @@
             (assoc
                 :database (new-inmemory-datastore)
                 :seed (new-seed-data)
+                :direct-db-seed (new-direct-db-seed-data)
                 ;;:api-tests (azondi.api-tests/new-api-tests)
                 :user-domain (new-dev-user-domain)
+                :cassandra (new-inmemory-message-store)
                 )
-            (dissoc :cassandra :message-archiver))
+            (dissoc :message-archiver)
+            )
 
            d-map (new-dependency-map s-map)]
        (component/system-using s-map d-map))))

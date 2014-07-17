@@ -1,6 +1,6 @@
 (ns azondi.db.protocol)
 
-(defprotocol Datastore
+(defprotocol DataStore
   (create-user! [_ name user email pw])
   (get-users [_])
   (get-user [_ user])
@@ -38,7 +38,7 @@
 
 
 
-(defprotocol Messagestore
+(defprotocol MessageStore
   (messages-by-owner [_ owner])
   (messages-by-device [_ device-id])
   (messages-by-topic [_ topic])

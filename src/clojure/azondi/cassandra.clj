@@ -6,7 +6,7 @@
             [clj-time.core   :as tc]
             [clj-time.format :as tf]
             [com.stuartsierra.component  :as component]
-            [azondi.db.protocol :refer (Messagestore)]))
+            [azondi.db.protocol :refer (MessageStore)]))
 
 (def ^:const table "messages")
 (def date-and-hour-formatter (tf/formatter "yyyy-MM-dd HH"))
@@ -18,7 +18,7 @@
       (cql/use-keyspace conn keyspace)
       (assoc this :session conn)))
   (stop [this] this)
-  Messagestore
+  MessageStore
   (messages-by-owner [this owner]
     (cql/select (:session this) table (where {:owner owner})))
   (messages-by-device [this device-id]

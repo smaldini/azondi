@@ -465,6 +465,7 @@
 (def routes
   ["" {"" ::welcome
        "/" (->Redirect 307 ::welcome)
+       ["/topics/" :topic] ::topics
        "/users" (->Redirect 307 "/users/")
        "/users/" ::users
        ["/users/" :user] {"" ::user
@@ -482,6 +483,7 @@
                           "/ws-token/" ::ws-token
                           "/ws-token" (->Redirect 307 ::ws-token)
                           "/reset-password" ::reset-user-password
+                          "/messages" (->Redirect 307 ::messages)
                           "/messages/" ::messages}}])
 
 

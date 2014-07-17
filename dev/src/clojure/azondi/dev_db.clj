@@ -2,12 +2,15 @@
   (:require
    [com.stuartsierra.component :as component]
    [clojure.tools.logging :refer :all]
+   [clj-time.core   :as tc]
+   [clj-time.format :as tf]
+   [azondi.cassandra :refer (date-and-hour-formatter)]
    azondi.db)
-  (:import (azondi.db.protocol Datastore)))
+  (:import (azondi.db.protocol DataStore MessageStore)))
 
 ;; In memory implementation
 
-(defrecord InmemoryDatastore []
+(defrecord InmemoryDataStore []
   component/Lifecycle
   (start [this]
     (assoc this :database {:last-client-id (ref 1000)
@@ -17,7 +20,7 @@
                            :apikeys (ref {})}))
   (stop [this] this)
 
-  Datastore
+  DataStore
   (create-user! [this name user email password]
     (dosync (alter (-> this :database :users) assoc user {:user user :name name :email email :password password})))
 
@@ -124,4 +127,24 @@
   )
 
 (defn new-inmemory-datastore []
-  (->InmemoryDatastore))
+  (->InmemoryDataStore))
+
+(defrecord InMemoryMessageStore []
+  component/Lifecycle
+  (start [this]
+    (assoc this :database {:messages (ref {})}))
+  (stop [this] this)
+
+  MessageStore
+  (messages-by-owner [this owner]
+    (throw (ex-info "unimplemented fn!" {})))
+  (messages-by-device [this device-id]
+    (throw (ex-info "unimplemented fn!" {})))
+  (messages-by-topic [this topic]
+    (throw (ex-info "unimplemented fn!" {})))
+  (archive-message! [this data]
+    (throw (ex-info "unimplemented fn!" {}))))
+
+
+(defn new-inmemory-message-store []
+  (->InMemoryMessageStore))
