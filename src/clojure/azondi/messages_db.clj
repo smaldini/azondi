@@ -23,12 +23,11 @@
   (->> (p/messages-by-topic component topic)
        (map #(update-in % [:payload] payload>Str))))
 
-;; TODO  has payload  to be of bytes type?
 (s/defn archive-message!
   [component :- (s/protocol p/MessageStore)
    data :- {:device_id StrNotEmpty
             :topic StrNotEmpty
             :owner StrNotEmpty
-            :payload s/Any
+            :payload [Byte]
             :content_type s/Str}]
   (p/archive-message! component data))

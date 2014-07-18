@@ -3,6 +3,8 @@
    [com.stuartsierra.component :as component]
    [azondi.http :refer (request)]
    [azondi.db :refer (create-user!)]
+   [byte-streams :refer (convert)]
+   [azondi.messages-db :refer (archive-message!)]
    [clojure.tools.logging :refer :all]
    [bidi.bidi :refer (path-for)]))
 
@@ -66,6 +68,10 @@
       (create-user! (:database this) "Malcolm Sparks" "malcolm" "malcolm@juxt.pro" "malcolmsparks-pwd")
       (create-user! (:database this) "Michael Klishin" "mk" "michael@opensensors.io" "password")
       (create-user! (:database this) "Juan A. Ruz" "juan" "juanantonioruz@gmail.com" "krakow")
+      (archive-message! (:cassandra this)
+                        {:device_id "1" :topic "/users/juan/test" :owner "juan"
+                         :payload (convert "message" java.nio.ByteBuffer) :content_type "text"})
+
 
       (catch Exception e (errorf e "Error seeding data")))
     this
@@ -74,4 +80,4 @@
 
 
 (defn new-direct-db-seed-data []
-  (component/using (->DBSeedData) [:database]))
+  (component/using (->DBSeedData) [:database :cassandra]))

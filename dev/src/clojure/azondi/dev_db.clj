@@ -132,7 +132,7 @@
 (defrecord InMemoryMessageStore []
   component/Lifecycle
   (start [this]
-    (assoc this :database {:messages (ref {})}))
+    (assoc this :database {:messages (ref [])}))
   (stop [this] this)
 
   MessageStore
@@ -143,7 +143,12 @@
   (messages-by-topic [this topic]
     (throw (ex-info "unimplemented fn!" {})))
   (archive-message! [this data]
-    (throw (ex-info "unimplemented fn!" {}))))
+    (let [now  (tc/now)
+          data (merge data
+                      {:created_at (.toDate now)
+                       :date_and_hour (tf/unparse date-and-hour-formatter now)})]
+      (dosync
+       (alter (-> this :database :messages) conj  data)))))
 
 
 (defn new-inmemory-message-store []
