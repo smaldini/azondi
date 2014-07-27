@@ -1,16 +1,21 @@
+@font-face {
+    font-family: Cardo104s;
+    src: url(Cardo104s.ttf);
+}
+
 body {
    font-size: 20px;  
   line-height: 1.428571429;
   background-color: #white;
   margin-top: auto;
   margin-bottom: auto;
-  font-family: 'HelveticaNeue', Helvetica, 'Open Sans';
+  font-family: Cardo104s;
 }
 
 .jumbotron {background-color: black;
 	    border-color: #141b1e;
 	    overflow: visible;
-	    height: 150px;
+	    height: 300px;
 	    width: 100%;
 	    position: relative;
 	    top:0px;}
@@ -19,8 +24,10 @@ body {
               font-size: 50px;
               color: white;
               font-weight:normal;
-              font-weight:50;
-              text-shadow:0 0 50px #0af, 0 0 3px #fff;}
+              font-weight:50;}
+
+.jumbotron h2 {color: white;
+		text-align: center;      }
 
 .navbar {margin-bottom: 0px;}
 
@@ -89,7 +96,9 @@ margin-left: 30px;
 .navbar li:hover {
     background-color:#00CC00;  
    
-  }
+}
+
+
 
 #your-api-keys {border: 1px solid rgba(0, 0, 0, 0.1);
 		padding: 20px;
@@ -106,20 +115,34 @@ margin-left: 30px;
 	       }
 
 #sign-in-form {width:30%;
-	       padding: 20px;
+	       margin: 0 auto;
 	       border: 1px solid rgba(0, 0, 0, 0.1);
+	       border-radius: 25px;
 	       height: 250px;}
 #sign-in-form * {margin: 10px;}
 #sign-in-form input {width: 80%;}
 
+#sign-in-form h2 {padding: 10px; }
+
+#user-page {margin: 50px}
+
+#index {margin: 0 auto;
+       text-align: center;
+       }
+
+#index * {padding: 20px; }
+#features-index .row #left {border-right: 1px solid #aaa;}
+
+
 #pword-reset {width:30%;
 	      padding: 20px;
+	      margin: 0 auto;
 	      border: 1px solid rgba(0, 0, 0, 0.1);
+	      border-radius: 25px;
 	      height: 350px;
 	      overflow: hidden;
-	      white-space: nowrap;
-	     
-	     }
+	      white-space: nowrap; }
+
 #passwordVerif1 {display: inline-block; }
 #passwordVerif2 {display: inline-block; }
 .footer-list {list-style-type:none}

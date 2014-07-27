@@ -46,9 +46,8 @@
   [:div#header
    [:div.jumbotron
     [:div#logoarea {:class "vcenter"}
-     ;;[:h2 "Big Data"]
-     ;[:h2 "Small Devices"]
-     [:h1 "opensensors.IO" [:sup "beta"]]
+     [:h1 "The OS for the Internet of Things"]
+     [:h2 "opensensors.IO allows you to connect and manage your devices in one place"]
      [:svg {:viewBox "0 20 1000 100"  :height "60"}
       [:circle {:cx 400 :cy 30 :fill "red" :opacity "1.0" :r "1"}
        [:animate {:attributeName "r" :begin "1s" :calcmode "linear" :dur "1s" :values="15; 4; 2; 1"}]]]]]])
@@ -112,14 +111,18 @@
      [:nav {:class "navbar navbar-default" :role "navigation"}
       [:div.container-fluid
        [:div.navbar-header
-        [:button.navbar-toggle {:type "buton" :data-toggle "collapse" :data-target "#bs-example-navbar-collapse-1"}
+        [:button.navbar-toggle {:type "button" :data-toggle "collapse" :data-target "#bs-example-navbar-collapse-1"}
          [:span.sr-only "Toggle navigation"]
          [:span.icon-bar]
          [:span.icon-bar]
          [:span.icon-bar]]
-        [:a#home-logo.navbar-brand {:href "/"} [:img {:src "imgs/osio.svg"}]]
-        [:ul {:class "nav navbar-nav"}
-         [:li [:a {:href "/services"} "Services"]]]]
+        [:a#home-logo.navbar-brand (if user
+                                     {:href "/devices"}
+                                     {:href "/"}) [:img {:src "imgs/osio.svg"}]]
+        
+        ;; [:ul {:class "nav navbar-nav"}
+        ;;  [:li [:a {:href "/services"} "Services"]]]
+        ]
        [:div {:class "collapse navbar-collapse" :id "bs-example-navbar-collapse-1"}
         [:ul {:class "nav navbar-nav navbar-right"}
          (for [menu menus
@@ -136,13 +139,15 @@
          (when user
            [:li [:a user]]
            [:script (format "$.session.set('user', '%s')" user)])]]]]
-     logo-area
-     [:div.row
+     (when (not user)
+       logo-area)
+     [:div#user-page.row
       [:div.col-sm-2
        [:div.sidebar-nav
         (side-menu user)]]
       [:div.col-sm-9
        body]
+      
       [:div#ankha]]
 
      ;;cljs
@@ -151,9 +156,7 @@
      [:script {:src "cljs/azondi.js"}]
 
      [:script {:src "cljs/logo.js"}]
-     [:script {:src "js/helpers.js"}]
-     ]
-
+     [:script {:src "js/helpers.js"}]]
     [:div#footer {:class "navbar-default navbar-fixed-bottom"}
      [:ul.footer-list
       [:li "&copy; 2014 open sensors ltd"]
@@ -169,6 +172,43 @@
     scr]
    ))
 
+(def index-page
+  [:div#index
+   [:div#features-index
+    [:h2 "Create realtime IOT applications in minutes"]
+    [:div.row
+     [:div#left.col-sm-6
+      [:i {:class "fa fa-check fa-1g"} [:b " Data Broadcast"]]
+      [:p "Share communal data with the world or publish to privately"]]
+     [:div.col-sm-6
+      [:i {:class "fa fa-check fa-1g"} [:b " Hardware Agnostic"]]
+      [:p "Connect any device to our messaging broker easily"]
+      ]]
+      
+    [:div.row
+     [:div#left.col-sm-6
+      [:i {:class "fa fa-check fa-1g"} [:b "  Device Management"]]
+      [:p "Built-in device security authentication and management"]]
+     [:div.col-sm-6
+      [:i {:class "fa fa-check fa-1g"} [:b " Real Time Firehose"]]
+      [:p "Your own personal data stream for M2M or web applications"]]]
+     [:div.row
+     [:div#left.col-sm-6
+      [:i {:class "fa fa-check fa-1g"} [:b "  Storage"]]
+      [:p "Persistent storage and access to your historical"]]
+     [:div.col-sm-6
+      [:i {:class "fa fa-check fa-1g"} [:b " Enterprise grade"]]
+      [:p "Would you like to run your own IOT network inside your firewall?"]
+      [:a {:href "#"} "Contact Us"]]]]
+   [:hr]
+   [:div#how-index
+    [:h2 "How to use us"]
+    [:p "How to you us"]]
+
+   [:hr]
+   [:div#enterprise-index
+    [:h2 "Enterprise describe"]]] 
+  )
 ;;; We need to pull out the user details from the session
 (defn devices-page [user]
   (base-page user
@@ -243,7 +283,7 @@
 (defn web-sockets [user]
   (base-page user
              [:div#web-socket-information.row
-              [:p "To use the real time device data streams in your websites or applications use the provided details"]
+              [:p "To use the real time device data streams in your websites or applications use the provided URL"]
               [:div#your-websocket-session
                [:h3 [:b "Firehose Details"]] [:br]
                [:span "Session Token ID: " [:strong [:span.ws-info-session-token]] [:br]]

@@ -33,7 +33,9 @@
   {:index
    (fn [req]
      {:status 200
-      :body (base-page (authenticate authenticator req) (md->html (io/resource "markdown/index.md")))})
+      :body (base-page
+             (authenticate authenticator req)
+             index-page)})
 
    :help
    (fn [req]
