@@ -2,7 +2,7 @@
 (ns azondi.transports.mqtt
   (:require [com.stuartsierra.component :as component]
             [modular.netty :refer (NettyHandlerProvider)]
-            [clojure.tools.logging :refer (warnf infof info log debugf)]
+            [clojure.tools.logging :refer (warnf infof info log debugf errorf)]
             [clojurewerkz.triennium.mqtt :as tr]
 
             [azondi.devices :refer (device-names)]
@@ -24,7 +24,8 @@
              ChannelPipeline ChannelHandler]
             [io.netty.handler.timeout IdleStateHandler IdleStateEvent]
             java.net.InetSocketAddress
-            [java.util.concurrent ExecutorService Executors]))
+            [java.util.concurrent ExecutorService Executors
+             ScheduledExecutorService ScheduledFuture TimeUnit]))
 
 ;;
 ;; Implementation
@@ -90,6 +91,21 @@
         ^IdleStateHandler  ish (IdleStateHandler. n n 0)]
     (.addFirst pl (into-array ChannelHandler [ish]))))
 
+(declare send-pingreq)
+(defn ^:private start-keepalives
+  [^ChannelHandlerContext ctx ^long timeout
+   {:keys [scheduled-keepalive-executor]}]
+  (let [f   (fn []
+              (try
+                (send-pingreq ctx)
+                (catch Exception e
+                  (errorf "Exception in server-initiated keepalive: %s" (.getMessage e)))))]
+    (.scheduleWithFixedDelay scheduled-keepalive-executor
+                             (cast Runnable f)
+                             1
+                             timeout
+                             TimeUnit/SECONDS)))
+
 (defn accept-connection
   [^ChannelHandlerContext ctx {:keys [username client-id has-will clean-session
                                       keepalive]
@@ -101,7 +117,8 @@
               :ctx ctx
               :has-will has-will
               :will-qos (when has-will (:will-qos msg))
-              :keepalive keepalive}]
+              :keepalive keepalive
+              :keepalive-future (start-keepalives ctx keepalive handler-state)}]
     (maybe-disconnect-existing client-id handler-state)
     (dosync
      (alter connections-by-ctx assoc ctx conn)
@@ -372,20 +389,37 @@
   (.writeAndFlush ctx {:type :pingresp}))
 
 ;;
+;; PINGRESP
+;;
+
+(defn handle-pingresp
+  [^ChannelHandlerContext ctx {:keys [connections-by-ctx]}]
+  (comment "Intentional no-op, see channelRead"))
+
+;;
 ;; Lost Connections, Keep Alive
 ;;
+
+(defn ^:private send-pingreq
+  [^ChannelHandlerContext ctx]
+  (.writeAndFlush ctx {:type :pingreq}))
 
 (defn ^:private forget-ctx
   [^ChannelHandlerContext ctx {:keys [topics-by-ctx
                                       connections-by-ctx
-                                      connections-by-client-id]}]
+                                      connections-by-client-id
+                                      ]}]
+  (let [conn (get @connections-by-ctx ctx)]
+    (when-let [^ScheduledFuture fut (:keepalive-future conn)]
+      (.cancel fut true)))
   (dosync
    (let [topics              (get @topics-by-ctx ctx)
          {:keys [client-id]} (get @connections-by-ctx ctx)]
      (alter topics-by-ctx dissoc ctx)
      (alter subscriptions unrecord-subscribers ctx topics)
      (alter connections-by-ctx       dissoc ctx)
-     (alter connections-by-client-id dissoc client-id))))
+     (alter connections-by-client-id dissoc client-id)))
+  ctx)
 
 (defn ^:private handle-timeout
   [^ChannelHandlerContext ctx {:keys [connections-by-ctx]
@@ -427,7 +461,9 @@
         :unsubscribe (handle-unsubscribe ctx msg handler-state)
         :publish (handle-publish ctx msg handler-state)
         :pingreq (handle-pingreq ctx handler-state)
-        :disconnect (handle-disconnect ctx handler-state)))
+        :pingresp (handle-pingresp ctx handler-state)
+        :disconnect (handle-disconnect ctx handler-state))
+      (comment "TODO: record activity"))
     (channelInactive [^ChannelHandlerContext ctx]
       (handle-closed-tcp-connection ctx handler-state)
       (mct/dec! (:mqtt-connections-active metrics))
@@ -440,7 +476,9 @@
       (try (throw cause)
            (finally (handle-disconnect ctx handler-state))))))
 
-(defrecord NettyMqttHandler [connections-by-ctx connections-by-client-id topics-by-ctx debug-ch]
+(defrecord NettyMqttHandler [connections-by-ctx connections-by-client-id topics-by-ctx
+                             scheduled-keepalive-executor
+                             debug-ch]
   component/Lifecycle
   (start [this]
     (info "MQTT transport starting...")
@@ -452,7 +490,10 @@
           :database (get this :database)
           :metrics (get this :metrics)
           :debug-ch debug-ch))))
-  (stop [this] this)
+  (stop [this]
+    (when-let [se (:scheduled-keepalive-executor this)]
+      (.shutdownNow se))
+    this)
 
   NettyHandlerProvider
   (netty-handler [this] (:handler-provider this))
@@ -463,5 +504,6 @@
   (-> (map->NettyMqttHandler {:connections-by-ctx (ref {})
                               :connections-by-client-id (ref {})
                               :topics-by-ctx (ref {})
+                              :scheduled-keepalive-executor (Executors/newScheduledThreadPool 32)
                               :debug-ch debug-ch})
       (component/using [:database :reactor :metrics])))
