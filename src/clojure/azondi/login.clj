@@ -16,7 +16,7 @@
                                       :id "sign-in-form"}
                       (when (not-empty requested-uri)
                         [:input {:type "hidden" :name :requested-uri :value requested-uri}])
-                      [:h2 "Sign In"]
+                      [:h2 "Welcome Back"]
                       (when requested-uri
                         ;; If requested-uri is not nil, you should add it as a hidden field.
                         [:input {:type "hidden" :name :requested-uri :value requested-uri}])

@@ -46,17 +46,16 @@
   [:div#header
    [:div.jumbotron
     [:div#logoarea {:class "vcenter"}
-     [:h2 "The Operating System of the Internet of Things"]     
+     [:h1 "The Operating System for the Internet of Things"]     
      [:svg {:viewBox "0 20 1000 100"  :height "60"}
       [:circle {:cx 400 :cy 30 :fill "red" :opacity "1.0" :r "1"}
-       [:animate {:attributeName "r" :begin "1s" :calcmode "linear" :dur "1s" :values="15; 4; 2; 1"}]]]]]
-   [:div.info
-    [:h2 "Connect and manage your devices in one place."]
-    [:h2 "Share your data or create private projects."]
-    [:form {:id "beta-signup" :role "form"}
-     [:div.form-inline
-      [:input {:type "email" :class "form-control" :id "beta-email" :name "beta-email" :placeholder "Enter Your Email"}]
-      [:button {:id "beta-access-btn" :type "submit" :class "btn btn-primary btn-lg" } "Request beta access"]]]]
+       [:animate {:attributeName "r" :begin "1s" :calcmode "linear" :dur "1s" :values="15; 4; 2; 1"}]]]]
+    [:div.info
+     [:h2 "Connect and manage your devices in one place. Share your data or create private projects."]
+     [:form {:id "beta-signup" :role "form"}
+      [:div.form-inline
+       [:input {:type "email" :class "form-control" :id "beta-email" :name "beta-email" :placeholder "Enter Your Email"}]
+       [:button {:id "beta-access-btn" :type "submit" :class "btn btn-primary btn-lg" } "Request Early Access"]]]]]
    ])
 
 ;; MS: This is a bit of a hack that will have to do for now. A better solution is warranted.
