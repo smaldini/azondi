@@ -103,6 +103,7 @@
 
      :login-form (new-login-form
                   :renderer (new-custom-login-form-renderer)
+                  :requested-uri "/devices"
                   ) ; start with the login form
      ;; Cylon login-forms depend on a session-store. This default impl
      ;; won't survive system reset but will do for now
