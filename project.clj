@@ -36,7 +36,7 @@
 
                  ;; for query string parsing
                  ;;[javax.servlet/servlet-api "2.5"]
-                 [clj-time "0.7.0"]
+                 [clj-time "0.8.0"]
                  [liberator "0.11.0" :exclusions [org.clojure/tools.logging]]
                  [prismatic/schema "0.2.1"]
                  [clojurewerkz/scrypt     "1.1.0"]
