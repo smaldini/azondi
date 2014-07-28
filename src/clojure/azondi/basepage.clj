@@ -46,11 +46,18 @@
   [:div#header
    [:div.jumbotron
     [:div#logoarea {:class "vcenter"}
-     [:h1 "The OS for the Internet of Things"]
-     [:h2 "opensensors.IO allows you to connect and manage your devices in one place"]
+     [:h2 "The Operating System of the Internet of Things"]     
      [:svg {:viewBox "0 20 1000 100"  :height "60"}
       [:circle {:cx 400 :cy 30 :fill "red" :opacity "1.0" :r "1"}
-       [:animate {:attributeName "r" :begin "1s" :calcmode "linear" :dur "1s" :values="15; 4; 2; 1"}]]]]]])
+       [:animate {:attributeName "r" :begin "1s" :calcmode "linear" :dur "1s" :values="15; 4; 2; 1"}]]]]]
+   [:div.info
+    [:h2 "Connect and manage your devices in one place."]
+    [:h2 "Share your data or create private projects."]
+    [:form {:id "beta-signup" :role "form"}
+     [:div.form-inline
+      [:input {:type "email" :class "form-control" :id "beta-email" :name "beta-email" :placeholder "Enter Your Email"}]
+      [:button {:id "beta-access-btn" :type "submit" :class "btn btn-primary btn-lg" } "Request beta access"]]]]
+   ])
 
 ;; MS: This is a bit of a hack that will have to do for now. A better solution is warranted.
 (defn displayed? [menu user]
@@ -139,24 +146,22 @@
          (when user
            [:li [:a user]]
            [:script (format "$.session.set('user', '%s')" user)])]]]]
-     (when (not user)
-       logo-area)
-     [:div#user-page.row
-      [:div.col-sm-2
-       [:div.sidebar-nav
-        (side-menu user)]]
-      [:div.col-sm-9
-       body]
-      
-      [:div#ankha]]
+     (if user
+       [:div#user-page.row
+        [:div.col-sm-2
+         [:div.sidebar-nav
+          (side-menu user)]]
+        [:div.col-sm-9
+         body]]
+       body)]
 
      ;;cljs
-     [:script {:src "js/react.js"}]
-     [:script {:src "cljs/cljs.js"}]
-     [:script {:src "cljs/azondi.js"}]
+    [:script {:src "js/react.js"}]
+    [:script {:src "cljs/cljs.js"}]
+    [:script {:src "cljs/azondi.js"}]
 
-     [:script {:src "cljs/logo.js"}]
-     [:script {:src "js/helpers.js"}]]
+    [:script {:src "cljs/logo.js"}]
+    [:script {:src "js/helpers.js"}]
     [:div#footer {:class "navbar-default navbar-fixed-bottom"}
      [:ul.footer-list
       [:li "&copy; 2014 open sensors ltd"]
@@ -167,47 +172,48 @@
             [:img {:src "imgs/glyphicons_social_31_twitter.png"}]]]
       [:li [:a {:href "mailto:hello@opensensors.io?subject=website%20enquiry"}
             [:img {:src "imgs/glyphicons_010_envelope.png"}]]]]]
-    ;; extenal libs
 
-    scr]
-   ))
+    ;; extenal libs
+    scr]))
 
 (def index-page
-  [:div#index
-   [:div#features-index
-    [:h2 "Create realtime IOT applications in minutes"]
-    [:div.row
-     [:div#left.col-sm-6
-      [:i {:class "fa fa-check fa-1g"} [:b " Data Broadcast"]]
-      [:p "Share communal data with the world or publish to privately"]]
-     [:div.col-sm-6
-      [:i {:class "fa fa-check fa-1g"} [:b " Hardware Agnostic"]]
-      [:p "Connect any device to our messaging broker easily"]
-      ]]
-      
-    [:div.row
-     [:div#left.col-sm-6
-      [:i {:class "fa fa-check fa-1g"} [:b "  Device Management"]]
-      [:p "Built-in device security authentication and management"]]
-     [:div.col-sm-6
-      [:i {:class "fa fa-check fa-1g"} [:b " Real Time Firehose"]]
-      [:p "Your own personal data stream for M2M or web applications"]]]
+  [:div
+    logo-area
+   [:div#index
+    [:div#features-index
+     [:h2 [:b "Create realtime IOT applications in minutes"]]
      [:div.row
-     [:div#left.col-sm-6
-      [:i {:class "fa fa-check fa-1g"} [:b "  Storage"]]
-      [:p "Persistent storage and access to your historical"]]
-     [:div.col-sm-6
-      [:i {:class "fa fa-check fa-1g"} [:b " Enterprise grade"]]
-      [:p "Would you like to run your own IOT network inside your firewall?"]
-      [:a {:href "#"} "Contact Us"]]]]
-   [:hr]
-   [:div#how-index
-    [:h2 "How to use us"]
-    [:p "How to you us"]]
+      [:div#left.col-sm-6
+       [:i {:class "fa fa-check fa-1g"} [:b " Data Broadcast"]]
+       [:p "Share communal data with the world or publish privately"]]
+      [:div.col-sm-6
+       [:i {:class "fa fa-check fa-1g"} [:b " Hardware Agnostic"]]
+       [:p "Connect any device to our messaging broker easily"]
+       ]]
+     
+     [:div.row
+      [:div#left.col-sm-6
+       [:i {:class "fa fa-check fa-1g"} [:b "  Device Management"]]
+       [:p "Built-in device security authentication and management"]]
+      [:div.col-sm-6
+       [:i {:class "fa fa-check fa-1g"} [:b " Real Time Firehose"]]
+       [:p "Your own personal data stream for M2M or web applications"]]]
+     [:div.row
+      [:div#left.col-sm-6
+       [:i {:class "fa fa-check fa-1g"} [:b "  Storage"]]
+       [:p "Persistent storage and easy access to your historical data"]]
+      [:div.col-sm-6
+       [:i {:class "fa fa-check fa-1g"} [:b " Enterprise grade"]]
+       [:p "Would you like to run your own IOT network inside your firewall?"]
+       [:a {:href "#"} "Contact Us"]]]]
+    [:hr]
+    [:div#how-index
+     [:h2 "How to use us"]
+     [:p "How to you us"]]
 
-   [:hr]
-   [:div#enterprise-index
-    [:h2 "Enterprise describe"]]] 
+    [:hr]
+    [:div#enterprise-index
+     [:h2 "Enterprise describe"]]]] 
   )
 ;;; We need to pull out the user details from the session
 (defn devices-page [user]
