@@ -284,6 +284,7 @@
 
           [:h2 "Test this device"]
           [:div#device-mosquitto [:h3 "Mosquitto"]
+           [:p "Mosquitto is an MQTT messaging tool that you can use to test your device.  Download a mosquitto client library from " [:a {:href "http://mosquitto.org/"} "mosquitto.org"]]
            [:pre (str "mosquitto_pub"
                       " -h " hostname
                       " -i " (-> app-state :device :client-id)
