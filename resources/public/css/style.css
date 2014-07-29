@@ -135,7 +135,7 @@ body {
 
 #index * {padding: 15px; }
 #features-index .row #left {border-right: 1px solid #aaa;}
-
+#features-ind {font-size: 30px;}
 
 #pword-reset {width:30%;
 	      padding: 20px;
@@ -154,8 +154,7 @@ body {
 #new-topic-form div{
     margin-bottom:10px;
 }
-#public-private-btn button {margin-right: 5px;
-				   }
+#public-private-btn button {margin-right: 5px;}
 #passwordVerif1 {display: inline-block; }
 #passwordVerif2 {display: inline-block; }
 .footer-list {list-style-type:none}

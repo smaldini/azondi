@@ -180,39 +180,35 @@
     logo-area
    [:div#index
     [:div#features-index
-     [:h2 [:b "Create realtime IOT applications in minutes"]]
+     [:h1 [:b "Create realtime IOT applications in minutes"]]
      [:div.row
       [:div#left.col-sm-6
-       [:i {:class "fa fa-check fa-1g"} [:b " Data Broadcast"]]
+       [:img {:src "imgs/icon_824.svg" :height 100 :width 100} [:b#features-ind " Data Broadcast"]]
        [:p "Share communal data with the world or publish privately"]]
       [:div.col-sm-6
-       [:i {:class "fa fa-check fa-1g"} [:b " Hardware Agnostic"]]
+       [:img {:src "imgs/icon_7138.svg" :height 100 :width 100} [:b#features-ind " Hardware Agnostic"]]
        [:p "Connect any device to our messaging broker easily"]
        ]]
      
      [:div.row
       [:div#left.col-sm-6
-       [:i {:class "fa fa-check fa-1g"} [:b "  Device Management"]]
+       [:img {:src "imgs/icon_1518.svg" :height 100 :width 100} [:b#features-ind "  Device Management"]]
        [:p "Built-in device security authentication and management"]]
       [:div.col-sm-6
-       [:i {:class "fa fa-check fa-1g"} [:b " Real Time Firehose"]]
+       [:img {:src "imgs/icon_5460.svg" :height 100 :width 100} [:b#features-ind " Real Time Firehose"]]
        [:p "Your own personal data stream for M2M or web applications"]]]
      [:div.row
       [:div#left.col-sm-6
-       [:i {:class "fa fa-check fa-1g"} [:b "  Storage"]]
+       [:img {:src "imgs/icon_6001.svg" :height 100 :width 100} [:b#features-ind "  Storage"]]
        [:p "Persistent storage and easy access to your historical data"]]
       [:div.col-sm-6
-       [:i {:class "fa fa-check fa-1g"} [:b " Enterprise grade"]]
-       [:p "Would you like to run your own IOT network inside your firewall?"]
+       [:img {:src "imgs/icon_22612.svg" :height 100 :width 100} [:b#features-ind " Enterprise grade"]]
+       [:p "Would you like to run the opensensors.IO IOT network inside your firewall?"]
        [:a {:href "#"} "Contact Us"]]]]
     [:hr]
     [:div#how-index
      [:h2 "How to use us"]
-     [:p "How to you us"]]
-
-    [:hr]
-    [:div#enterprise-index
-     [:h2 "Enterprise describe"]]]] 
+     [:p "How to you us"]]]] 
   )
 ;;; We need to pull out the user details from the session
 (defn devices-page [user]
