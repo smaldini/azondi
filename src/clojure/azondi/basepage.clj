@@ -132,7 +132,7 @@
          [:span.icon-bar]]
         [:a#home-logo.navbar-brand (if user
                                      {:href "/devices"}
-                                     {:href "/"}) [:img {:src "imgs/osio.svg"}]]
+                                     {:href "/"}) "opensensors.io"]
         
         ;; [:ul {:class "nav navbar-nav"}
         ;;  [:li [:a {:href "/services"} "Services"]]]
