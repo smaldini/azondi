@@ -40,8 +40,12 @@ $("#beta-user-id").on('input', function() {
     else {$('#username_notification').text ("User id too short").show();}
 });
 
+function IsEmail(email) {
+  var regex = /^([a-zA-Z0-9_.+-])+\@(([a-zA-Z0-9-])+\.)+([a-zA-Z0-9]{2,4})+$/;
+  return regex.test(email);
+}
 $("#beta-password").on ('input', function () {
-    if ($("#beta-name").val() !== "" & $("#beta-email").val() !== "" & $("#beta-password").val() !== "" )
+    if ($("#beta-name").val() !== "" & IsEmail ($("#beta-email").val()) & $("#beta-password").val() !== "" )
     {document.getElementById ("beta-access-btn").disabled = false;}});
 
 $('#beta-access-btn').click(function (e) {

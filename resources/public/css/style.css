@@ -12,25 +12,26 @@ body {
   font-family: Helvetica;
 }
 
-.jumbotron {background-color: #2790B0;
+.jumbotron {background: linear-gradient(#002, #005); 
 	    border-color: #141b1e;
 	    overflow: visible;
-	    height: 650px;
+	    height: 700px;
 	    width: 100%;
 	    position: relative;
 	    top:0px;
-	    padding-top: 100px;
+	    padding-top: 50px;
 	    padding-bottom: 80px;
 	   }
 
-#header {background-color: #2790B0;
-	 height: 650px;
+#header {background-color: black;
+	 height: 700px;
 	 color: white;}
 
-#logoarea {height:100px;}
+#logoarea {height:100px;
+	
+	  }
 
-#osioheader{font-size: 85px;
-		       }
+#osioheader{font-size: 85px;}
 
 .jumbotron h1 {text-align: center;
                color: white;
@@ -41,6 +42,7 @@ body {
 .jumbotron * {color: white;
 	       text-align: center;}
 
+.info {padding: 50px;}
 .navbar {margin-bottom: 0px;}
 
 #home-logo:hover {
@@ -78,8 +80,8 @@ body {
       border-color: white;
       } 
 #wrap {margin-bottom: 100px;
-       margin-left: 20px;
-       margin-right: 20px;
+       margin-left: 0px;
+       margin-right: 0px;
        }
 
 .tbl {width: 80%;}
@@ -124,8 +126,10 @@ body {
 	      margin: 0 auto;
 	     padding: 20px;
 	     }
-
-#beta-signup * {color: black;}
+#beta-signup input {color: black;
+			   }
+#username_notification {color: grey;
+			       }
 #beta-access-btn {color:white;}
 
 #sign-in-form * {margin: 10px;}
