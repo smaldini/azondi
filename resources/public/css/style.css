@@ -128,7 +128,8 @@ body {
 	     }
 #beta-signup input {color: black;
 			   }
-#username_notification {color: grey;
+#username_notification {color: grey;}
+#email_notification {color: grey;
 			       }
 #beta-access-btn {color:white;}
 

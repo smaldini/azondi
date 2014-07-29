@@ -60,7 +60,7 @@
        [:input {:type "text" :class "form-control" :id "beta-user-id" :name "beta-user-id" :placeholder "Your User ID"} [:i [:p#username_notification {:style "display:none"}]]]
        
        [:input {:type "text" :class "form-control" :id "beta-name" :name "beta-name" :placeholder "Your Name"}]
-       [:input {:type "email" :class "form-control" :id "beta-email" :name "beta-email" :placeholder "Your Email"}]
+       [:input {:type "email" :class "form-control" :id "beta-email" :name "beta-email" :placeholder "Your Email"} [:i [:p#email_notification {:style "display:none"}]]]
        [:input {:type "password" :class "form-control" :id "beta-password" :name "beta-password" :placeholder "Your Password"}]
        [:button {:id "beta-access-btn" :type "submit" :class "btn btn-primary btn-lg"
                  :disabled true} "Get Early Access"]]]]]

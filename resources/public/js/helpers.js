@@ -44,6 +44,12 @@ function IsEmail(email) {
   var regex = /^([a-zA-Z0-9_.+-])+\@(([a-zA-Z0-9-])+\.)+([a-zA-Z0-9]{2,4})+$/;
   return regex.test(email);
 }
+
+$ ("#beta-email").on ('input', function () {
+    if (IsEmail ($("#beta-email").val())) {
+	$ ('#email_notification').hide();}
+    else {$('#email_notification').text ("Invalid email").show();}
+});
 $("#beta-password").on ('input', function () {
     if ($("#beta-name").val() !== "" & IsEmail ($("#beta-email").val()) & $("#beta-password").val() !== "" )
     {document.getElementById ("beta-access-btn").disabled = false;}});
