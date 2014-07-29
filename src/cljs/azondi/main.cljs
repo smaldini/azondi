@@ -443,7 +443,7 @@
 
            )}
 
-        [:div.control-group
+        [:div#new-topic-form.control-group
          [:div.controls
           [:input {:id "name"
                    :type "text"
@@ -457,20 +457,20 @@
           (when (not-empty (:new-topic-name app-state)) [:p "Topic will be created as " [:code (str "/users/" (:user app-state) "/" (:new-topic-name app-state))] "(" (name (om/get-state owner :visibility)) ")"])]
 
          [:div.controls
-          [:div.btn-group.btn-group-lg
+          [:div#public-private-btn.btn-group.btn-group-lg
            [:button.btn.btn-default
             {:type "button"
              :onClick (fn [ev] (om/set-state! owner :visibility :public))}
-            [:span.fa.fa-users] " Public topic"]
+            [:span.fa.fa-users] " Public Topic"]
 
            [:button.btn.btn-default
             {:type "button"
              :onClick (fn [ev] (om/set-state! owner :visibility :private))}
-            [:span.fa.fa-lock] " Private topic"]]]
+            [:span.fa.fa-lock] " Private Topic"]]]
 
          [:div.controls
           (if (not-empty (:new-topic-name app-state))
-            [:input.btn.btn-primary
+            [:input.btn.btn-primary.btn-xlarge
              {:type "submit"
               :onClick (fn [ev]
 
@@ -495,7 +495,7 @@
                              (update-topics-list! (:user @app-state) app-state)))
                          )
               :value "Create user topic"}]
-            [:input.btn.btn-primary.disabled {:type "submit"
+            [:input.btn.btn-primary.btn-xlarge.disabled {:type "submit"
                                               :value "Create user topic"}]
 
             )]]]))))
@@ -636,8 +636,8 @@
     (render [this]
       (html
        [:div
-        (om/build topics-list-component app-state)
         (om/build new-topic-button-component app-state)
+        (om/build topics-list-component app-state)
         (when (:topic app-state)
           (om/build topic-details-component app-state))
         ]))))

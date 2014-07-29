@@ -151,6 +151,11 @@ body {
 #device-name-desc * {margin-right: 10px;}
 #device-clientid-label {margin-top:10px;}
 
+#new-topic-form div{
+    margin-bottom:10px;
+}
+#public-private-btn button {margin-right: 5px;
+				   }
 #passwordVerif1 {display: inline-block; }
 #passwordVerif2 {display: inline-block; }
 .footer-list {list-style-type:none}
@@ -161,8 +166,7 @@ body {
    background-color: #F5F5F5;
    bottom: 0;
    height: 60px;
-
-  width: 100%;
+   width: 100%;
 }
 
 
@@ -174,3 +178,4 @@ body {
        -moz-border-radius: 8px;
             border-radius: 8px;
 }
+
