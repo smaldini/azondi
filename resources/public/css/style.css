@@ -9,7 +9,7 @@ body {
   background-color: #white;
   margin-top: auto;
   margin-bottom: auto;
-  font-family: Cardo104s;
+  font-family: Helvetica;
 }
 
 .jumbotron {background-color: #2790B0;
@@ -146,6 +146,11 @@ body {
 	      overflow: hidden;
 	      white-space: nowrap; }
 
+#device-details div {margin-bottom: 30px;}
+#device-details {margin: 10px;}
+#device-name-desc * {margin-right: 10px;}
+#device-clientid-label {margin-top:10px;}
+
 #passwordVerif1 {display: inline-block; }
 #passwordVerif2 {display: inline-block; }
 .footer-list {list-style-type:none}
@@ -158,4 +163,14 @@ body {
    height: 60px;
 
   width: 100%;
+}
+
+
+.btn-xlarge {
+    padding: 18px 28px;
+    font-size: 30px; //change this to your desired size
+    line-height: normal;
+    -webkit-border-radius: 8px;
+       -moz-border-radius: 8px;
+            border-radius: 8px;
 }

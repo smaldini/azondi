@@ -81,7 +81,8 @@
                 [:tr {:style {:background (if (= client-id (get-in app-state [:device :client-id])) "#ff0" "white")}}
                  [:td.numeric
                   [:a
-                   {:onClick ; if we click on one of the devices
+                   {:href "#"
+                    :onClick ; if we click on one of the devices
                     (fn [ev]
                       (.preventDefault ev) ; don't follow the link
                       (let [uri (str uri-init "/users/" (:user @app-state) "/devices/" client-id)
@@ -110,9 +111,7 @@
                                                    (select-keys body [:client-id :name :description]))))
                               (println "ERROR with GET on " uri ": " status body)
                               )))))}
-                   ;; We display the client-id as the link text
-                   client-id]]
-
+                               client-id]]
                  [:td name]
                  [:td description]])]]))]))))
 
@@ -154,7 +153,7 @@
                    (om/update! app-state [:device] body))))))}
         [:div.control-group
          [:div.controls
-          [:input.btn.btn-primary {:type "submit" :value "Register new device"}]]]]))))
+          [:input.btn.btn-primary.btn-xlarge {:type "submit" :value "Create New Device"}]]]]))))
 
 (defn connect-device-debugger
   "Connect the device debugger to the notification (server-sent event)
@@ -206,13 +205,15 @@
     (render [this]
       (html
        (let [id (get-in app-state [:device :client-id])]
-         [:div
-          [:h2
-           (let [name (get-in app-state [:device :name])]
-             ;; If there's a device name, let's display it in the title.
-             (if (and name (not-empty name))
-               (str "Device: " name)
-               "Device"))]
+         [:div#device-details
+          [:a.device-close {:href "#"
+                            :onClick (fn [ev]
+                                      (om/update! app-state [:device] nil))} [:i {:class "fa fa-minus"} [:b
+                                                                     (let [name (get-in app-state [:device :name])]
+                                                                       ;; If there's a device name, let's display it in the title.
+                                                                       (if (and name (not-empty name))
+                                                                         (str " Device: " name)
+                                                                         "Device"))]]]
           [:form.form-horizontal
            {:onSubmit (fn [ev]
                         (.preventDefault ev)
@@ -230,15 +231,12 @@
                               (update-devices-list! (:user @app-state) app-state)))))}
 
            [:div.control-group
-            [:label.control-label "Client id"]
-            [:div.controls
-             [:input {:name "id"
-                      :type "text"
-                      :value (get-in app-state [:device :client-id]) :editable false :disabled true}]]]
+            [:div#device-clientid-label.controls
+             [:p (str "Client id: " (get-in app-state [:device :client-id]))]]
+            ]
 
            [:div.control-group
-            [:label.control-label "Name"]
-            [:div.controls
+            [:div#device-name-desc.controls
              [:input {:name "name"
                       :type "text"
                       :value (get-in app-state [:device :name])
@@ -246,25 +244,17 @@
                       (fn [e]
                         (let [value (.-value (.-target e))]
                           (om/update! app-state [:device :name] value)))
-                      :placeholder "optional device name"}]]]
-
-           [:div.control-group
-            [:label.control-label "Description"]
-            [:div.controls
-             [:input {:name "description" :style {:width "90%"}
+                      :placeholder "optional device name"}]
+             [:input {:name "description" :style {:width "50%"}
                       :type "text"
                       :value (get-in app-state [:device :description])
                       :onChange
                       (fn [e]
                         (let [value (.-value (.-target e))]
                           (om/update! app-state [:device :description] value)))
-                      :placeholder "optional description"}]]]
+                      :placeholder "optional description"}]
+             [:input.btn.btn-small.btn-primary {:name "action" :type "submit" :value "Save"}]]]]
 
-           [:div.control-group
-            [:div.controls
-             [:input.btn {:name "action" :type "submit" :value "Apply"}]]]]
-
-          [:h3 "Reset password"]
           [:form.form-horizontal
            {:onSubmit (fn [ev]
                         (println "RESET PASSWORD")
@@ -284,7 +274,7 @@
                               ))))}
            [:div.control-group
             [:div.controls
-             [:input.btn {:name "action" :type "submit" :value "Reset"}]]]]
+             [:input.btn.btn-primary {:name "action" :type "submit" :value "Reset Device Password"}]]]]
 
           (when-let [password (-> app-state :device :password)]
             (list
@@ -292,54 +282,57 @@
              [:p "This device has a password that you must use when connecting to the broker. Please make a note of this password now, you will not get another chance. If you lose it you will have to delete and recreate the device."]
              [:pre {:style {:font-size "2em"}} password]))
 
-          [:h3 "Test this device"]
-          [:h4 "Mosquitto"]
-          [:pre (str "mosquitto_pub"
-                     " -h " hostname
-                     " -i " (-> app-state :device :client-id)
-                     " -t " (str "/users/" (:user app-state) "/test")
-                     " -m " "'This is a test'"
-                     " -u " (:user app-state)
-                     " -P " (or (-> app-state :device :password) "<enter password>")
-                     )]
+          [:h2 "Test this device"]
+          [:div#device-mosquitto [:h3 "Mosquitto"]
+           [:pre (str "mosquitto_pub"
+                      " -h " hostname
+                      " -i " (-> app-state :device :client-id)
+                      " -t " (str "/users/" (:user app-state) "/test")
+                      " -m " "'This is a test'"
+                      " -u " (:user app-state)
+                      " -P " (or (-> app-state :device :password) "<enter password>")
+                      )]
 
-          [:pre (str "mosquitto_sub"
-                     " -h " hostname
-                     " -i " (-> app-state :device :client-id)
-                     " -t " (str "/users/" (:user app-state) "/test")
-                     " -u " (:user app-state)
-                     " -P " (or (-> app-state :device :password) "<enter password>")
-                     )]
+           [:pre (str "mosquitto_sub"
+                      " -h " hostname
+                      " -i " (-> app-state :device :client-id)
+                      " -t " (str "/users/" (:user app-state) "/test")
+                      " -u " (:user app-state)
+                      " -P " (or (-> app-state :device :password) "<enter password>")
+                      )]]
 
-          [:h4 "Events"]
-          [:p "We will show all connection attempts from this device to help you succeed in establishing a connection from your device to the broker."]
-          [:pre
-           (for [msg (-> app-state :device :messages)]
+          [:div#device-events [:h3 "Events"]
+           [:p "We will show all connection attempts from this device to help you succeed in establishing a connection from your device to the broker."]
+           [:pre
+            (for [msg (-> app-state :device :messages)]
 ;;;;
-             (str (:text msg) "\r\n"))]
+              (str (:text msg) "\r\n"))]
 
-          [:button.btn {:onClick (fn [ev] (om/update! app-state [:device :messages] []))} "Clear"]
+           [:button.btn {:onClick (fn [ev] (om/update! app-state [:device :messages] []))} "Clear"]]
 
-          [:h4 "Charting"]
-          [:p "An example chart, plotting the messages"]
-          (om/build chart-component (-> app-state :device :messages))
+          [:div#device-charting [:h3 "Charting"]
+           [:p "An example chart, plotting the messages"]
+           (om/build chart-component (-> app-state :device :messages))
 
-          [:form.form-horizontal
-           {:onSubmit
-            (fn [ev]
-              (.preventDefault ev)
-              (let [ajax-send (chan)
-                    ajax-recv (ajaj< ajax-send :method :delete)]
-                (if-let [id (get-in @app-state [:device :client-id])]
-                  (go
-                    (>! ajax-send
-                        {:uri (str "/api/1.0/users/" (:user @app-state) "/devices/" id)})
-                    (let [{:keys [status body]} (<! ajax-recv)]
-                      (when (= status 204)
-                        (om/update! app-state [:device] nil)
-                        (om/transact! app-state [:devices] (fn [devices] (remove #(= (:client-id %) id) devices)))))))))}
+           [:form.form-horizontal
+            {:onSubmit
+             (fn [ev]
+               (.preventDefault ev)
+               (let [ajax-send (chan)
+                     ajax-recv (ajaj< ajax-send :method :delete)]
+                 (if-let [id (get-in @app-state [:device :client-id])]
+                   (go
+                     (>! ajax-send
+                         {:uri (str "/api/1.0/users/" (:user @app-state) "/devices/" id)})
+                     (let [{:keys [status body]} (<! ajax-recv)]
+                       (when (= status 204)
+                         (om/update! app-state [:device] nil)
+                         (om/transact! app-state [:devices] (fn [devices] (remove #(= (:client-id %) id) devices)))))))))}
+            ]]
+          [:div#device-delete
            [:h3 "Delete device"]
            [:p "This will delete the device permanently."]
+
            [:input.btn.btn-danger {:name "action" :type "submit" :value "Delete device"}]]])))))
 
 (defn devices-page-component [app-state owner]
@@ -348,10 +341,11 @@
     (render [this]
       (html
        [:div
-        (om/build devices-list-component app-state)
         (om/build new-device-button-component app-state)
         (when (:device app-state)
-          (om/build device-details-component app-state))]))))
+          (om/build device-details-component app-state))
+        (om/build devices-list-component app-state)
+        ]))))
 
 (defn ^:export devices-page [user]
   (swap! app-model assoc :user user)
