@@ -15,6 +15,7 @@
    [camel-snake-kebab :refer (->kebab-case-keyword ->camelCaseString)]
    [azondi.db :refer (get-users get-user delete-user! create-user! devices-by-owner get-device delete-device! create-device! patch-device! topics-by-owner get-topic delete-topic! create-topic! patch-topic! set-device-password! get-api-key delete-api-key create-api-key reset-user-password find-user-by-api-key create-subscription unsubscribe subscriptions-by-owner get-ws-session-token delete-ws-session-token create-ws-session-token find-ws-session-by-token)]
    [azondi.messages-db :refer (messages-by-owner)]
+   [azondi.emails :refer (beta-signup-email)]
    [hiccup.core :refer (html)]
    [clojure.walk :refer (postwalk)]
    liberator.representation
@@ -148,17 +149,21 @@
   {:available-media-types #{"application/json" "text/html"}
    :allowed-methods #{:put :get}
 
-   :authorized? (fn [{{{user :user :as rp} :route-params :as request} :request}]
+   #_:authorized? #_(fn [{{{user :user :as rp} :route-params :as request} :request}]
+                  
                   (authorized? authorizer request rp))
 
-   :handle-unauthorized (fn [_] (encode {:error "Unauthorized"}))
+   #_:handle-unauthorized #_(fn [_] (encode {:error "Unauthorized"}))
 
    :known-content-type? #{"application/json"}
    :processable? (create-schema-check new-user-schema)
    :handle-unprocessable-entity handle-unprocessable-entity
 
    :exists? (fn [{{{user :user} :route-params} :request}]
-                {::user (get-user db user)})
+              {::user (-> (get-user db user)
+                          (dissoc :password)
+                          (dissoc :email)
+                          )})
 
    :handle-ok (fn [{user ::user {media-type :media-type} :representation req :request}]
                 (case media-type
@@ -170,9 +175,6 @@
                                         [:dd v]))])))
 
    :put! (fn [{{:keys [name email password]} :body {{user :user} :route-params} :request}]
-           (when (get-user db user)
-             (delete-user! db user))
-
            (let [u (create-user! db name user email password)
                  _ (create-api-key db user)
                  ;;_ (set-api-key uesrs user)
@@ -184,6 +186,19 @@
                               :user u}}))
 
    :handle-created (fn [{body :response-body}] body)})
+
+(defn user-id-resource
+  "New user signup, detects whether a user id exists"
+  [db]
+  {:available-media-types #{"application/json"}
+   :allowed-methods #{:get}
+   :exists? (fn [{{{user :user} :route-params} :request}]
+              (when (get-user db user)
+                {::userid user}))
+
+   :handle-ok (fn [{userid ::userid}]
+                {:userid userid} )
+  })
 
 (defn reset-user-password-resource [db authorizer]
   {:available-media-types #{"application/json"}
@@ -216,6 +231,7 @@
         random-char (fn [] (nth valid-chars (rand (count valid-chars))))]
     (apply str (take 8 (repeatedly random-char)))))
 
+
 (defn devices-resource [db authorizer]
   {:available-media-types #{"application/json"}
    :allowed-methods #{:get :post}
@@ -242,6 +258,9 @@
                    (assoc :password p)))})
 
    :handle-created (fn [{device :device}] (->js device))})
+
+
+
 
 (defn device-resource [db authorizer]
   {:available-media-types #{"application/json"}
@@ -448,6 +467,7 @@
   (->
    {::welcome (resource (welcome-resource))
     ::users (resource (users-resource db))
+    ::userid (resource (user-id-resource db))
     ::user (resource (user-resource db authorizer))
     ::devices (resource (devices-resource db authorizer))
     ::device (resource (device-resource db authorizer))
@@ -466,6 +486,7 @@
   ["" {"" ::welcome
        "/" (->Redirect 307 ::welcome)
        ["/topics/" :topic] ::topics
+       ["/userids/" :user] ::userid
        "/users" (->Redirect 307 "/users/")
        "/users/" ::users
        ["/users/" :user] {"" ::user

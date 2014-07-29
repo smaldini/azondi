@@ -24,7 +24,40 @@ $('#reset-password-btn').click(function (e) {
 	success: function(data){window.location.href = "/";},
 	failure: function(errMsg) {
         alert(errMsg);}});
- });
+});
+
+$("#beta-user-id").on('input', function() {
+    if ($("#beta-user-id").val ().length > 2)
+    { $ ('#username_notification').hide();
+	$.ajax({
+	url: "/api/1.0/userids/" + $ ("#beta-user-id").val(),
+	type: "GET",
+	contentType: "application/json; charset=utf-8",
+	dataType: "json",
+	success: function(data){$ ('#username_notification').text ("User id already taken").show();},
+	failure: function(errMsg) {$ ('#username_notification').hide ();}});
+    }
+    else {$('#username_notification').text ("User id too short").show();}
+});
+
+$("#beta-password").on ('input', function () {
+    if ($("#beta-name").val() !== "" & $("#beta-email").val() !== "" & $("#beta-password").val() !== "" )
+    {document.getElementById ("beta-access-btn").disabled = false;}});
+
+$('#beta-access-btn').click(function (e) {
+    e.preventDefault();
+    $.ajax({
+	url: "/api/1.0/users/" + $ ("#beta-user-id").val (),
+	type: "PUT",
+	data: JSON.stringify({ name: $ ("#beta-name").val (),
+			       email:$ ("#beta-email").val(),
+			       password: $ ("#beta-password").val ()}),
+	contentType: "application/json; charset=utf-8",
+	dataType: "json",
+	success: function(data){window.location.href = "/help";},
+	failure: function(errMsg) {
+        alert(errMsg);}});
+});
 
 function populate_api_page () {
     var user =  $.session.get ('user');
@@ -78,4 +111,5 @@ $ ('#ws-info-ws-session-token-link').on ('click', function () {
 	failure: function(errMsg) {
             alert(errMsg);}});
 });
+
 

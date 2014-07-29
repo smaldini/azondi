@@ -79,10 +79,13 @@
                  [om "0.6.0"]
 
                  [org.clojure/core.async "0.1.267.0-0d7780-alpha"]
-                 [prismatic/dommy "0.1.2"]
+                 
+                 [org.clojars.ideal-knee/dommy "0.1.3-SNAPSHOT"]
                  [jarohen/chord "0.3.1"]
 
-                 ]
+                 ;; email
+                 [com.draines/postal "1.11.1"]
+                ]
 
   :jvm-opts ["-Xss8m" "-Xmx1g" "-Duser.timezone=UTC"]
   :main azondi.main
