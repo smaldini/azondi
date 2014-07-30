@@ -26,6 +26,14 @@
    user]
   (p/get-user component user))
 
+(s/defn get-user-by-email :- (s/maybe {:user s/Str
+                              :name s/Str
+                              :email s/Str
+                                       :password s/Str})
+  [component :- (s/protocol p/DataStore)
+   user]
+  (p/get-user-by-email component user))
+
 (s/defn delete-user!
   [component :- (s/protocol p/DataStore)
    user]

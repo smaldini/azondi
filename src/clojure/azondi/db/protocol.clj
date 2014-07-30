@@ -4,6 +4,7 @@
   (create-user! [_ name user email pw])
   (get-users [_])
   (get-user [_ user])
+  (get-user-by-email [_ email])
   (delete-user! [_ user])
   (reset-user-password [_ user password])
   (devices-by-owner [_ user])

@@ -15,7 +15,7 @@ body {
 .jumbotron {background: linear-gradient(#002, #005); 
 	    border-color: #141b1e;
 	    overflow: visible;
-	    height: 700px;
+	    height: 750px;
 	    width: 100%;
 	    position: relative;
 	    top:0px;
@@ -24,7 +24,7 @@ body {
 	   }
 
 #header {background-color: black;
-	 height: 700px;
+	 height: 750px;
 	 color: white;}
 
 #logoarea {height:100px;

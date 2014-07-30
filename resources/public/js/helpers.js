@@ -26,33 +26,71 @@ $('#reset-password-btn').click(function (e) {
         alert(errMsg);}});
 });
 
-$("#beta-user-id").on('input', function() {
-    if ($("#beta-user-id").val ().length > 2)
-    { $ ('#username_notification').hide();
+function IsUseridTaken (id) {
+    var result = false;
 	$.ajax({
-	url: "/api/1.0/userids/" + $ ("#beta-user-id").val(),
-	type: "GET",
-	contentType: "application/json; charset=utf-8",
-	dataType: "json",
-	success: function(data){$ ('#username_notification').text ("User id already taken").show();},
-	failure: function(errMsg) {$ ('#username_notification').hide ();}});
-    }
-    else {$('#username_notification').text ("User id too short").show();}
-});
+	    url: "/api/1.0/userids/" + $ ("#beta-user-id").val(),
+	    type: "GET",
+	    contentType: "application/json; charset=utf-8",
+	    dataType: "json",
+	    async: false,  
+	    success: function(data){$ ('#username_notification').text ("User id already taken").show();
+				   result = true; },
+	    failure: function(errMsg) {$ ('#username_notification').hide ();
+				       result =  false;}});
+    return result;
+}
+
+function IsEmailRegistered (id) {
+    var result = false;
+	$.ajax({
+	    url: "/api/1.0/userids/" + $ ("#beta-user-id").val(),
+	    type: "GET",
+	    contentType: "application/json; charset=utf-8",
+	    dataType: "json",
+	    async: false,  
+	    success: function(data){$ ('#username_notification').text ("User id already taken").show();
+				   result = true; },
+	    failure: function(errMsg) {$ ('#username_notification').hide ();
+				       result =  false;}});
+    return result;
+}
 
 function IsEmail(email) {
   var regex = /^([a-zA-Z0-9_.+-])+\@(([a-zA-Z0-9-])+\.)+([a-zA-Z0-9]{2,4})+$/;
   return regex.test(email);
 }
 
+function Validate () {
+    if ($("#beta-name").val() !== ""
+	& $("#beta-user-id").val ().length > 2
+	& (false == IsUseridTaken ($("#beta-user-id").val ()))
+	& $("#beta-password").val() !== ""
+	& IsEmail ($("#beta-email").val())) 
+    {document.getElementById ("beta-access-btn").disabled = false;}
+}
+
+$("#beta-user-id").on('input', function() {
+    if ($("#beta-user-id").val ().length > 2)
+    { $ ('#username_notification').hide();
+      IsUseridTaken ($("#beta-user-id").val ());
+      Validate ();
+    }
+    else {$('#username_notification').text ("User id too short").show();}
+});
+
 $ ("#beta-email").on ('input', function () {
     if (IsEmail ($("#beta-email").val())) {
-	$ ('#email_notification').hide();}
+	$ ('#email_notification').hide();
+    Validate (); }
     else {$('#email_notification').text ("Invalid email").show();}
 });
+
 $("#beta-password").on ('input', function () {
-    if ($("#beta-name").val() !== "" & IsEmail ($("#beta-email").val()) & $("#beta-password").val() !== "" )
-    {document.getElementById ("beta-access-btn").disabled = false;}});
+    Validate(); });
+
+$("#beta-password").on ('input', function () {
+   Validate(); });
 
 $('#beta-access-btn').click(function (e) {
     e.preventDefault();

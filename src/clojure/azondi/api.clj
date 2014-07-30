@@ -13,7 +13,7 @@
    [cheshire.core :refer (decode decode-stream encode)]
    [schema.core :as s]
    [camel-snake-kebab :refer (->kebab-case-keyword ->camelCaseString)]
-   [azondi.db :refer (get-users get-user delete-user! create-user! devices-by-owner get-device delete-device! create-device! patch-device! topics-by-owner get-topic delete-topic! create-topic! patch-topic! set-device-password! get-api-key delete-api-key create-api-key reset-user-password find-user-by-api-key create-subscription unsubscribe subscriptions-by-owner get-ws-session-token delete-ws-session-token create-ws-session-token find-ws-session-by-token)]
+   [azondi.db :refer (get-users get-user get-user-by-email delete-user! create-user! devices-by-owner get-device delete-device! create-device! patch-device! topics-by-owner get-topic delete-topic! create-topic! patch-topic! set-device-password! get-api-key delete-api-key create-api-key reset-user-password find-user-by-api-key create-subscription unsubscribe subscriptions-by-owner get-ws-session-token delete-ws-session-token create-ws-session-token find-ws-session-by-token)]
    [azondi.messages-db :refer (messages-by-owner)]
    [azondi.emails :refer (beta-signup-email)]
    [hiccup.core :refer (html)]
@@ -198,7 +198,19 @@
 
    :handle-ok (fn [{userid ::userid}]
                 {:userid userid} )
-  })
+   })
+
+(defn user-email-resource
+  "Detects if an email is already registered in the system"
+  [db]
+  :available-media-types #{"application/json"}
+   :allowed-methods #{:get}
+   :exists? (fn [{{{email :email} :route-params} :request}]
+              (when (get-user-by-email db email)
+                {::email email}))
+
+   :handle-ok (fn [{email ::email}]
+                {::email email} ))
 
 (defn reset-user-password-resource [db authorizer]
   {:available-media-types #{"application/json"}
@@ -468,6 +480,7 @@
    {::welcome (resource (welcome-resource))
     ::users (resource (users-resource db))
     ::userid (resource (user-id-resource db))
+    ::user-email (resource (user-email-resource db))
     ::user (resource (user-resource db authorizer))
     ::devices (resource (devices-resource db authorizer))
     ::device (resource (device-resource db authorizer))
@@ -487,6 +500,7 @@
        "/" (->Redirect 307 ::welcome)
        ["/topics/" :topic] ::topics
        ["/userids/" :user] ::userid
+       "/user-email" ::user-email
        "/users" (->Redirect 307 "/users/")
        "/users/" ::users
        ["/users/" :user] {"" ::user

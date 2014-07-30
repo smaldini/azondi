@@ -54,6 +54,13 @@
        :email (:email row)
        :password (:password_hash row)}))
 
+  (get-user-by-email [this email]
+    (when-let [row (first (j/query (conn this) ["SELECT * FROM users WHERE email = ?" email]))]
+      {:user (:id row)
+       :name (:name row)
+       :email (:email row)
+       :password (:password_hash row)}))
+
   (delete-user! [this user]
     (j/delete! (conn this) :users ["id = ?" user]))
 
