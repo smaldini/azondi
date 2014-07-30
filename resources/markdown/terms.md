@@ -1,26 +1,33 @@
 ## Terms of Service
 
-## Basics
+Services that opensensors.IO provides is evolving and may change
+over time.  opensensors.IO may amend these terms at any time.
 
-Please remember that public topics can viewed by anyone. Any public
-topics are published with an open data licence, specifically
-[PDDL](http://opendatacommons.org/licenses/pddl/). In short, this
-licence puts the data in the public domain and waives all rights. We
-encourage and permit broad re-use of public data.
+## Data Licensing
 
-The services that opensensors.IO provides is evolving and may change
-over time.
+### Public Data
+Please remember that public topics can viewed by anyone. Publishers
+ of public data have a full public domain license over content they
+ have published.
+
+Subscribers of public topics are required to attribute the work
+to opensensors.IO under the [Open Data Commons Attributions Licence](http://opendatacommons.org/licenses/cc-by-sa/). In
+short, this licence puts the data in the public domain allows re-distribution and
+re-use of the data.  opensensors.IO have to be appropriately credited. We encourage and permit broad re-use of data.
+
+### Private Data
+Publishers to paid channels have full rights to their content. 
 
 ## Policy
 
-Users are responsible for the use of the service and all data that
-published. Users are expected to respect the privacy of others and to
-get the consent of data subjects before processing their data.
+Customers are responsible for the use of the service and all content
+published. All users are expected to respect the privacy of others and to
+get the consent of data subjects prior to processing private data. 
 
 ## Restrictions
 
 We reserve the right at all times to remove or refuse to distribute
-any Content on the Services, to suspend or terminate users, and to
+any Content on the Service, to suspend or terminate users, and to
 reclaim usernames without liability to you. We also reserve the right
 to access, read, preserve, and disclose any information as we
 reasonably believe is necessary to (i) satisfy any applicable law,

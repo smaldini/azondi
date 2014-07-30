@@ -186,12 +186,9 @@
        [:a {:href "/help"} "Getting Started"]]
       [:div.col-sm-3
        [:h3 "Connect"]
-       [:a {:href "https://twitter.com/opensensorsio"}
-        [:img {:src "imgs/glyphicons_social_31_twitter.png"}]] [:br]
-       [:a {:href "mailto:hello@opensensors.io?subject=website%20enquiry"}
-        [:img {:src "imgs/glyphicons_010_envelope.png"}]] [:br]
-       [:a {:href "http://blog.opensensors.IO"}
-        [:img {:src "imgs/icon_8449.png"}]]]]]
+       [:a {:href "https://twitter.com/opensensorsio"} "Twitter"] [:br]
+       [:a {:href "mailto:hello@opensensors.io?subject=website%20enquiry"} "Mail"] [:br]
+       [:a {:href "http://blog.opensensors.IO"} "Blog"]]]]
 
     ;; extenal libs
     scr]))

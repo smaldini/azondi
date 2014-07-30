@@ -171,19 +171,31 @@ body {
 #public-private-btn button {margin-right: 5px;}
 #passwordVerif1 {display: inline-block; }
 #passwordVerif2 {display: inline-block; }
-.footer-list {list-style-type:none}
-.footer-list > li {display:inline;
-		   padding: 10px 10px 10px 10px;}
 
+.markdown-page {
+    margin: 100px;
+}
+
+.markdown-page h1 {text-align:center;
+		   padding: 10px;
+		  }
+
+.markdown-page h2 {text-align:center;}
+
+.markdown-page * {padding: 10px;}
 #footer {
-     position: relative;
-     
-     clear:both;
+    position: relative;
+    background: linear-gradient(#002, #005); 
+    clear:both;
      padding-top: 50px;
      padding-left: 200px;
      padding-bottom: 50px;
+     color:white;
+     
 }
 
+#footer a {color: #ddd
+		  }
 
 .btn-xlarge {
     padding: 18px 28px;

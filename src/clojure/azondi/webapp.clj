@@ -42,32 +42,32 @@
      {:status 200
       :body (base-page
              (authenticate authenticator req)
-             (md->html (io/resource "markdown/getting-started.md")))})
+             [:div.markdown-page (md->html (io/resource "markdown/getting-started.md"))])})
    :about
    (fn [req]
      {:status 200
       :body (base-page
              (authenticate authenticator req)
-             (md->html (io/resource "markdown/about-us.md")))})
+             [:div.markdown-page (md->html (io/resource "markdown/about-us.md"))])})
    :terms
    (fn [req]
      {:status 200
       :body (base-page
              (authenticate authenticator req)
-             (md->html (io/resource "markdown/terms.md")))})
+             [:div.markdown-page (md->html (io/resource "markdown/terms.md"))])})
 
    :services
    (fn [req]
      {:status 200
       :body (base-page
              (authenticate authenticator req)
-             (md->html (io/resource "markdown/services.md")))})
+             [:div.markdown-page (md->html (io/resource "markdown/services.md"))])})
    :careers
    (fn [req]
      {:status 200
       :body (base-page
              (authenticate authenticator req)
-             (md->html (io/resource "markdown/careers.md")))})
+             [:div.markdown-page (md->html (io/resource "markdown/careers.md"))])})
 
    :devices (restrict-to-valid-user authorizer devices-page)
 
