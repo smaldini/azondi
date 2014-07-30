@@ -62,6 +62,12 @@
       :body (base-page
              (authenticate authenticator req)
              (md->html (io/resource "markdown/services.md")))})
+   :careers
+   (fn [req]
+     {:status 200
+      :body (base-page
+             (authenticate authenticator req)
+             (md->html (io/resource "markdown/careers.md")))})
 
    :devices (restrict-to-valid-user authorizer devices-page)
 
@@ -86,6 +92,7 @@
         ["about" :about]
         ["terms" :terms]
         ["services" :services]
+        ["careers" :careers]
         ["devices" :devices]
         ["topics" :topics]
         ["reset-password" :reset-password]

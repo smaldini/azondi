@@ -170,15 +170,28 @@
     [:script {:src "cljs/logo.js"}]
     [:script {:src "js/helpers.js"}]
     [:div#footer {:class "navbar-default navbar-fixed-bottom"}
-     [:ul.footer-list
-      [:li "&copy; 2014 open sensors ltd"]
-      [:li [:a {:href "/about"} "About Us"]]
-      [:li [:a {:href "http://blog.opensensors.IO"} "Blog"]]
-      [:li [:a {:href "/terms"} "Terms"]]
-      [:li [:a {:href "https://twitter.com/opensensorsio"}
-            [:img {:src "imgs/glyphicons_social_31_twitter.png"}]]]
-      [:li [:a {:href "mailto:hello@opensensors.io?subject=website%20enquiry"}
-            [:img {:src "imgs/glyphicons_010_envelope.png"}]]]]]
+     [:div.row
+      [:div.col-sm-3
+       [:h3 "opensensors.io"]
+       [:div#copyright
+        "&copy; 2014 open sensors ltd"]
+       [:a {:href "/terms"} "Terms"]]
+      [:div.col-sm-3
+       [:h3 "Company"]
+       [:a {:href "/about"} "About Us"] [:br]
+       [:a {:href "http://blog.opensensors.IO"} "Blog"] [:br]
+       [:a {:href "/careers"} "Careers"]]
+      [:div.col-sm-3
+       [:h3 "Help"]
+       [:a {:href "/help"} "Getting Started"]]
+      [:div.col-sm-3
+       [:h3 "Connect"]
+       [:a {:href "https://twitter.com/opensensorsio"}
+        [:img {:src "imgs/glyphicons_social_31_twitter.png"}]] [:br]
+       [:a {:href "mailto:hello@opensensors.io?subject=website%20enquiry"}
+        [:img {:src "imgs/glyphicons_010_envelope.png"}]] [:br]
+       [:a {:href "http://blog.opensensors.IO"}
+        [:img {:src "imgs/icon_8449.png"}]]]]]
 
     ;; extenal libs
     scr]))
