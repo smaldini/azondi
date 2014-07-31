@@ -223,10 +223,7 @@
        [:img {:src "imgs/icon_22612.svg" :height 100 :width 100} [:b#features-ind " Enterprise grade"]]
        [:p "Would you like to run the opensensors.IO IOT network inside your firewall?"]
        [:a {:href "#"} "Contact Us"]]]]
-    [:hr]
-    [:div#how-index
-     [:h2 "How to use us"]
-     [:p "How to you us"]]]] 
+   ]] 
   )
 ;;; We need to pull out the user details from the session
 (defn devices-page [user]
