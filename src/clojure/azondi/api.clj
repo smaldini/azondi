@@ -322,7 +322,7 @@
    :handle-created (fn [{password :password}] {:password password})})
 
 (def topic-attributes-schema
-  {:public s/Bool
+  {(s/optional-key :public) s/Bool
    (s/optional-key :unit) s/Str
    (s/optional-key :description) s/Str})
 

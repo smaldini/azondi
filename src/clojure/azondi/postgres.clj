@@ -151,7 +151,9 @@
       ))
 
   (delete-topic! [this topic-id]
-    (j/delete! (conn this) :topics ["topic = ?" topic-id]))
+    (do
+      (j/delete! (conn this) :topics ["topic = ?" topic-id])
+      (j/delete! (conn this) :subscriptions ["user_id = ?" user])))
 
   (patch-topic! [this topic-id data]
     (j/update! (conn this) :topics data ["topic = ?" topic-id]))
