@@ -222,7 +222,8 @@
       [:div.col-sm-6
        [:img {:src "imgs/icon_22612.svg" :height 100 :width 100} [:b#features-ind " Enterprise grade"]]
        [:p "Would you like to run the opensensors.IO IOT network inside your firewall?"]
-       [:a {:href "#"} "Contact Us"]]]]
+       [:a {:href "mailto:hello@opensensors.io?subject=Enterprise%20enquiry"} "Contact Us"]
+       ]]]
    ]] 
   )
 ;;; We need to pull out the user details from the session
