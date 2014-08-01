@@ -7,6 +7,8 @@
   :source-paths ["src/clojure" "ext/clojure"]
   :resource-paths ["resources"]
 
+  :exclusions [prismatic/schema prismatic/plumbing]
+
   :dependencies [[org.clojure/clojure "1.6.0"]
                  ;; Assembly
                  [com.stuartsierra/component "0.2.1"]
@@ -38,7 +40,8 @@
                  ;;[javax.servlet/servlet-api "2.5"]
                  [clj-time "0.8.0"]
                  [liberator "0.11.0" :exclusions [org.clojure/tools.logging]]
-                 [prismatic/schema "0.2.1"]
+                 [prismatic/schema "0.2.6"]
+                 [prismatic/plumbing "0.3.3"]
                  [clojurewerkz/scrypt     "1.1.0"]
 
                  ;; Pre-built components supplied by modular
@@ -79,7 +82,7 @@
                  [om "0.6.0"]
 
                  [org.clojure/core.async "0.1.267.0-0d7780-alpha"]
-                 
+
                  [org.clojars.ideal-knee/dommy "0.1.3-SNAPSHOT"]
                  [jarohen/chord "0.3.1"]
 

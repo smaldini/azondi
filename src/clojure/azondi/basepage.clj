@@ -52,13 +52,13 @@
       [:circle {:cx 400 :cy 30 :fill "red" :opacity "1.0" :r "1"}
        [:animate {:attributeName "r" :begin "1s" :calcmode "linear" :dur "1s" :values="15; 4; 2; 1"}]]]]
     [:div.info
-     [:h1 "The Operating System for the Internet of Things"]     
+     [:h1 "The Operating System for the Internet of Things"]
      [:h2 "Connect and manage your devices in one place." [:br] " Share your data or create private projects."]
      [:form {:id "beta-signup" :role "form"}
       [:div.form-inline
-       
+
        [:input {:type "text" :class "form-control" :id "beta-user-id" :name "beta-user-id" :placeholder "Your User ID"} [:i [:p#username_notification {:style "display:none"}]]]
-       
+
        [:input {:type "text" :class "form-control" :id "beta-name" :name "beta-name" :placeholder "Your Name"}]
        [:input {:type "email" :class "form-control" :id "beta-email" :name "beta-email" :placeholder "Your Email"} [:i [:p#email_notification {:style "display:none"}]]]
        [:input {:type "password" :class "form-control" :id "beta-password" :name "beta-password" :placeholder "Your Password"}]
@@ -133,7 +133,7 @@
         [:a#home-logo.navbar-brand (if user
                                      {:href "/devices"}
                                      {:href "/"}) "opensensors.io"]
-        
+
         ;; [:ul {:class "nav navbar-nav"}
         ;;  [:li [:a {:href "/services"} "Services"]]]
         ]
@@ -166,8 +166,8 @@
     [:script {:src "js/react.js"}]
     [:script {:src "cljs/cljs.js"}]
     [:script {:src "cljs/azondi.js"}]
-
     [:script {:src "cljs/logo.js"}]
+
     [:script {:src "js/helpers.js"}]
     [:div#footer {:class "navbar-default navbar-fixed-bottom"}
      [:div.row
@@ -207,7 +207,7 @@
        [:img {:src "imgs/icon_7138.svg" :height 100 :width 100} [:b#features-ind " Hardware Agnostic"]]
        [:p "Connect any device to our messaging broker easily"]
        ]]
-     
+
      [:div.row
       [:div#left.col-sm-6
        [:img {:src "imgs/icon_1518.svg" :height 100 :width 100} [:b#features-ind "  Device Management"]]
@@ -224,7 +224,7 @@
        [:p "Would you like to run the opensensors.IO IOT network inside your firewall?"]
        [:a {:href "mailto:hello@opensensors.io?subject=Enterprise%20enquiry"} "Contact Us"]
        ]]]
-   ]] 
+   ]]
   )
 ;;; We need to pull out the user details from the session
 (defn devices-page [user]

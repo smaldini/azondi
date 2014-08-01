@@ -11,7 +11,7 @@
 
             [clojure.set :as cs]
             [clojurewerkz.meltdown.reactor :as mr]
-            
+
             [clojurewerkz.meltdown.selectors :as ms :refer [$]]
             [clojure.core.async :refer (chan pub dropping-buffer sub go >! <! >!! <!! take! put! timeout)]
             [azondi.reactor.keys :as rk]
@@ -362,7 +362,9 @@
                       (f ctx msg handler-state)
                       (mr/notify reactor rk/message-published {:device_id client-id
                                                                :payload payload
+                                                               ;; TODO This should come from topic content/type
                                                                :content_type "application/json"
+                                                               :charset "UTF-8"
                                                                :topic topic
                                                                :owner username}))
             (mh/update! (:mqtt-messages-payload-size metrics) (alength payload))

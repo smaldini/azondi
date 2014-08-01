@@ -1,7 +1,7 @@
 (ns azondi.system
   "(Component-based) system configuration and inter-component dependencies"
   (:require
-   [com.stuartsierra.component :as component :refer (system-map system-using)]
+   [com.stuartsierra.component :as component :refer (system-map system-using using)]
    [azondi.config :refer [user-config config-from-classpath]]
    [clojure.string :as str]
    [clojure.core.async :as async]
@@ -29,6 +29,7 @@
    [azondi.transports.mqtt :refer (new-netty-mqtt-handler)]
    [azondi.reactor :refer (new-reactor)]
    [azondi.bridges.ws :refer (new-websocket-bridge)]
+   [azondi.bridges.sse :refer (new-sse-bridge)]
    [azondi.topics :refer (new-topic-injector)]
    [azondi.metrics :refer (new-metrics)]
    [azondi.messages :refer (new-message-archiver)]
@@ -68,6 +69,7 @@
      :mqtt-server (new-netty-server {:port 1883})
      :reactor (new-reactor)
      :ws (new-websocket-bridge {:port 8083})
+     :sse-bridge (using (new-sse-bridge) {:reactor :reactor})
 
      ;; Webserver and routing
 
@@ -75,7 +77,7 @@
      :cljs-main (new-cljs-module :name :azondi :mains ['azondi.main] :dependencies #{:cljs})
 
      :cljs-logo (new-cljs-module :name :logo :mains ['azondi.logo] :dependencies #{:cljs})
-;;     :cljs-reset (new-cljs-module :name :reset-password :mains ['azondi.reset-password] :dependencies #{:cljs})
+     ;;     :cljs-reset (new-cljs-module :name :reset-password :mains ['azondi.reset-password] :dependencies #{:cljs})
 
      :main-cljs-builder (new-cljs-builder :source-path "src/cljs")
 
@@ -104,7 +106,7 @@
      :login-form (new-login-form
                   :renderer (new-custom-login-form-renderer)
                   :requested-uri "/devices"
-                  ) ; start with the login form
+                  )                     ; start with the login form
      ;; Cylon login-forms depend on a session-store. This default impl
      ;; won't survive system reset but will do for now
      :session-store (new-atom-backed-session-store)
@@ -127,7 +129,7 @@
    :main-cljs-builder [:cljs-core :cljs-main :cljs-logo]
 
    :webserver {:request-handler :webrouter}
-   :webrouter [:webapp :api :sse :main-cljs-builder :login-form]
+   :webrouter [:webapp :api :sse :main-cljs-builder :login-form :sse-bridge]
    :login-form {:authorizer :valid-user-authorizer}
    :webapp {:authorizer :valid-user-authorizer}
    :valid-user-authorizer {:authenticator :authenticator}
