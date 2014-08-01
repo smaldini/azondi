@@ -1,6 +1,7 @@
 (ns azondi.bridges.sse
   (:require
    [com.stuartsierra.component :refer (using)]
+   [bidi.bidi :refer (->Redirect)]
    [clojure.tools.logging :refer :all]
    [schema.core :as s]
    [modular.bidi :refer (WebService)]
@@ -15,23 +16,27 @@
   (slurp (io/reader bs :encoding cs)))
 
 (defn server-event-source [reactor]
-  (fn [req]
+  (fn [{{prefix :prefix} :route-params :as req}]
     (with-channel req channel
       (send! channel
              {:headers {"Content-Type" "text/event-stream"}} false)
+      (debugf "Opening firehose (prefix:%s)" prefix)
       (let [rsub
             (mr/on
              reactor
              (set-membership #{"messages.published"})
              (fn [evt]
-               (send! channel
-                      (let [{:keys [charset] :as data} (:data evt)]
-                        (str "data: "
-                             (cond-> data
-                                     charset
-                                     (update-in [:payload] read-bytes charset))
-                             "\r\n\r\n"))
-                      false)))]
+               (when
+                   (when-let [topic (-> evt :data :topic)]
+                     (.startsWith topic prefix))
+                 (send! channel
+                        (let [{:keys [charset] :as data} (:data evt)]
+                          (str "data: "
+                               (cond-> data
+                                       charset
+                                       (update-in [:payload] read-bytes charset))
+                               "\r\n\r\n"))
+                        false))))]
         (on-close channel (fn [status]
                             (debugf "Closing firehose")
                             (mc/cancel rsub)))))))
@@ -41,7 +46,7 @@
   (request-handlers [component]
     {::events (server-event-source (:reactor reactor))})
   (routes [component]
-    ["/events" ::events])
+    ["" [[["/events" [#".*" :prefix]] ::events]]])
   (uri-context [component]
     uri-context))
 
