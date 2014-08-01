@@ -37,8 +37,8 @@
 
 (defrecord ServerSentEventBridge [uri-context reactor]
   WebService
-  (request-handlers [component] {::firehose (server-event-source (:reactor reactor))})
-  (routes [component] ["/firehose" ::firehose])
+  (request-handlers [component] {::events (server-event-source (:reactor reactor))})
+  (routes [component] ["/events" ::events])
   (uri-context [component] uri-context))
 
 (defn new-sse-bridge [& {:as opts}]

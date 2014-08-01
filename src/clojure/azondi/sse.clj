@@ -29,7 +29,7 @@
   WebService
   (request-handlers [_] {::events (server-event-source async-pub)})
   (routes [_] ["/" {[[#"\d+" :client-id]] ::events}])
-  (uri-context [_] "/events"))
+  (uri-context [_] "/debug-events"))
 
 (defn new-event-service [& {:as opts}]
   (->> opts

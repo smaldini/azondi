@@ -162,7 +162,7 @@
   [owner client-id notify-ch]
   ;; We only have one event-source per device-details component, not per device.
   (when-let [es (om/get-state owner :event-source)] (.close es))
-  (om/set-state! owner :event-source (listen-sse (str "/events/" client-id) notify-ch)))
+  (om/set-state! owner :event-source (listen-sse (str "/debug-events/" client-id) notify-ch)))
 
 (defn device-details-component [app-state owner]
   (reify

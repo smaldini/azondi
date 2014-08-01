@@ -96,10 +96,10 @@
      :valid-user-authorizer (new-valid-user-authorizer)
 
      ;; Server Sent Events (part of HTML5 spec.)
-     :sse (let [sse-ch (async/chan 64)
-                ;; SSE splits on client-id
-                sse-pub (async/pub (async/tap debug-mult sse-ch) :client-id)]
-            (new-event-service :async-pub sse-pub))
+     :sse-debug (let [sse-ch (async/chan 64)
+                      ;; SSE splits on client-id
+                      sse-pub (async/pub (async/tap debug-mult sse-ch) :client-id)]
+                  (new-event-service :async-pub sse-pub))
 
      ;; Security
 
@@ -129,7 +129,7 @@
    :main-cljs-builder [:cljs-core :cljs-main :cljs-logo]
 
    :webserver {:request-handler :webrouter}
-   :webrouter [:webapp :api :sse :main-cljs-builder :login-form :sse-bridge]
+   :webrouter [:webapp :api :sse-debug :main-cljs-builder :login-form :sse-bridge]
    :login-form {:authorizer :valid-user-authorizer}
    :webapp {:authorizer :valid-user-authorizer}
    :valid-user-authorizer {:authenticator :authenticator}
