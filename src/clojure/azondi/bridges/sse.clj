@@ -19,7 +19,6 @@
 
 (defn server-event-source [reactor authorizer database]
   (fn [{{prefix :prefix} :route-params :as req}]
-
     (let [user (:cylon/user (authenticate (:authenticator authorizer) req))]
       (if user
         (with-channel req channel
@@ -53,18 +52,18 @@
             (on-close channel (fn [status]
                                 (debugf "Closing firehose")
                                 (mc/cancel rsub)))))
-        {:status 403
-         :body "Unauthorized access to event stream"}
-        ))))
+        {:status 401
+         :body "Unauthorized access to event stream"}))))
 
 (defrecord ServerSentEventBridge [uri-context reactor authorizer database]
   WebService
   (request-handlers [component]
     {::events (server-event-source (:reactor reactor) authorizer database)})
   (routes [component]
-    ["" [[["/events" [#".*" :prefix]] ::events]]])
+    [["/events" [#".*" :prefix]] ::events])
   (uri-context [component]
     uri-context))
+
 
 (defn new-sse-bridge [& {:as opts}]
   (->> opts
