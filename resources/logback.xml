@@ -11,6 +11,8 @@
 
   <logger name="modular" level="INFO"/>
   <logger name="azondi" level="INFO"/>
+  <!-- For debugging SSE traffic -->
+  <logger name="azondi.bridges.sse" level="DEBUG"/>
   <logger name="cylon" level="INFO"/>
 
   <root level="INFO">
