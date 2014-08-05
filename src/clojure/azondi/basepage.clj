@@ -158,7 +158,7 @@
         [:div.col-sm-2
          [:div.sidebar-nav
           (side-menu user)]]
-        [:div.col-sm-9
+        [:div.col-xs-9
          body]]
        body)]
 
@@ -171,20 +171,20 @@
     [:script {:src "js/helpers.js"}]
     [:div#footer {:class "navbar-default navbar-fixed-bottom"}
      [:div.row
-      [:div.col-sm-3
+      [:div.col-xs-3
        [:h3 "opensensors.io"]
        [:div#copyright
         "&copy; 2014 open sensors ltd"]
        [:a {:href "/terms"} "Terms"]]
-      [:div.col-sm-3
+      [:div.col-xs-3
        [:h3 "Company"]
        [:a {:href "/about"} "About Us"] [:br]
        [:a {:href "http://blog.opensensors.IO"} "Blog"] [:br]
        [:a {:href "/careers"} "Careers"]]
-      [:div.col-sm-3
+      [:div.col-xs-3
        [:h3 "Help"]
        [:a {:href "/help"} "Getting Started"]]
-      [:div.col-sm-3
+      [:div.col-xs-3
        [:h3 "Connect"]
        [:a {:href "https://twitter.com/opensensorsio"} "Twitter"] [:br]
        [:a {:href "mailto:hello@opensensors.io?subject=website%20enquiry"} "Mail"] [:br]
@@ -200,26 +200,26 @@
     [:div#features-index
      [:h1 [:b "Create realtime IOT applications in minutes"]]
      [:div.row
-      [:div#left.col-sm-6
+      [:div#left.col-xs-6
        [:img {:src "imgs/icon_824.svg" :height 100 :width 100} [:b#features-ind " Data Broadcast"]]
        [:p "Share communal data with the world or publish privately"]]
-      [:div.col-sm-6
+      [:div.col-xs-6
        [:img {:src "imgs/icon_7138.svg" :height 100 :width 100} [:b#features-ind " Hardware Agnostic"]]
        [:p "Connect any device to our messaging broker easily"]
        ]]
      
      [:div.row
-      [:div#left.col-sm-6
+      [:div#left.col-xs-6
        [:img {:src "imgs/icon_1518.svg" :height 100 :width 100} [:b#features-ind "  Device Management"]]
        [:p "Built-in device security authentication and management"]]
-      [:div.col-sm-6
+      [:div.col-xs-6
        [:img {:src "imgs/icon_5460.svg" :height 100 :width 100} [:b#features-ind " Real Time Firehose"]]
        [:p "Your own personal data stream for M2M or web applications"]]]
      [:div.row
-      [:div#left.col-sm-6
+      [:div#left.col-xs-6
        [:img {:src "imgs/icon_6001.svg" :height 100 :width 100} [:b#features-ind "  Storage"]]
        [:p "Persistent storage and easy access to your historical data"]]
-      [:div.col-sm-6
+      [:div.col-xs-6
        [:img {:src "imgs/icon_22612.svg" :height 100 :width 100} [:b#features-ind " Enterprise grade"]]
        [:p "Would you like to run the opensensors.IO IOT network inside your firewall?"]
        [:a {:href "mailto:hello@opensensors.io?subject=Enterprise%20enquiry"} "Contact Us"]
@@ -263,7 +263,7 @@
   (base-page user
    [:div
     [:div.row
-     [:div#api-info.col-sm-10
+     [:div#api-info.col-xs-10
       [:div#your-api-keys
        [:h3 "Your API Key"]
        [:span "api-key: "] [:strong [:span.api-info-api-key-view]] [:br]
