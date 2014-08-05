@@ -20,7 +20,7 @@ and implementation details should be expected.
 
 ## Components
 
-### Messaging Broker 
+### Messaging Broker
 
 Azondi has it's own built in [MQTT](http://mqtt.org/) broker on top of
 [Netty](https://github.com/OpenSensorsIO/azondi/blob/master/src/clojure/azondi/transports/mqtt.clj). Currently
@@ -44,7 +44,7 @@ For convenience, it would be easiest to run azondi contained within a
 Vagrant environment and there is a chef cookbook supplied for this. Instructions for this can be found [here](https://github.com/OpenSensorsIO/vagrant).
 
 Once set up with vagrant, run lein repl and type (go).
-=======
+
 ## Getting Started
 
 For convenience, it would be easiest to run azondi contained
@@ -54,6 +54,18 @@ this. Instructions for this can be found
 
 Once set up and running with the vagrant environment run lein repl,
 and type (go).
+
+## Firehose
+
+To access messages via the firehose, do the following :-
+
+    curl http://localhost:8010/events/
+
+To get a subset of the messages, say, for every topic below `users/yods`, use this :-
+
+    curl http://localhost:8010/events/users/yods
+
+In due course, the firehose will be secured via api-key authentication (or access-token authentication when available).
 
 ## License
 
