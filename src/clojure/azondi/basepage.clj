@@ -27,7 +27,7 @@
                  {:label "Topics"
                   :security :user
                   :target "/api-docs#topics-api-info"}
-                 {:label "Real Time Streaming Data"
+                 {:label "Streaming Api"
                   :security :user
                   :target "/api-docs#firehose-api-info"}
                  {:label "Messages"
