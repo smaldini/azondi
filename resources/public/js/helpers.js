@@ -115,14 +115,13 @@ function populate_api_page () {
     	contentType: "application/json; charset=utf-8",
     	dataType: "json",
     	success: function(data){
-	    $('#api-info-user-id').replaceWith("<span#api-info-user-id>"+ data.user + "</span>");
+	    $('span#api-info-user-id').replaceWith("<span#api-info-user-id>"+ data.user + "</span>");
 	    $('.api-info-api-key-view').empty ().append ("<span#api-info-api-key-view>"+ data.api + "</span>");
 	    $ ('#uuid-api-view').empty ().append ("<span#uuid-api-view>?user=" + data.user + "&API=" + data.api + "</span>");},
     	failure: function(errMsg) {alert(errMsg);}});
 }
 
 $ ('#api-info-api-key-link').on ('click', function () {
-
     var user =  $.session.get ('user');
     $.ajax ({
 	url: "api/1.0/users/" + user + "/api-key",

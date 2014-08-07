@@ -17,7 +17,22 @@
      {:label "API"
       :security :user
       :location :sidebar
-      :target "/api-docs"}
+      :target "/api-docs"
+      :children [{:label "API Keys"
+                  :security :user
+                  :target "/api-docs"}
+                 {:label "Devices"
+                  :security :user
+                  :target "/api-docs#devices-api-info"}
+                 {:label "Topics"
+                  :security :user
+                  :target "/api-docs#topics-api-info"}
+                 {:label "Real Time Streaming Data"
+                  :security :user
+                  :target "/api-docs#firehose-api-info"}
+                 {:label "Messages"
+                  :security :user
+                  :target "/api-docs#messages-api-info"}]}
     {:label "Web Sockets"
       :security :user
       :location :sidebar
@@ -88,22 +103,25 @@
                        [:span.icon-bar]]
                       [:span {:class "visible-xs navbar-brand"} "Menu"]]
 
-   ;;put back when parent menu is back
-   ;; (if (and parent (not-empty listitems))
-   ;;   (list
-   ;;    [:li [:a {:data-toggle "collapse"
-   ;;              :data-parent "#accordion"
-   ;;              :href (str "#" parent)
-   ;;              :class "collapsed"
-   ;;              } parent]])
-   ;;[:div {:id (str parent) :class "collapse out"}])
+   ;;To do
+   ;; on click of parent open accordian
+   ;; on click clild go to header of child
 
    [:ul
     (for [menu menus
-          :when (displayed? menu user)
-          ]
+          :when (displayed? menu user)]
       (when (= :sidebar (:location menu))
-        [:li.side-menu-item [:a {:href (:target menu)} (:label menu)]]))]])
+        (if (:children menu)
+          [:div.accordion-group
+           [:div.accordion-heading
+            [:li.side-menu-item [:a.accordion-toggle {:data-toggle "collapse" :data-parent "#leftMenu" :href (str "#" (:label menu))} (:label menu)]]
+            [:div {:id (:label menu) :class "accordion-body collapse" }
+             [:div.accordion-inner
+              [:ul
+               (for [child (:children menu)
+                     :when (displayed? child user)]
+                 [:li [:a {:href (:target child)} (:label child)]])]]]]]
+          [:li.side-menu-item [:a {:href (:target menu)} (:label menu)]])))]])
 
 (defn base-page [user body & scr]
   (html5
@@ -132,11 +150,7 @@
          [:span.icon-bar]]
         [:a#home-logo.navbar-brand (if user
                                      {:href "/devices"}
-                                     {:href "/"}) "opensensors.io"]
-
-        ;; [:ul {:class "nav navbar-nav"}
-        ;;  [:li [:a {:href "/services"} "Services"]]]
-        ]
+                                     {:href "/"}) "opensensors.io"]]
        [:div {:class "collapse navbar-collapse" :id "bs-example-navbar-collapse-1"}
         [:ul {:class "nav navbar-nav navbar-right"}
          (for [menu menus
@@ -274,13 +288,15 @@
        [:div "All API calls should be made to " [:code "opensensors.IO"]]
        [:h3 [:b "Authentication"]]
        [:div "Authorization is achieved by adding the following HTTP header"]
-       [:pre#api-authorisation-key "Authorization: api-key " [:span.api-info-api-key-view]]
-       "For example send a GET request to return your existing devices"
-       [:pre "curl -X GET -H 'Authorization: api-key " [:span.api-info-api-key-view] "' opensensors.IO/api/1.0/users/" [:span#api-info-user-id] "/devices/"]
-       [:hr]]
+       [:pre#api-authorisation-key "Authorization: api-key " [:span.api-info-api-key-view]]]
 
-      [:div
-       [:h3 [:b "New Devices"]]
+      [:hr]
+
+       [:div#devices-api-info
+       [:h2 "Devices"]
+       [:h3 [:b "List of Devices"]]
+       [:pre "curl -X GET -H 'Authorization: api-key " [:span.api-info-api-key-view] "' opensensors.IO/api/1.0/users/" [:span#api-info-user-id] "/devices/"]
+        [:h3 [:b "New Devices"]]
        [:p "Send a POST request to this address to create new devices. Each POST will return a JSON map, containing the following entries :-"]
        [:pre "curl -X POST -H 'Authorization: api-key " [:span.api-info-api-key-view] "' opensensors.IO/api/1.0/users/" [:span#api-info-user-id] "/devices/ -d '{}'"]
        [:ul
@@ -289,24 +305,39 @@
         [:li "password : the password to use when connecting with the device"]
         [:li "name : the name of the device"]
         [:li "description : the description of the device"]]
-       [:hr]]
-      [:div
-       [:h3 [:b "Update Devices"]]
-       [:p "Send a PUT request to this address ending with a device id to update the device details. The request should have a JSON map with entries to be updated currently name and description"]
-       [:hr]]]]]
-   [:script "populate_api_page ()"]
-   ))
+       
+       [:div
+        [:h3 [:b "Update Devices"]]
+        [:p "Send a PUT request to this address ending with a device id to update the device details. The request should have a JSON map with entries to be updated currently name and description"]]]
+      [:hr]
+
+      [:div#topics-api-info
+       [:h2 "Topics"]
+        [:h3 [:b "List of Topics"]]
+       [:pre "curl -X GET -H 'Authorization: api-key " [:span.api-info-api-key-view] "' opensensors.IO/api/1.0/users/" [:span#api-info-user-id] "/topics/"]]
+      [:hr]
+
+      [:div#firehose-api-info
+       [:h2 "Real Time Data"]
+       [:p "Get the streaming data feed of all topics you are subscribed to using"]
+       [:pre "curl -X GET -H 'Authorization: api-key " [:span.api-info-api-key-view] "' opensensors.IO/api/1.0/users/events/" [:span#api-info-user-id]]]
+      [:hr]
+
+      [:div#messages-api-info
+       [:h2 "Messages"]]
+      [:hr]]]]
+   [:script "populate_api_page ()"]))
 
 (defn web-sockets [user]
-  (base-page user
-             [:div#web-socket-information.row
-              [:p "To use the real time device data streams in your websites or applications use the provided URL"]
-              [:div#your-websocket-session
-               [:h3 [:b "Firehose Details"]] [:br]
-               [:span "Session Token ID: " [:strong [:span.ws-info-session-token]] [:br]]
-               [:br]
-               [:span#ws-session-url "URL: " [:strong [:span#ws-session-url-info]] [:br]]
-               [:br]
-               [:a#ws-info-ws-session-token-link {:href "#"} "reset your session id"]]
-              ]
-              [:script "populate_ws_page ()"]))
+    (base-page user
+               [:div#web-socket-information.row
+                [:p "To use the real time device data streams in your websites or applications use the provided URL"]
+                [:div#your-websocket-session
+                 [:h3 [:b "Firehose Details"]] [:br]
+                 [:span "Session Token ID: " [:strong [:span.ws-info-session-token]] [:br]]
+                 [:br]
+                 [:span#ws-session-url "URL: " [:strong [:span#ws-session-url-info]] [:br]]
+                 [:br]
+                 [:a#ws-info-ws-session-token-link {:href "#"} "reset your session id"]]
+                ]
+               [:script "populate_ws_page ()"]))

@@ -110,6 +110,9 @@ h3 {font-weight: bold;
 .navbar li:hover {
     background-color:#00CC00;}
 
+#api-info div {padding: 20px;
+		    }
+
 #your-api-keys {border: 1px solid rgba(0, 0, 0, 0.1);
 		padding: 20px;
 		padding-left: 20px;
