@@ -137,11 +137,11 @@
 
   MessageStore
   (messages-by-owner [this owner]
-    (throw (ex-info "unimplemented fn!" {})))
+    (filter #(= (:owner %) owner) (-> this :database :messages deref)))
   (messages-by-device [this device-id]
-    (throw (ex-info "unimplemented fn!" {})))
+    (filter #(= (:device_id %) device-id) (-> this :database :messages deref)))
   (messages-by-topic [this topic]
-    (throw (ex-info "unimplemented fn!" {})))
+    (filter #(= (:topic %) topic) (-> this :database :messages deref)))
   (archive-message! [this data]
     (let [now  (tc/now)
           data (merge data

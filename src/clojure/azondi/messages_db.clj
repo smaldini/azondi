@@ -10,8 +10,8 @@
 
 (s/defn messages-by-owner [component :- (s/protocol p/MessageStore)
                            owner :- s/Str]
-  (->>(p/messages-by-owner component owner)
-      (map #(update-in % [:payload] payload>Str))))
+  (->> (p/messages-by-owner component owner)
+       (map #(update-in % [:payload] payload>Str))))
 
 (s/defn messages-by-device [component :- (s/protocol p/MessageStore)
                             device-id :- s/Str]

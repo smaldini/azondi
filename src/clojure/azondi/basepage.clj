@@ -305,7 +305,7 @@
         [:li "password : the password to use when connecting with the device"]
         [:li "name : the name of the device"]
         [:li "description : the description of the device"]]
-       
+
        [:div
         [:h3 [:b "Update Devices"]]
         [:p "Send a PUT request to this address ending with a device id to update the device details. The request should have a JSON map with entries to be updated currently name and description"]]]
@@ -324,7 +324,9 @@
       [:hr]
 
       [:div#messages-api-info
-       [:h2 "Messages"]]
+       [:h2 "Messages"]
+       [:p "List of Messages"]
+       [:pre "curl -X GET -H 'Authorization: api-key " [:span.api-info-api-key-view] "' opensensors.IO/api/1.0/users/" [:span#api-info-user-id] "/messages/"]]
       [:hr]]]]
    [:script "populate_api_page ()"]))
 

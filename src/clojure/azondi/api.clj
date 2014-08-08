@@ -99,10 +99,12 @@
                   "text/html" (html [:h1 welcome])
                   ("application/json" "application/edn") {:message welcome :current-date (java.util.Date.)}))})
 
-(defn messages-resource [messages-db authorized?]
+(defn messages-resource [messages-db authorizer]
   {:allowed-methods #{:get}
    :available-media-types #{"application/json"}
-   :authorized? (fn [r] true)
+   :authorized? (fn [{{{user :user :as rp} :route-params :as request} :request}]
+                  (authorized? authorizer request rp))
+;   :authorized? (fn [r] true)
    ;; TODO add authorizer
    #_(fn [{{{user :user :as rp} :route-params :as request} :request}]
      (authorized? authorizer request rp))
@@ -150,7 +152,7 @@
    :allowed-methods #{:put :get}
 
    #_:authorized? #_(fn [{{{user :user :as rp} :route-params :as request} :request}]
-                  
+
                   (authorized? authorizer request rp))
 
    #_:handle-unauthorized #_(fn [_] (encode {:error "Unauthorized"}))
