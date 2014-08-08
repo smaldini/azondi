@@ -320,7 +320,7 @@
       [:div#firehose-api-info
        [:h2 "Real Time Data"]
        [:p "Get the streaming data feed of all topics you are subscribed to using"]
-       [:pre "curl -X GET -H 'Authorization: api-key " [:span.api-info-api-key-view] "' opensensors.IO/api/1.0/users/events/" [:span#api-info-user-id]]]
+       [:pre "curl -X GET -H 'Authorization: api-key " [:span.api-info-api-key-view] "' opensensors.IO/events/users/" [:span#api-info-user-id]]]
       [:hr]
 
       [:div#messages-api-info
