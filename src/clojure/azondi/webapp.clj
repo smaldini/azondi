@@ -112,9 +112,15 @@
         ["api-docs" :api-docs-page]
         ["web-sockets" :web-sockets-page]
         
-        [["users/" :user] {"" :topics-list
-                           ["/" :topic] :topic-show}]   
-        ]])
+        ;; React
+        [["users/" :user]
+         [["" :topics-list]
+          
+          [["/" :topic] :topic-show]
+          ["" (->ResourcesMaybe {:prefix "public/"})]
+        ;; React
+          ["js/" (->ResourcesMaybe {:prefix "react/"})]]]
+       ]])
 
 (defrecord WebApp []
            WebService
