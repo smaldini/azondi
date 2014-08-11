@@ -79,6 +79,19 @@
 
    :web-sockets-page (restrict-to-valid-user authorizer web-sockets)
 
+   :topics-list
+    (fn [req]
+     {:status 200
+      :body (base-page
+             (authenticate authenticator req)
+             [:div.markdown-page (md->html (io/resource "markdown/terms.md"))])})
+
+   :topic-show
+   (fn [req]
+     {:status 200
+      :body (base-page
+             (authenticate authenticator req)
+             [:div.markdown-page (md->html (io/resource "markdown/services.md"))])})
    })
 
 (def routes
@@ -98,13 +111,16 @@
         ["reset-password" :reset-password]
         ["api-docs" :api-docs-page]
         ["web-sockets" :web-sockets-page]
+        
+        [["users/" :user] {"" :topics-list
+                           ["/" :topic] :topic-show}]   
         ]])
 
 (defrecord WebApp []
-  WebService
-  (request-handlers [this] (handlers (:authenticator this) (:authorizer this)))
-  (routes [_] routes)
-  (uri-context [_] ""))
+           WebService
+           (request-handlers [this] (handlers (:authenticator this) (:authorizer this)))
+           (routes [_] routes)
+           (uri-context [_] ""))
 
 (defn new-webapp []
   (component/using (->WebApp) [:authenticator :authorizer]))
