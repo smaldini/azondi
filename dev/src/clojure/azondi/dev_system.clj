@@ -13,6 +13,7 @@
    [azondi.passwords :as pwd]
    [azondi.messages :refer (new-message-archiver)]
    [azondi.cassandra :as cass]
+   [azondi.simulator :refer (new-simulator)]
    [cylon.user :refer (UserDomain)]))
 
 (defrecord DevUserDomain []
@@ -43,6 +44,18 @@
             (dissoc :message-archiver)
             )
 
+           d-map (new-dependency-map s-map)]
+       (component/system-using s-map d-map))))
+
+(defn sim-system
+  ([]
+     (sim-system nil))
+  ([m]
+     (let [c (merge (config) m)
+           s-map
+           (->
+            (configurable-system-map (config))
+            (assoc :simulator (new-simulator)))
            d-map (new-dependency-map s-map)]
        (component/system-using s-map d-map))))
 
@@ -97,6 +110,7 @@
       (= env :ui)        (ui-system m)
       (= env :pg)        (pg-system m)
       (= env :messaging) (messaging-system m)
+      (= env :sim) (sim-system m)
 
       :else ; PROD
       (production-system m))))
