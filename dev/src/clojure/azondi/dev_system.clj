@@ -91,13 +91,7 @@
 (defn new-dev-system
   "Create a development system"
   ([env]
-     (cond
-      (= env :ui)        (ui-system nil)
-      (= env :pg)        (pg-system nil)
-      (= env :messaging) (messaging-system nil)
-
-      :else ; PROD
-      (production-system nil)))
+     (new-dev-system env nil))
   ([env m]
      (cond
       (= env :ui)        (ui-system m)
