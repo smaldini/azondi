@@ -133,11 +133,11 @@
     [:meta {:property "dc:description" :content "opensensors.IO processes sensor data using azondi"}]
     [:title "opensensors.IO"]
     [:link {:href "//netdna.bootstrapcdn.com/font-awesome/4.1.0/css/font-awesome.min.css" :rel "stylesheet"}]
-    [:link {:href "css/bootstrap.min.css" :rel "stylesheet"}]
-    [:link {:href "css/style.css" :rel "stylesheet"}]
-    [:script {:src "js/jquery.min.js"}]
-    [:script {:src "js/bootstrap.min.js"}]
-    [:script {:src "js/jquery.session.js"}]]
+    [:link {:href "/css/bootstrap.min.css" :rel "stylesheet"}]
+    [:link {:href "/css/style.css" :rel "stylesheet"}]
+    [:script {:src "/js/jquery.min.js"}]
+    [:script {:src "/js/bootstrap.min.js"}]
+    [:script {:src "/js/jquery.session.js"}]]
    [:body
     [:div#wrap
      [:nav {:class "navbar navbar-default" :role "navigation"}
@@ -177,12 +177,13 @@
        body)]
 
      ;;cljs
-    [:script {:src "js/react.js"}]
-    [:script {:src "cljs/cljs.js"}]
-    [:script {:src "cljs/azondi.js"}]
-    [:script {:src "cljs/logo.js"}]
+    [:script {:src "/js/react.js"}]
+    [:script {:src "/cljs/cljs.js"}]
+    [:script {:src "/cljs/azondi.js"}]
+    [:script {:src "/cljs/view.js"}]
+    [:script {:src "/cljs/logo.js"}]
 
-    [:script {:src "js/helpers.js"}]
+    [:script {:src "/js/helpers.js"}]
     [:div#footer {:class "navbar-default navbar-fixed-bottom"}
      [:div.row
       [:div.col-xs-3
@@ -340,8 +341,12 @@
                  [:br]
                  [:span#ws-session-url "URL: " [:strong [:span#ws-session-url-info]] [:br]]
                  [:br]
-                 [:a#ws-info-ws-session-token-link {:href "#"} "reset your session id"]]
-                ]
+                 [:a#ws-info-ws-session-token-link {:href "#"} "reset your session id"]]]
                [:script "populate_ws_page ()"]))
+
+(defn public-topic []
+  [:div#public-topic
+   [:p "Public Topics List"]
+   [:div#content [:p.loading "Loading..."]]])
 
 

@@ -121,6 +121,11 @@
    topic-id]
   (p/delete-topic! component topic-id))
 
+(s/defn public-topics-by-owner
+  [component :- (s/protocol p/DataStore)
+   user]
+  (p/public-topics-by-owner component user))
+
 (s/defn patch-device!
   [component :- (s/protocol p/DataStore)
    client-id :- StrNotEmpty

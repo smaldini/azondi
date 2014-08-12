@@ -79,19 +79,19 @@
 
    :web-sockets-page (restrict-to-valid-user authorizer web-sockets)
 
-   :topics-list
-    (fn [req]
+   :topics-list (fn [req]
      {:status 200
       :body (base-page
              (authenticate authenticator req)
-             [:div.markdown-page (md->html (io/resource "markdown/terms.md"))])})
+             (public-topic)
+             [:script (format "azondi.view.public_topics_list_page();")])})
 
    :topic-show
    (fn [req]
      {:status 200
       :body (base-page
              (authenticate authenticator req)
-             [:div.markdown-page (md->html (io/resource "markdown/services.md"))])})
+             public-topic)})
    })
 
 (def routes
@@ -111,15 +111,14 @@
         ["reset-password" :reset-password]
         ["api-docs" :api-docs-page]
         ["web-sockets" :web-sockets-page]
+        ["topic-show" :topic-show]
+        ["topic-list" :topics-list]
         
         ;; React
         [["users/" :user]
          [["" :topics-list]
-          
           [["/" :topic] :topic-show]
-          ["" (->ResourcesMaybe {:prefix "public/"})]
-        ;; React
-          ["js/" (->ResourcesMaybe {:prefix "react/"})]]]
+         ]]
        ]])
 
 (defrecord WebApp []

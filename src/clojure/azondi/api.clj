@@ -13,7 +13,7 @@
    [cheshire.core :refer (decode decode-stream encode)]
    [schema.core :as s]
    [camel-snake-kebab :refer (->kebab-case-keyword ->camelCaseString)]
-   [azondi.db :refer (get-users get-user get-user-by-email delete-user! create-user! devices-by-owner get-device delete-device! create-device! patch-device! topics-by-owner get-topic delete-topic! create-topic! patch-topic! set-device-password! get-api-key delete-api-key create-api-key reset-user-password find-user-by-api-key create-subscription unsubscribe subscriptions-by-owner get-ws-session-token delete-ws-session-token create-ws-session-token find-ws-session-by-token)]
+   [azondi.db :refer (get-users get-user get-user-by-email delete-user! create-user! devices-by-owner get-device delete-device! create-device! patch-device! topics-by-owner get-topic delete-topic! create-topic! patch-topic! public-topics-by-owner set-device-password! get-api-key delete-api-key create-api-key reset-user-password find-user-by-api-key create-subscription unsubscribe subscriptions-by-owner get-ws-session-token delete-ws-session-token create-ws-session-token find-ws-session-by-token)]
    [azondi.messages-db :refer (messages-by-owner)]
    [azondi.emails :refer (beta-signup-email)]
    [hiccup.core :refer (html)]
@@ -383,6 +383,22 @@
    :handle-ok (fn [{topic :topic existing :existing}] existing)
    :handle-created (fn [_] {:message "Patched"})})
 
+(defn public-topics-resource [db]
+  {:available-media-types #{"application/json"}
+   :allowed-methods #{:get}
+   :known-content-type? #{"application/json"}
+   :exists? (fn [{{{user :user} :route-params} :request}]
+              (let [token (-> (get-ws-session-token db user)
+                                (select-keys [:token]))]
+                {:user user :token token}))
+   :handle-ok (fn [{{{user :user} :route-params} :request}]
+                (let [body
+                      {:user user
+                       :topics (->>
+                                (public-topics-by-owner db user)
+                                (map #(select-keys % [:owner :description :unit :topic :public]))
+                                (map #(reduce-kv (fn [acc k v] (assoc acc (->camelCaseString k) v)) {} %)))}]
+                  (encode body)))})
 
 (def subscriptions-attributes-schema
   {(s/required-key :topic) s/Str})
@@ -489,6 +505,7 @@
     ::reset-password (resource (reset-device-password-resource db authorizer))
     ::topics (resource (topics-resource db authorizer))
     ::topic (resource (topic-resource db authorizer))
+    ::public-topics (resource (public-topics-resource db))
     ::subscriptions (resource (subscriptions-resource db authorizer))
     ::api-key (resource (api-resource db authorizer))
     ::reset-user-password (resource (reset-user-password-resource db authorizer))
@@ -513,6 +530,8 @@
                           "/topics/" ::topics
                           "/topics" (->Redirect 307 ::topics)
                           ["/topics/" :topic-name] ::topic
+                          "/public-topics/" ::public-topics
+                          "/public-topics" (->Redirect 307 ::public-topics)
                           "/subscriptions/" ::subscriptions
                           "/subscriptions" (->Redirect 307 ::subscriptions)
                           "/api-key/" ::api-key
