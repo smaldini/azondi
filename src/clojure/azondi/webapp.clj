@@ -111,8 +111,6 @@
         ["reset-password" :reset-password]
         ["api-docs" :api-docs-page]
         ["web-sockets" :web-sockets-page]
-        ["topic-show" :topic-show]
-        ["topic-list" :topics-list]
         
         ;; React
         [["users/" :user]
