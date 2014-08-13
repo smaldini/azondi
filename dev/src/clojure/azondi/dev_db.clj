@@ -142,6 +142,16 @@
     (filter #(= (:device_id %) device-id) (-> this :database :messages deref)))
   (messages-by-topic [this topic]
     (filter #(= (:topic %) topic) (-> this :database :messages deref)))
+  (messages-by-date [this start-date end-date]
+    (throw (Exception. "unimplemented")))
+
+  (messages-by-owner-and-date [this owner start-date end-date]
+    (throw (Exception. "unimplemented")))
+  (messages-by-topic-and-date [this topic start-date end-date]
+    (throw (Exception. "unimplemented")))
+  (messages-by-device-and-date [this device start-date end-date]
+    (throw (Exception. "unimplemented")))
+
   (archive-message! [this data]
     (let [now  (tc/now)
           data (merge data

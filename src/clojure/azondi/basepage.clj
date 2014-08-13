@@ -325,8 +325,27 @@
 
       [:div#messages-api-info
        [:h2 "Messages"]
-       [:p "List of Messages"]
-       [:pre "curl -X GET -H 'Authorization: api-key " [:span.api-info-api-key-view] "' opensensors.IO/api/1.0/users/" [:span#api-info-user-id] "/messages/"]]
+       [:p "List of Messages By Owner"]
+       [:pre "curl -X GET -H 'Authorization: api-key " [:span.api-info-api-key-view] "' 'opensensors.IO/api/1.0/users/" [:span#api-info-user-id] "/messages-by-owner'"]
+
+       [:p "List of Messages By Owner And Date"]
+       [:pre "curl -X GET -H 'Authorization: api-key " [:span.api-info-api-key-view] "' 'opensensors.IO/api/1.0/users/" [:span#api-info-user-id] "/messages-by-owner?start-date=2014-07-08&end-date=2014-08-08'"]
+
+
+       [:p "List of Messages By Topic"]
+       [:pre "curl -X GET -H 'Authorization: api-key " [:span.api-info-api-key-view] "' 'opensensors.IO/api/1.0/users/" [:span#api-info-user-id] "/messages-by-topic?topic=/the-topic/you-want'"]
+
+       [:p "List of Messages By Topic And Date"]
+       [:pre "curl -X GET -H 'Authorization: api-key " [:span.api-info-api-key-view] "' 'opensensors.IO/api/1.0/users/" [:span#api-info-user-id] "/messages-by-topic?topic=/the-topic/you-want&start-date=2014-07-08&end-date=2014-08-08'"]
+
+       [:p "List of Messages By Device/Client"]
+       [:pre "curl -X GET -H 'Authorization: api-key " [:span.api-info-api-key-view] "' 'opensensors.IO/api/1.0/users/" [:span#api-info-user-id] "/messages-by-device?client=1'"]
+
+       [:p "List of Messages By Device/Client And Date"]
+       [:pre "curl -X GET -H 'Authorization: api-key " [:span.api-info-api-key-view] "' 'opensensors.IO/api/1.0/users/" [:span#api-info-user-id] "/messages-by-device?client=1&start-date=2014-07-08&end-date=2014-08-08'"]
+
+
+       ]
       [:hr]]]]
    [:script "populate_api_page ()"]))
 

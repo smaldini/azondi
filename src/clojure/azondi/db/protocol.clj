@@ -40,9 +40,15 @@
 
 
 (defprotocol MessageStore
+  ;; star-date and end-date are vector with date fields
+  ;; example: [2013 8 8] => represents 2013 8th August
+  ;; example: [2013 8 8 12 30] => represents 2013 8th August at 12:30
+
   (messages-by-owner [_ owner])
+  (messages-by-owner-and-date [_ owner start-date end-date])
   (messages-by-device [_ device-id])
+  (messages-by-device-and-date [_ device start-date end-date])
   (messages-by-topic [_ topic])
-  (archive-message! [_ data])
-  ;; messages by date??
-  )
+  (messages-by-topic-and-date [_ topic start-date end-date])
+  (messages-by-date [_ start-date end-date])
+  (archive-message! [_ data]))

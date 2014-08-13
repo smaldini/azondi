@@ -14,7 +14,7 @@
    [schema.core :as s]
    [camel-snake-kebab :refer (->kebab-case-keyword ->camelCaseString)]
    [azondi.db :refer (get-users get-user get-user-by-email delete-user! create-user! devices-by-owner get-device delete-device! create-device! patch-device! topics-by-owner get-topic delete-topic! create-topic! patch-topic! set-device-password! get-api-key delete-api-key create-api-key reset-user-password find-user-by-api-key create-subscription unsubscribe subscriptions-by-owner get-ws-session-token delete-ws-session-token create-ws-session-token find-ws-session-by-token)]
-   [azondi.messages-db :refer (messages-by-owner)]
+   [azondi.messages-db :refer (messages-by-owner messages-by-topic messages-by-topic-and-date messages-by-owner-and-date messages-by-device messages-by-device-and-date)]
    [azondi.emails :refer (beta-signup-email)]
    [hiccup.core :refer (html)]
    [clojure.walk :refer (postwalk)]
@@ -22,8 +22,7 @@
    [modular.bidi :refer (WebService)]
    [cylon.authentication :refer (Authenticator authenticate)]
    [cylon.authorization :refer (Authorizer authorized?)]
-   )
-  )
+   ))
 
 ;; Coercians
 
@@ -99,18 +98,71 @@
                   "text/html" (html [:h1 welcome])
                   ("application/json" "application/edn") {:message welcome :current-date (java.util.Date.)}))})
 
-(defn messages-resource [messages-db authorizer]
+(defn query-string>map-kv [query-string]
+  (if query-string
+   (->> (clojure.string/split query-string #"&")
+        (map #(clojure.string/split %  #"="))
+        (mapcat (fn [[k v]] [(keyword k) v]))
+        (apply array-map))
+   {}))
+
+(defn- string-date>vector [str-date]
+  (into [] (map #(. Integer parseInt  %) (clojure.string/split str-date  #"-"))))
+
+(defn messages-by-owner-resource [messages-db authorizer]
   {:allowed-methods #{:get}
    :available-media-types #{"application/json"}
    :authorized? (fn [{{{user :user :as rp} :route-params :as request} :request}]
                   (authorized? authorizer request rp))
-;   :authorized? (fn [r] true)
-   ;; TODO add authorizer
-   #_(fn [{{{user :user :as rp} :route-params :as request} :request}]
-     (authorized? authorizer request rp))
    :handle-ok (fn [{{{user :user} :route-params :as req} :request}]
-                (encode {:user user
-                         :messages (map #(update-in % [:payload] str) (messages-by-owner messages-db user))}))})
+                (let [query-string-map (query-string>map-kv (:query-string req))
+                      res (if (and (:start-date query-string-map)  (:end-date query-string-map))
+                            (messages-by-owner-and-date messages-db user
+                                                        (string-date>vector (:start-date query-string-map))
+                                                        (string-date>vector (:end-date query-string-map)))
+                            (messages-by-owner messages-db user))]
+                  (encode {:messages res})))})
+
+
+(defn messages-by-topic-resource [db messages-db authorizer]
+  {:allowed-methods #{:get}
+   :authorized?
+   (fn [{{query-string :query-string {user :user :as rp} :route-params :as req} :request}]
+     (when (authorized? authorizer req  rp) ;; user has privileges to access this fn
+       (let [topic-req (:topic (query-string>map-kv query-string))
+             topic (get-topic db topic-req)]
+         (or (:public topic) (= (:owner topic) user)))))
+   :available-media-types #{"application/json"}
+   :handle-ok (fn [{{query-string :query-string :as req} :request}]
+                (let [query-string-map (query-string>map-kv query-string)
+                      res (if (and (:start-date query-string-map)  (:end-date query-string-map))
+                            (messages-by-topic-and-date messages-db
+                                                        (:topic query-string-map)
+                                                        (string-date>vector (:start-date query-string-map))
+                                                        (string-date>vector (:end-date query-string-map)))
+                            (messages-by-topic messages-db (:topic query-string-map)))]
+                  (encode {:messages res})))})
+
+
+(defn messages-by-device-resource [db messages-db authorizer]
+  {:allowed-methods #{:get}
+   :authorized?
+   (fn [{{query-string :query-string {user :user :as rp} :route-params :as req} :request}]
+     (when  (authorized? authorizer req  rp) ;; user has privileges to access this fn
+       (when-let [device-id (:client (query-string>map-kv query-string))] ;; device-id-req exists
+         (when-let [device (get-device db device-id)] ;; device in db exists
+           (= (:user device) user))))) ;; user of device is user logged
+   :available-media-types #{"application/json"}
+   :handle-ok (fn [{{query-string :query-string :as req} :request}]
+                (let [query-string-map (query-string>map-kv query-string)
+                      res (if (and (:start-date query-string-map)  (:end-date query-string-map))
+                            (messages-by-device-and-date messages-db
+                                                        (:client (query-string>map-kv query-string))
+                                                        (string-date>vector (:start-date query-string-map))
+                                                        (string-date>vector (:end-date query-string-map)))
+                            (messages-by-device messages-db (:client (query-string>map-kv query-string))))]
+                  (encode {:messages res})))})
+
 
 ;;;;; ----- USERS ----
 
@@ -477,6 +529,7 @@
 (defn apply-middleware-to-handlers [m middleware]
   (reduce-kv (fn [a k v] (assoc a k (middleware v))) {} m))
 
+
 (defn handlers [db messages-db authorizer]
   (->
    {::welcome (resource (welcome-resource))
@@ -494,7 +547,9 @@
     ::reset-user-password (resource (reset-user-password-resource db authorizer))
 
     ::ws-token (resource (ws-resource db authorizer))
-    ::messages (resource (messages-resource messages-db authorizer))}
+    ::messages-by-owner (resource (messages-by-owner-resource messages-db authorizer))
+    ::messages-by-topic (resource (messages-by-topic-resource db messages-db authorizer))
+    ::messages-by-device (resource (messages-by-device-resource db messages-db authorizer))}
    (apply-middleware-to-handlers wrap-with-fn-validation)))
 
 (def routes
@@ -505,6 +560,7 @@
        "/user-email" ::user-email
        "/users" (->Redirect 307 "/users/")
        "/users/" ::users
+       "/messages"  ::messages-all
        ["/users/" :user] {"" ::user
                           "/devices/" ::devices
                           "/devices" (->Redirect 307 ::devices)
@@ -520,8 +576,10 @@
                           "/ws-token/" ::ws-token
                           "/ws-token" (->Redirect 307 ::ws-token)
                           "/reset-password" ::reset-user-password
-                          "/messages" (->Redirect 307 ::messages)
-                          "/messages/" ::messages}}])
+                          "/messages-by-owner" ::messages-by-owner
+                          "/messages-by-topic"  ::messages-by-topic
+                          "/messages-by-device"  ::messages-by-device}}]
+  )
 
 
 (defrecord Api []

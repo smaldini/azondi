@@ -13,15 +13,48 @@
   (->> (p/messages-by-owner component owner)
        (map #(update-in % [:payload] payload>Str))))
 
+(s/defn messages-by-owner-and-date [component :- (s/protocol p/MessageStore)
+                                    owner :- s/Str
+                                    start-date  :- [s/Int]
+                                    end-date  :- [s/Int]]
+  (->> (p/messages-by-owner-and-date component owner start-date end-date)
+       (map #(update-in % [:payload] payload>Str))))
+
+
 (s/defn messages-by-device [component :- (s/protocol p/MessageStore)
                             device-id :- s/Str]
   (->> (p/messages-by-device component device-id)
        (map #(update-in % [:payload] payload>Str))))
 
+(s/defn messages-by-device-and-date [component :- (s/protocol p/MessageStore)
+                                     device-id :- s/Str
+                                     start-date  :- [s/Int]
+                                     end-date  :- [s/Int]]
+  (->> (p/messages-by-device-and-date component device-id start-date end-date)
+       (map #(update-in % [:payload] payload>Str))))
+
+
 (s/defn messages-by-topic [component :- (s/protocol p/MessageStore)
                            topic :- s/Str]
   (->> (p/messages-by-topic component topic)
        (map #(update-in % [:payload] payload>Str))))
+
+
+(s/defn messages-by-topic-and-date [component :- (s/protocol p/MessageStore)
+                                    topic :- s/Str
+                                    start-date  :- [s/Int]
+                                    end-date  :- [s/Int]]
+  (->> (p/messages-by-topic-and-date component topic start-date end-date)
+       (map #(update-in % [:payload] payload>Str))))
+
+
+
+(s/defn messages-by-date [component :- (s/protocol p/MessageStore)
+                          start-date  :- [s/Int]
+                          end-date  :- [s/Int]]
+  (->> (p/messages-by-date component start-date end-date)
+       (map #(update-in % [:payload] payload>Str))))
+
 
 (s/defn archive-message!
   [component :- (s/protocol p/MessageStore)

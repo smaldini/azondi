@@ -2,14 +2,20 @@
   "Cassandra connectivity and schema management"
   (:require [clojurewerkz.cassaforte.client :as cc]
             [clojurewerkz.cassaforte.cql    :as cql]
-            [clojurewerkz.cassaforte.query :refer (where)]
+            [clojurewerkz.cassaforte.query :refer (where allow-filtering)]
             [clj-time.core   :as tc]
             [clj-time.format :as tf]
+            [clj-time.core :as t]
             [com.stuartsierra.component  :as component]
             [azondi.db.protocol :refer (MessageStore)]))
 
 (def ^:const table "messages")
 (def date-and-hour-formatter (tf/formatter "yyyy-MM-dd HH"))
+
+
+(defn- filter-date [start-date end-date]
+  [:created_at [> (.toDate (apply t/date-time start-date))]
+   :created_at [< (.toDate (apply t/date-time end-date))]])
 
 (defrecord Database [hosts keyspace]
   component/Lifecycle
@@ -21,10 +27,33 @@
   MessageStore
   (messages-by-owner [this owner]
     (cql/select (:session this) table (where {:owner owner})))
+
+  (messages-by-owner-and-date [this owner start-date end-date]
+    (cql/select (:session this) table
+                (apply where (conj (filter-date start-date end-date) :owner owner))
+                (allow-filtering true)))
+
   (messages-by-device [this device-id]
     (cql/select (:session this) table (where {:device_id device-id})))
+
+  (messages-by-device-and-date [this device-id start-date end-date]
+    (cql/select (:session this) table
+                (apply where (conj (filter-date start-date end-date) :device_id device-id))
+                (allow-filtering true)))
+
   (messages-by-topic [this topic]
     (cql/select (:session this) table (where {:topic topic})))
+
+  (messages-by-topic-and-date [this topic start-date end-date]
+    (cql/select (:session this) table
+                (apply where (conj (filter-date start-date end-date) :topic topic))
+                (allow-filtering true)))
+
+  (messages-by-date [this  start-date end-date]
+    (cql/select (:session this) table
+                (apply where (conj (filter-date start-date end-date)))
+                (allow-filtering true)))
+
   (archive-message! [this data]
     (let [now (tc/now)]
       (cql/insert-async (:session this) table
