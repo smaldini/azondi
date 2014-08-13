@@ -16,10 +16,8 @@
   ([]
      (init env/env))
   ([env]
-     (init env/env nil))
-  ([env m]
      (alter-var-root #'system
-                     (constantly (new-dev-system env m)))))
+                     (constantly (new-dev-system env)))))
 
 (defn start
   "Starts the current development system."
@@ -42,5 +40,5 @@
   (stop)
   (refresh :after 'dev/go))
 
-(defn set-env! [env]
-  (alter-var-root #'env/env (constantly env)))
+(defn set-env! [& env]
+  (alter-var-root #'env/env (constantly (set env))))

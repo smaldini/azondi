@@ -122,7 +122,7 @@
      :user-domain (new-postgres-user-domain)
      )))
 
-(defn new-dependency-map [system-map]
+(defn new-dependency-map []
   {:mqtt-handler {:db :database}
    :mqtt-server [:mqtt-handler :mqtt-decoder :mqtt-encoder]
    :ws [:reactor :database]
@@ -137,5 +137,5 @@
 
 (defn new-prod-system []
   (let [s-map (configurable-system-map (config))
-        d-map (new-dependency-map s-map)]
+        d-map (new-dependency-map)]
     (component/system-using s-map d-map)))

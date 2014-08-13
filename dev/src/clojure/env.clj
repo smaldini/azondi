@@ -4,7 +4,7 @@
       :clojure.tools.namespace.repl/unload false}
   env)
 
-(def env nil)
+(def env #{})
 
 (println "Welcome developer!")
 (println "Please (set-env! <env>) if you don't want the default configuration")

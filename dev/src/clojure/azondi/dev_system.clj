@@ -24,93 +24,44 @@
 (defn new-dev-user-domain []
   (component/using (->DevUserDomain) [:database]))
 
-(defn ui-system
-  ([]
-     (ui-system nil))
-  ([m]
-     (let [c (merge (config) m)
-           s-map
-           (->
-            (configurable-system-map (config))
+(def mod-defs
+  {:system-mods {:ui #(-> %
+                          (assoc
+                              :database (new-inmemory-datastore)
+                              :seed (new-seed-data)
+                              :direct-db-seed (new-direct-db-seed-data)
+                              ;;:api-tests (azondi.api-tests/new-api-tests)
+                              :user-domain (new-dev-user-domain)
+                              :cassandra (new-inmemory-message-store))
+                          (dissoc :message-archiver))
 
-            (assoc
-                :database (new-inmemory-datastore)
-                :seed (new-seed-data)
-                :direct-db-seed (new-direct-db-seed-data)
-                ;;:api-tests (azondi.api-tests/new-api-tests)
-                :user-domain (new-dev-user-domain)
-                :cassandra (new-inmemory-message-store)
-                )
-            (dissoc :message-archiver)
-            )
+                 :sim #(assoc % :simulator (new-simulator))
 
-           d-map (new-dependency-map s-map)]
-       (component/system-using s-map d-map))))
+                 :pg #(-> %
+                          (assoc
+                              :database (new-database (get % :postgres))
+                              :user-domain (new-postgres-user-domain))
+                          (dissoc :cassandra :message-archiver :topic-injector))
 
-(defn sim-system
-  ([]
-     (sim-system nil))
-  ([m]
-     (let [c (merge (config) m)
-           s-map
-           (->
-            (configurable-system-map (config))
-            (assoc :simulator (new-simulator)))
-           d-map (new-dependency-map s-map)]
-       (component/system-using s-map d-map))))
+                 :messaging #(-> %
+                                 (assoc :database (new-database (get % :postgres))
+                                        :user-domain (new-postgres-user-domain))
+                                 (dissoc :webapp :webrouter :webserver
+                                         :api :sse :login-form :cljs-core
+                                         :cljs-main :main-cljs-builder
+                                         :session-authenticator :apikey-authenticator
+                                         :authenticator :authorizer :session-store))}
 
-(defn pg-system
-  ([]
-     (pg-system nil))
-  ([m]
-     (let [c (merge (config) m)
-           s-map
-           (->
-            (configurable-system-map (config))
-            (assoc
-                :database (new-database (get c :postgres))
-                :user-domain (new-postgres-user-domain))
-            (dissoc :cassandra :message-archiver :topic-injector))
-           d-map (new-dependency-map s-map)]
-       (component/system-using s-map d-map))))
-
-(defn messaging-system
-  ([]
-     (messaging-system nil))
-  ([m]
-     (let [c (merge (config) m)
-           s-map
-           (->
-            (configurable-system-map (config))
-            (assoc
-                :database (new-database (get c :postgres))
-                :user-domain (new-postgres-user-domain))
-            (dissoc :webapp :webrouter :webserver :api :sse :login-form
-                    :cljs-core :cljs-main :main-cljs-builder
-                    :session-authenticator :apikey-authenticator :authenticator :authorizer :session-store))
-           d-map (-> (new-dependency-map s-map)
-                     (dissoc :main-cljs-builder :webserver :webrouter))]
-       (component/system-using s-map d-map))))
-
-(defn production-system
-  ([]
-     (production-system nil))
-  ([m]
-     (let [c     (merge (config) m)
-           s-map (configurable-system-map (config))
-           d-map (new-dependency-map s-map)]
-       (component/system-using s-map d-map))))
+   :dependency-mods {:messaging #(dissoc % :main-cljs-builder :webserver :webrouter)}})
 
 (defn new-dev-system
   "Create a development system"
-  ([env]
-     (new-dev-system env nil))
-  ([env m]
-     (cond
-      (= env :ui)        (ui-system m)
-      (= env :pg)        (pg-system m)
-      (= env :messaging) (messaging-system m)
-      (= env :sim) (sim-system m)
-
-      :else ; PROD
-      (production-system m))))
+  [env]
+  (component/system-using
+   ((apply comp
+           (remove nil? (for [mod env] (get-in mod-defs [:system-mods mod]))))
+    (configurable-system-map (config)))
+   ((apply comp
+           (remove nil? (for [mod env] (get-in mod-defs [:dependency-mods mod]))))
+    (new-dependency-map))
+   ))
