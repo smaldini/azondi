@@ -346,7 +346,6 @@
 
 (defn public-topic []
   [:div#public-topic
-   [:p "Public Topics List"]
    [:div#content [:p.loading "Loading..."]]])
 
 

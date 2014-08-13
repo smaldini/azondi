@@ -126,6 +126,11 @@
    user]
   (p/public-topics-by-owner component user))
 
+(s/defn get-public-topic
+  [component :- (s/protocol p/DataStore)
+   topic :- s/Str]
+  (p/get-public-topic component topic))
+
 (s/defn patch-device!
   [component :- (s/protocol p/DataStore)
    client-id :- StrNotEmpty

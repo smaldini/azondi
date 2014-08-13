@@ -111,11 +111,11 @@
         ["reset-password" :reset-password]
         ["api-docs" :api-docs-page]
         ["web-sockets" :web-sockets-page]
-        
-        ;; React
+
+        ;; users public topic routes
         [["users/" :user]
          [["" :topics-list]
-          [["/" :topic] :topic-show]
+          [["/" [#".*" :topic-name]] :topic-show]
          ]]
        ]])
 

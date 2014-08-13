@@ -23,6 +23,7 @@
   (patch-device! [_ client-id data])
   (patch-topic! [_ topic-id data])
   (public-topics-by-owner [_ user])
+  (get-public-topic [_ topic])
   
   ;;subscriptions
   (subscriptions-by-owner [_ user])

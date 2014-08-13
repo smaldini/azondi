@@ -154,6 +154,8 @@
   (public-topics-by-owner [this user]
     (clj->psql (j/query (conn this) ["SELECT * FROM topics WHERE owner = ? and public = 't';" user])))
 
+  (get-public-topic [this topic]
+    (clj->psql (j/query (conn this) ["SELECT * FROM topics WHERE topic = ? and public = 't';" topic])))
 
   (patch-topic! [this topic-id data]
     (j/update! (conn this) :topics data ["topic = ?" topic-id]))
