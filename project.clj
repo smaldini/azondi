@@ -90,7 +90,7 @@
                  [com.draines/postal "1.11.1"]
                 ]
 
-  :jvm-opts ["-Xss8m" "-Xmx1g" "-Duser.timezone=UTC"]
+  :jvm-opts ^:replace ["-server " "-Xss8m" "-Xmx1g" "-Duser.timezone=UTC"]
   :main azondi.main
   :repl-options {:init-ns user}
   :profiles {:dev {:dependencies [[org.clojure/tools.namespace "0.2.4"]
