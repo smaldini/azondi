@@ -36,7 +36,8 @@
         api-key (-> response :body :api-key)]
     (doseq [data
             [{:name "S3-1" :description "MQTTitude on Samsung Galaxy S3"}
-             {:name "S3-2" :description "MQTTitude (test) on Samsung Galaxy S3"}]]
+             {:name "S3-2" :description "MQTTitude (test) on Samsung Galaxy S3"}
+             {:name "S3-3" :description "another device"}]]
       (request :post (make-uri "/users/malcolmsparks/devices/")
                :api-key api-key
                :data data)))

@@ -60,11 +60,10 @@
      (alter (-> this :database :devices) update-in [client-id] assoc :password p)))
 
   (allowed-device? [this client-id user p]
-    (let [client-id (Long/parseLong client-id)]
-      (= (select-keys
-          (-> this :database :devices deref (get client-id))
-          [:user :password])
-         {:user user :password p})))
+    (= (select-keys
+        (-> this :database :devices deref (get client-id))
+        [:user :password])
+       {:user user :password p}))
 
   (topic-of-owner [this user topic]
     (let [rows (vals @(-> this :database :topics))]

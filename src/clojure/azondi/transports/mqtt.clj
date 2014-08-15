@@ -457,6 +457,7 @@
   [{:keys [metrics] :as handler-state}]
   (proxy [ChannelHandlerAdapter] []
     (channelRead [^ChannelHandlerContext ctx msg]
+      (infof "Hi, type of message is %s" (:type msg))
       (case (:type msg)
         :connect (handle-connect ctx msg handler-state)
         :subscribe (handle-subscribe ctx msg handler-state)

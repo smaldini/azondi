@@ -35,7 +35,7 @@
                               :cassandra (new-inmemory-message-store))
                           (dissoc :message-archiver))
 
-                 :sim #(assoc % :simulator (new-simulator))
+                 :sim #(assoc % :simulator (component/using (new-simulator) [:mqtt-server]))
 
                  :pg #(-> %
                           (assoc
@@ -52,7 +52,8 @@
                                          :session-authenticator :apikey-authenticator
                                          :authenticator :authorizer :session-store))}
 
-   :dependency-mods {:messaging #(dissoc % :main-cljs-builder :webserver :webrouter)}})
+   :dependency-mods {:messaging #(dissoc % :main-cljs-builder :webserver :webrouter)
+                     }})
 
 (defn new-dev-system
   "Create a development system"
