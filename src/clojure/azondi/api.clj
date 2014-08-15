@@ -404,7 +404,7 @@
    :exists? (fn [{{{user :user topic-name :topic-name} :route-params} :request}]
               (infof "topic resource exists..?")
               (let [topic (str "/users/" user "/" topic-name)
-                    existing (get-public-topic db topic)]
+                    existing (get-public-topic db topic-name)]
                 [existing
                  {:existing existing
                   :topic topic}]))
@@ -543,7 +543,7 @@
                           ["/topics/" [#".*" :topic-name]] ::topic
                           "/public-topics/" ::public-topics
                           "/public-topics" (->Redirect 307 ::public-topics)
-                          ["/public-topics/" [#".*" :topic-name]] ::public-topic
+                          ["/public-topics" [#".*" :topic-name]] ::public-topic
                           "/subscriptions/" ::subscriptions
                           "/subscriptions" (->Redirect 307 ::subscriptions)
                           "/api-key/" ::api-key

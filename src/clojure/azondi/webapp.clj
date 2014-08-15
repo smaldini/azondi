@@ -91,7 +91,8 @@
      {:status 200
       :body (base-page
              (authenticate authenticator req)
-             public-topic)})
+             (public-topic)
+             [:script (format "azondi.view.public_topic_page();")])})
    })
 
 (def routes
