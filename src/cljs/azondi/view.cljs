@@ -142,6 +142,20 @@
 ;; if you are already subscribed you can unsubscribe
 ;; 
 
+(defn message-view-component [app-state owner]
+  (reify
+    om/IWillMount
+    (will-mount [this])
+    ;;create a chan and listen to the events from this topic
+    ;; have a go loop that updates app-state messages
+    
+    om/IRender
+    (render [this]
+      ;; in a debugger show the messages
+      [:pre
+       (for [msg (-> app-state :msgs)]
+         (str msg "\r\n"))]
+      )))
 (defn ^:export public-topic-page []
   (om/root public-topic-component app-model-public-topics
            {:target (. js/document (getElementById "content"))}))

@@ -92,7 +92,7 @@
       :body (base-page
              (authenticate authenticator req)
              (public-topic)
-             [:script (format "azondi.view.public_topic_page();")])})
+             [:script (format "azondi.view.public_topics_page();")])})
    })
 
 (def routes
