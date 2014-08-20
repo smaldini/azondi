@@ -13,9 +13,8 @@
   (start [component]
     (println "Starting simulator! TODO Get machine head to start sending messages!")
     (try
-      ;; TODO Create a new device with a special client id, username and password (somehow)
       ;; Create a new device, so that we know the client id
-      (let [user "malcolmsparks"
+      (let [user "tester"
             {:keys [client-id password] :as device}
             (create-device! database user "pw123456")]
 
@@ -29,7 +28,7 @@
 
           (go-loop []
             (<! (timeout 100))
-            (mh/publish client "/users/malcolmsparks/test" (.getBytes "Hello!!!") 0)
+            (mh/publish client (format "/users/%s/test" user) (.getBytes "Hello!!!") 0)
             (recur))
 
           (assoc component :client client))
