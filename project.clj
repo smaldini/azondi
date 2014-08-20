@@ -86,6 +86,9 @@
                  [org.clojars.ideal-knee/dommy "0.1.3-SNAPSHOT"]
                  [jarohen/chord "0.3.1"]
 
+                 ;; Templating for MQTT message bodies
+                 [de.ubercode.clostache/clostache "1.3.1"]
+
                  ;; email
                  [com.draines/postal "1.11.1"]
                 ]

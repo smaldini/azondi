@@ -6,46 +6,56 @@
    [schema.core :as s]
    [azondi.db :refer (create-device! allowed-device?)]
    [plumbing.core :refer (<-)]
-   [clojure.core.async :refer (go-loop timeout chan alts! close!)]))
+   [clojure.core.async :refer (go-loop timeout chan alts! close!)]
+   [clostache.parser :as parser]))
 
-(defrecord Simulator [database]
+(defrecord Simulator [database user devices]
   Lifecycle
   (start [component]
-    (println "Starting simulator! TODO Get machine head to start sending messages!")
-    (try
-      ;; Create a new device, so that we know the client id
-      (let [user "tester"
-            {:keys [client-id password] :as device}
-            (create-device! database user "pw123456")]
 
-        (infof "New device created for simulator: %s" device)
-        (assert (allowed-device? database client-id user password))
+    ;; Create a test device
 
-        (let [test-device (create-device! database user "abc123")]
-          (infof "mosquitto_sub -h %s -i %s -t /users/%s/test -u %s -P %s"
-                 "localhost" (:client-id test-device) user user (:password test-device)))
+    (let [shutdown (chan)]
 
+      (let [test-device (create-device! database user "abc123")]
+        (infof "mosquitto_sub -h %s -i %s -t /users/%s/test -u %s -P %s"
+               "localhost" (:client-id test-device) user user (:password test-device)))
 
-        (let [client (mh/connect "tcp://localhost:1883" client-id
-                                 (new org.eclipse.paho.client.mqttv3.persist.MemoryPersistence)
-                                 {:username user
-                                  :password password})]
+      (try
+        ;; Create a new device, so that we know the client id
+        (let [{:keys [client-id password] :as device}
+              (create-device! database user "pw123456")]
 
-          (let [shutdown (chan)]
-            (go-loop []
-              (let [[_ ch] (alts! [shutdown (timeout 1000)])]
-                (when-not (= ch shutdown)
-                  (mh/publish client (format "/users/%s/test" user) (.getBytes "Hello!!!") 0)
-                  (recur))))
+          (infof "New device created for simulator: %s" device)
+          (assert (allowed-device? database client-id user password))
 
-            (assoc component :client client :shutdown shutdown))))
+          (let [client (mh/connect "tcp://localhost:1883" client-id
+                                   (new org.eclipse.paho.client.mqttv3.persist.MemoryPersistence)
+                                   {:username user
+                                    :password password})]
 
-      (catch Exception e
+            (doseq [{:keys [topic period body] :as dev} devices]
+              (go-loop [s (case (:type dev)
+                            :temperature
+                            (let [[low high] (:range dev)]
+                              (iterate (fn [x] (+ low (rand-int (- (inc high) low)))) (:start dev)))
+                            :greeter (repeat (:greeting dev))
+                            (throw (ex-info "Unexpected device type" dev)))]
+                (let [[_ ch] (alts! [shutdown (timeout period)])]
+                  (when-not (= ch shutdown)
+                    (mh/publish client topic
+                                (.getBytes (parser/render body {:value (first s)} ))
+                                0       ; qos
+                                )
+                    (recur (rest s))))))
+
+            (assoc component :client client :shutdown shutdown)))
+
+        (catch Exception e
           (println "Failed to start Simulator component - see log")
           (errorf e "Failed to start Simulator component")
-          component
-          )
-      ))
+          component))))
+
   (stop [component]
     (when-let [shutdown (:shutdown component)]
       (close! shutdown))
@@ -53,7 +63,8 @@
       (mh/disconnect client))
     component))
 
-(def new-simulator-schema {})
+(def new-simulator-schema {:user s/Str
+                           :devices [{s/Any s/Any}]})
 
 (defn new-simulator [& {:as opts}]
   (->> opts

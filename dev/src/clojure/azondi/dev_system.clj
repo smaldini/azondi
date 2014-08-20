@@ -43,8 +43,10 @@
     (fn [config]
       (fn [system-map]
         (assoc system-map
-          :simulator (->  (new-simulator)
-                          (component/using [:mqtt-server])))))
+          :simulator (-> (new-simulator :user  (-> config :simulator :user)
+                                        :devices (-> config :simulator :devices)
+                                        )
+                         (component/using [:mqtt-server])))))
 
     :pg
     (fn [config]
