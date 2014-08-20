@@ -25,44 +25,63 @@
   (component/using (->DevUserDomain) [:database]))
 
 (def mod-defs
-  {:system-mods {:ui #(-> %
-                          (assoc
-                              :database (new-inmemory-datastore)
-                              :seed (new-seed-data)
-                              :direct-db-seed (new-direct-db-seed-data)
-                              ;;:api-tests (azondi.api-tests/new-api-tests)
-                              :user-domain (new-dev-user-domain)
-                              :cassandra (new-inmemory-message-store))
-                          (dissoc :message-archiver))
+  {:system-mods
+   {:ui
+    (fn [config]
+      (fn [system-map]
+        (-> system-map
+            (assoc
+                :database (new-inmemory-datastore)
+                :seed (new-seed-data)
+                :direct-db-seed (new-direct-db-seed-data)
+                ;;:api-tests (azondi.api-tests/new-api-tests)
+                :user-domain (new-dev-user-domain)
+                :cassandra (new-inmemory-message-store))
+            (dissoc :message-archiver))))
 
-                 :sim #(assoc % :simulator (component/using (new-simulator) [:mqtt-server]))
+    :sim
+    (fn [config]
+      (fn [system-map]
+        (assoc system-map
+          :simulator (->  (new-simulator)
+                          (component/using [:mqtt-server])))))
 
-                 :pg #(-> %
-                          (assoc
-                              :database (new-database (get % :postgres))
-                              :user-domain (new-postgres-user-domain))
-                          (dissoc :cassandra :message-archiver :topic-injector))
+    :pg
+    (fn [config]
+      (fn [system-map]
+        (-> system-map
+            (assoc
+                :database (new-database (get system-map :postgres))
+                :user-domain (new-postgres-user-domain))
+            (dissoc :cassandra :message-archiver :topic-injector))))
 
-                 :messaging #(-> %
-                                 (assoc :database (new-database (get % :postgres))
-                                        :user-domain (new-postgres-user-domain))
-                                 (dissoc :webapp :webrouter :webserver
-                                         :api :sse :login-form :cljs-core
-                                         :cljs-main :main-cljs-builder
-                                         :session-authenticator :apikey-authenticator
-                                         :authenticator :authorizer :session-store))}
+    :messaging
+    (fn [config]
+      (fn [system-map]
+        (-> system-map
+            (assoc :database (new-database (get system-map :postgres))
+                   :user-domain (new-postgres-user-domain))
+            (dissoc :webapp :webrouter :webserver
+                    :api :sse :login-form :cljs-core
+                    :cljs-main :main-cljs-builder
+                    :session-authenticator :apikey-authenticator
+                    :authenticator :authorizer :session-store))))}
 
-   :dependency-mods {:messaging #(dissoc % :main-cljs-builder :webserver :webrouter)
-                     }})
+   :dependency-mods
+   {:messaging
+    (fn [config]
+      (fn [dependency-map]
+        (dissoc dependency-map :main-cljs-builder :webserver :webrouter)))}})
 
 (defn new-dev-system
   "Create a development system"
   [env]
-  (component/system-using
-   ((apply comp
-           (remove nil? (for [mod env] (get-in mod-defs [:system-mods mod]))))
-    (configurable-system-map (config)))
-   ((apply comp
-           (remove nil? (for [mod env] (get-in mod-defs [:dependency-mods mod]))))
-    (new-dependency-map))
-   ))
+  (let [config (config)]
+    (component/system-using
+     ((apply comp
+             (map #(% config) (remove nil? (for [mod env] (get-in mod-defs [:system-mods mod])))))
+      (configurable-system-map config))
+     ((apply comp
+             (map #(% config) (remove nil? (for [mod env] (get-in mod-defs [:dependency-mods mod])))))
+      (new-dependency-map))
+     )))
