@@ -320,12 +320,14 @@
   [^ChannelHandlerContext ctx
    {:keys [topic qos payload] :as msg}
    handler-state]
+  ;; TODO Disconnect client if we're not going to handle qos 1
   (comment "TODO"))
 
 (defn handle-publish-with-qos2
   [^ChannelHandlerContext ctx
    {:keys [topic qos payload] :as msg}
    handler-state]
+  ;; TODO Disconnect client if we're not going to handle qos 2
   (comment "TODO"))
 
 ;; 50 MB
