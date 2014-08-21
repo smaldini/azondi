@@ -4,14 +4,16 @@
    [clojurewerkz.machine-head.client :as mh]
    [com.stuartsierra.component :refer (Lifecycle using)]
    [schema.core :as s]
-   [azondi.db :refer (create-device! allowed-device?)]
+   [azondi.db :refer (create-device! allowed-device? create-user!)]
    [plumbing.core :refer (<-)]
    [clojure.core.async :refer (go-loop timeout chan alts! close!)]
    [clostache.parser :as parser]))
 
-(defrecord Simulator [database user devices]
+(defrecord Simulator [database user password devices]
   Lifecycle
   (start [component]
+    ;; Create the user
+    (create-user! database "Test user" user "test@test.org" password)
 
     ;; Create a test device
 
@@ -20,6 +22,7 @@
       (let [test-device (create-device! database user "abc123")]
         (infof "mosquitto_sub -h %s -i %s -t /users/%s/test -u %s -P %s"
                "localhost" (:client-id test-device) user user (:password test-device)))
+
 
       (try
         ;; Create a new device, so that we know the client id
@@ -64,6 +67,7 @@
     component))
 
 (def new-simulator-schema {:user s/Str
+                           :password s/Str
                            :devices [{s/Any s/Any}]})
 
 (defn new-simulator [& {:as opts}]
