@@ -33,7 +33,7 @@
                  {:label "Messages"
                   :security :user
                   :target "/api-docs#messages-api-info"}]}
-    {:label "Web Sockets"
+     {:label "Web Sockets"
       :security :user
       :location :sidebar
       :target "/web-sockets"}
@@ -132,7 +132,8 @@
     [:meta {:property "dc:title" :content "opensensors.IO"}]
     [:meta {:property "dc:description" :content "opensensors.IO processes sensor data using azondi"}]
     [:title "opensensors.IO"]
-    [:link {:href "//netdna.bootstrapcdn.com/font-awesome/4.1.0/css/font-awesome.min.css" :rel "stylesheet"}]
+    ;; TODO Provide a local resource for offline dev...
+    #_[:link {:href "//netdna.bootstrapcdn.com/font-awesome/4.1.0/css/font-awesome.min.css" :rel "stylesheet"}]
     [:link {:href "css/bootstrap.min.css" :rel "stylesheet"}]
     [:link {:href "css/style.css" :rel "stylesheet"}]
     [:script {:src "js/jquery.min.js"}]
@@ -181,6 +182,7 @@
     [:script {:src "cljs/cljs.js"}]
     [:script {:src "cljs/azondi.js"}]
     [:script {:src "cljs/logo.js"}]
+    [:script {:src "cljs/topic-browser.js"}]
 
     [:script {:src "js/helpers.js"}]
     [:div#footer {:class "navbar-default navbar-fixed-bottom"}
@@ -362,3 +364,84 @@
                  [:a#ws-info-ws-session-token-link {:href "#"} "reset your session id"]]
                 ]
                [:script "populate_ws_page ()"]))
+
+(defn topic-browser [user]
+  (html5
+   [:head
+    [:meta {:charset "utf-8"}]
+    [:meta {:name "viewport" :content "width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"}]
+    [:meta {:property "dc:language" :content "en"}]
+    [:meta {:property "dc:title" :content "opensensors.IO"}]
+    [:meta {:property "dc:description" :content "opensensors.IO processes sensor data using azondi"}]
+    [:title "opensensors.IO"]
+    #_[:link {:href "//netdna.bootstrapcdn.com/font-awesome/4.1.0/css/font-awesome.min.css" :rel "stylesheet"}]
+    [:link {:href "css/bootstrap.min.css" :rel "stylesheet"}]
+    [:link {:href "css/style.css" :rel "stylesheet"}]
+    [:link {:href "css/topic-browser.css" :rel "stylesheet"}]
+    [:script {:src "js/jquery.min.js"}]
+    [:script {:src "js/bootstrap.min.js"}]
+    [:script {:src "js/jquery.session.js"}]]
+   [:body
+    [:div#wrap
+     [:nav {:class "navbar navbar-default" :role "navigation"}
+      [:div.container-fluid
+       [:div.navbar-header
+        [:button.navbar-toggle {:type "button" :data-toggle "collapse" :data-target "#bs-example-navbar-collapse-1"}
+         [:span.sr-only "Toggle navigation"]
+         [:span.icon-bar]
+         [:span.icon-bar]
+         [:span.icon-bar]]
+        [:a#home-logo.navbar-brand {:href "/"} "opensensors.io"]]
+       [:div {:class "collapse navbar-collapse" :id "bs-example-navbar-collapse-1"}
+        [:ul {:class "nav navbar-nav navbar-right"}
+         (for [menu menus
+               :when (displayed? menu user)]
+           (if (= :navbar (:location menu))
+             (if (:children menu)
+               [:li.dropdown [:a.dropdown-toggle {:href "#" :data-toggle "dropdown"} (:label menu) [:b.caret]]
+                [:ul.dropdown-menu
+                 (for [child (:children menu)
+                       :when (displayed? child user)]
+                   [:li [:a {:href (:target child)} (:label child)]])]]
+               [:li [:a {:href (:target menu)} (:label menu)]]
+               )))
+         ]]]]
+
+     [:div.container
+      [:h2 "Topic Browser"]
+      [:div#content [:p.loading "Loading..."]]]]
+
+     ;;cljs
+    [:script {:src "js/react.js"}]
+    [:script {:src "cljs/cljs.js"}]
+    [:script {:src "cljs/azondi.js"}]
+    [:script {:src "cljs/logo.js"}]
+    [:script {:src "cljs/topic-browser.js"}]
+
+    [:script {:src "js/helpers.js"}]
+    [:div#footer {:class "navbar-default navbar-fixed-bottom"}
+     [:div.row
+      [:div.col-xs-3
+       [:h3 "opensensors.io"]
+       [:div#copyright
+        "&copy; 2014 open sensors ltd"]
+       [:a {:href "/terms"} "Terms"]]
+      [:div.col-xs-3
+       [:h3 "Company"]
+       [:a {:href "/about"} "About Us"] [:br]
+       [:a {:href "http://blog.opensensors.IO"} "Blog"] [:br]
+       [:a {:href "/careers"} "Careers"]]
+      [:div.col-xs-3
+       [:h3 "Help"]
+       [:a {:href "/help"} "Getting Started"]]
+      [:div.col-xs-3
+       [:h3 "Connect"]
+       [:a {:href "https://twitter.com/opensensorsio"} "Twitter"] [:br]
+       [:a {:href "mailto:hello@opensensors.io?subject=website%20enquiry"} "Mail"] [:br]
+       [:a {:href "http://blog.opensensors.IO"} "Blog"]]]]
+
+    ;; extenal libs
+    [:script (format "azondi.topic_browser.main('%s');" user)]
+    ])
+
+)

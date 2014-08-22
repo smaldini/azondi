@@ -79,6 +79,8 @@
 
    :web-sockets-page (restrict-to-valid-user authorizer web-sockets)
 
+   :topic-browser (restrict-to-valid-user authorizer topic-browser)
+
    })
 
 (def routes
@@ -98,6 +100,7 @@
         ["reset-password" :reset-password]
         ["api-docs" :api-docs-page]
         ["web-sockets" :web-sockets-page]
+        ["topic-browser" :topic-browser]
         ]])
 
 (defrecord WebApp []
