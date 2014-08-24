@@ -7,7 +7,8 @@
   :source-paths ["src/clojure" "ext/clojure"]
   :resource-paths ["resources"]
 
-  :exclusions [prismatic/schema prismatic/plumbing org.clojure/tools.trace]
+  :exclusions [prismatic/schema prismatic/plumbing org.clojure/tools.trace
+               ]
 
   :dependencies [[org.clojure/clojure "1.6.0"]
                  ;; Assembly
