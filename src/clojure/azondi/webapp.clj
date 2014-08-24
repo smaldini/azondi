@@ -29,6 +29,11 @@
                [:p "Please "
                 [:a {:href (path-for (:modular.bidi/routes req) :login)} "login in"] " to continue"]])})))
 
+(defn unrestricted-pages [authorizer page]
+   (fn [req]
+    (let [user (authorized? authorizer req nil)]
+      {:status 200 :body (page user)})))
+
 (defn handlers [authenticator authorizer]
   {:index
    (fn [req]
@@ -79,21 +84,10 @@
 
    :web-sockets-page (restrict-to-valid-user authorizer web-sockets)
 
-   :topics-list (fn [req]
-     {:status 200
-      :body (base-page
-             (authenticate authenticator req)
-             (public-topic)
-             [:script (format "azondi.view.public_topics_list_page();")])})
+   :topics-list (unrestricted-pages authorizer public-topics-list)
 
-   :topic-show
-   (fn [req]
-     {:status 200
-      :body (base-page
-             (authenticate authenticator req)
-             (public-topic)
-             [:script (format "azondi.view.public_topics_page();")])})
-   })
+   :topic-show (unrestricted-pages authorizer public-topic-page)
+      })
 
 (def routes
   ["/" [["" :index]

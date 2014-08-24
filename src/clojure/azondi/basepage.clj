@@ -344,8 +344,23 @@
                  [:a#ws-info-ws-session-token-link {:href "#"} "reset your session id"]]]
                [:script "populate_ws_page ()"]))
 
-(defn public-topic []
-  [:div#public-topic
-   [:div#content [:p.loading "Loading..."]]])
+(defn public-topics-list [user]
+  (base-page user [:div#public-topic
+                   [:div#content [:p.loading "Loading..."]]]
+             [:script (format "azondi.view.public_topics_list_page('%s');" user)]))
+
+
+(defn public-topic-page [user]
+  (base-page user [:div#public-topic
+                   [:div#content [:p.loading "Loading..."]]]
+             [:script (format "azondi.view.public_topic_page('%s');" user)]))
+
+
+
+
+
+
+
+
 
 

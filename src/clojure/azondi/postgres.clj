@@ -112,6 +112,9 @@
   (unsubscribe [this user topic]
     (j/delete! (conn this) :subscriptions ["user_id = ?" user]))
 
+  (user-subscribed? [this user topic]
+    (not (empty? (j/query (conn this) ["Select * from subscriptions where user_id = ? and topic = ?;" user topic]))))
+
   (topic-of-owner [this user topic]
     (clj->psql (first
                 (j/query (conn this)

@@ -13,9 +13,44 @@
 
 (def app-model-public-topics
   (atom {:u (.-pathname js/location) ;; whose details they are looking for e.g. /users/yods/
+         :user nil
          :public-topics []
          :public-topic nil
-         :msgs []}))
+         :msgs []
+         }))
+
+(defn subscribe-btn [_]
+  [:button#public-topic-subscribe-btn.btn.btn-primary
+   {:onClick (fn [ev]
+               (if (:user app-state)
+                 (let [uri (str "/api/1.0/" (:user @app-state) "subscribe" (:topic @app-state))]
+                   (.preventDefault ev)
+                   (.log js/console "hi"))
+                 (.replace window.location "/login"))
+               )} "Subscribe"])
+;; onclick send an ajax message to subscribe or unsubscribe
+
+(def unsubscribe-btn [:button#public-topic-subscribe-btn.btn "UnSubscribe"])
+
+#_(defn sub-unsub-btn [app-model user]
+  ;; if the user is not null an ajax to see if the user is subscribed to that button
+  ;; if the user is subbed (unsub butn) if the user is unsubbed (sub buttn) (on click sub and unsub)
+  (if (:user app-model) 
+   
+    (let [ajax-send (chan)
+          uri (str uri-init "/users/" user "/is-subscribed" (:u app-model))
+          ajax-recv (ajaj< ajax-send
+                           :method :get
+                           :uri uri)]
+      (go
+        (>! ajax-send {})
+        (let [r (<! ajax-recv)
+              subscribed? (:body r)]
+          (om/update! app-model :subscribed? subscribed?)))
+      (if subscribed? unsubscribe-btn subscribe-btn))
+    subscribe-btn
+    )
+  )
 
 (defn public-topics-list-component
   "show a list of all public topics for each user"
@@ -54,7 +89,7 @@
                    [:a
                     {:href (str topic)}
                     topic]]
-                  (.log js/console )
+                  
                   [:td description]
                   [:td unit]])]]]
             [:p (str "Unable to find any public topics for " (:u app-state))]))
@@ -85,7 +120,8 @@
 ;;                                            (merge {:name "" :description "" :unit "" :topic ""}
 ;;                                                   (select-keys body [:name :description :unit :topic ]))))))))}
 
-(defn ^:export public-topics-list-page []
+(defn ^:export public-topics-list-page [user]
+  (swap! app-model-public-topics assoc :user user)
   (om/root public-topics-list-component app-model-public-topics
            {:target (. js/document (getElementById "content"))}))
 
@@ -100,16 +136,21 @@
     (will-mount [this]
       (let [ajax-send (chan)
             topic (.-pathname js/location)
-            user (-> (clojure.string/split topic #"/")
+            uuid (-> (clojure.string/split topic #"/")
                      (nth 2))
-            uri (str uri-init "/users/" user "/public-topics" topic)
+            
+            uri (if (:user app-state)
+                  (str uri-init "/users/" (:user app-state) "/public-topics" topic) ;; if logged in
+                  (str uri-init "/users/" "guest" "/public-topics" topic))
             ajax-recv (ajaj< ajax-send
                              :method :get
                              :uri uri)]
+        
+        
         (go
           (>! ajax-send {})
           (let [r (<! ajax-recv)]
-            (om/update! app-state :public-topic (first (-> r :body)))))))
+            (om/update! app-state :public-topic (-> r :body))))))
 
     om/IRender
     (render [this]
@@ -119,7 +160,7 @@
           [:p (str "Topic Details")]
           (if (not-empty public-topic)
             [:div
-             [:p (str "Topic Details for " public-topic)]
+             [:p (str "Topic Details for " (:topic public-topic))]
              [:table.table.table-hover.table-condensed.tbl
               [:thead
                [:tr
@@ -132,8 +173,7 @@
                 [:td (:topic public-topic)]
                 [:td (:description public-topic)]
                 [:td (:unit public-topic)]
-                [:td [:button#public-topic-subscribe-btn.btn.btn-primary 
-                      "Subscribe"]]]]]]
+                [:td (if (= true (:subscribed public-topic)) unsubscribe-btn (subscribe-btn 1))]]]]]
             [:p (str "Unable to find topic" )]))
          ]))))
 
@@ -154,8 +194,9 @@
       ;; in a debugger show the messages
       [:pre
        (for [msg (-> app-state :msgs)]
-         (str msg "\r\n"))]
-      )))
-(defn ^:export public-topic-page []
+         (str msg "\r\n"))])))
+
+(defn ^:export public-topic-page [user]
+  (when (not= "null" user) (swap! app-model-public-topics assoc :user user))
   (om/root public-topic-component app-model-public-topics
            {:target (. js/document (getElementById "content"))}))

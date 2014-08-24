@@ -13,7 +13,7 @@
    [cheshire.core :refer (decode decode-stream encode)]
    [schema.core :as s]
    [camel-snake-kebab :refer (->kebab-case-keyword ->camelCaseString)]
-   [azondi.db :refer (get-users get-user get-user-by-email delete-user! create-user! devices-by-owner get-device delete-device! create-device! patch-device! topics-by-owner get-topic delete-topic! create-topic! patch-topic! public-topics-by-owner get-public-topic set-device-password! get-api-key delete-api-key create-api-key reset-user-password find-user-by-api-key create-subscription unsubscribe subscriptions-by-owner get-ws-session-token delete-ws-session-token create-ws-session-token find-ws-session-by-token)]
+   [azondi.db :refer :all]
    [azondi.messages-db :refer (messages-by-owner)]
    [azondi.emails :refer (beta-signup-email)]
    [hiccup.core :refer (html)]
@@ -403,12 +403,16 @@
    :known-content-type? #{"application/json"}
    :exists? (fn [{{{user :user topic-name :topic-name} :route-params} :request}]
               (infof "topic resource exists..?")
-              (let [topic (str "/users/" user "/" topic-name)
-                    existing (get-public-topic db topic-name)]
+              (let [existing (get-public-topic db topic-name)]
                 [existing
-                 {:existing existing
-                  :topic topic}]))
-   :handle-ok (fn [{topic :topic existing :existing}] existing)})
+                 {:existing (first existing)
+                  :topic-name topic-name
+                  :user user
+                  :subscribed? (user-subscribed? db user topic-name)
+                  }]))
+   :handle-ok (fn [{topic-name :topic-name user :user existing :existing subscribed? :subscribed?}]
+                 (merge existing {:subscribed subscribed?})
+                                  )})
 
 (def subscriptions-attributes-schema
   {(s/required-key :topic) s/Str})
@@ -541,9 +545,9 @@
                           "/topics/" ::topics
                           "/topics" (->Redirect 307 ::topics)
                           ["/topics/" [#".*" :topic-name]] ::topic
-                          "/public-topics/" ::public-topics
-                          "/public-topics" (->Redirect 307 ::public-topics)
-                          ["/public-topics" [#".*" :topic-name]] ::public-topic
+                          "/public-topics" ::public-topics
+                          ;;"/public-topics" (->Redirect 307 ::public-topics)
+                          ["/public-topics" [#"/.*" :topic-name]] ::public-topic
                           "/subscriptions/" ::subscriptions
                           "/subscriptions" (->Redirect 307 ::subscriptions)
                           "/api-key/" ::api-key
@@ -552,7 +556,8 @@
                           "/ws-token" (->Redirect 307 ::ws-token)
                           "/reset-password" ::reset-user-password
                           "/messages" (->Redirect 307 ::messages)
-                          "/messages/" ::messages}}])
+                          "/messages/" ::messages
+ }}])
 
 
 (defrecord Api []

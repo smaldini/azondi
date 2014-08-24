@@ -29,6 +29,7 @@
   (subscriptions-by-owner [_ user])
   (create-subscription [_ user topic])
   (unsubscribe [_ user topic])
+  (user-subscribed? [_ user topic])
   ;;api
   (get-api-key [_ user])
   (delete-api-key [_ user])
