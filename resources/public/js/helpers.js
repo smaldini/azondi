@@ -33,7 +33,7 @@ function IsUseridTaken (id) {
 	    type: "GET",
 	    contentType: "application/json; charset=utf-8",
 	    dataType: "json",
-	    async: false,  
+	    async: false,
 	    success: function(data){$ ('#username_notification').text ("User id already taken").show();
 				   result = true; },
 	    failure: function(errMsg) {$ ('#username_notification').hide ();
@@ -48,7 +48,7 @@ function IsEmailRegistered (id) {
 	    type: "GET",
 	    contentType: "application/json; charset=utf-8",
 	    dataType: "json",
-	    async: false,  
+	    async: false,
 	    success: function(data){$ ('#username_notification').text ("User id already taken").show();
 				   result = true; },
 	    failure: function(errMsg) {$ ('#username_notification').hide ();
@@ -66,7 +66,7 @@ function Validate () {
 	& $("#beta-user-id").val ().length > 2
 	& (false == IsUseridTaken ($("#beta-user-id").val ()))
 	& $("#beta-password").val() !== ""
-	& IsEmail ($("#beta-email").val())) 
+	& IsEmail ($("#beta-email").val()))
     {document.getElementById ("beta-access-btn").disabled = false;}
 }
 
@@ -119,6 +119,8 @@ function populate_api_page () {
 	    $('.api-info-api-key-view').empty ().append ("<span#api-info-api-key-view>"+ data.api + "</span>");
 	    $ ('#uuid-api-view').empty ().append ("<span#uuid-api-view>?user=" + data.user + "&API=" + data.api + "</span>");},
     	failure: function(errMsg) {alert(errMsg);}});
+    $('span#api-host-name').replaceWith("<span#api-host-name>"+ document.location.host + "</host-name>");
+
 }
 
 $ ('#api-info-api-key-link').on ('click', function () {
@@ -158,5 +160,3 @@ $ ('#ws-info-ws-session-token-link').on ('click', function () {
 	failure: function(errMsg) {
             alert(errMsg);}});
 });
-
-

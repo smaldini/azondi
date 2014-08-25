@@ -205,7 +205,7 @@
        [:a {:href "https://twitter.com/opensensorsio"} "Twitter"] [:br]
        [:a {:href "mailto:hello@opensensors.io?subject=website%20enquiry"} "Mail"] [:br]
        [:a {:href "http://blog.opensensors.IO"} "Blog"]]]]
-   
+
                                   ;; extenal libs
     scr
     ;; analytics
@@ -305,7 +305,7 @@ a.async=true;a.type=\"text/javascript\";b.parentNode.insertBefore(a,b)}, 1);
        [:a#api-info-api-key-link {:href "#"} "reset your API key..."]]
 
       [:div
-       [:div "All API calls should be made to " [:code "opensensors.IO"]]
+       [:div "All API calls should be made to " [:code [:span#api-host-name] ]]
        [:h3 [:b "Authentication"]]
        [:div "Authorization is achieved by adding the following HTTP header"]
        [:pre#api-authorisation-key "Authorization: api-key " [:span.api-info-api-key-view]]]
@@ -315,10 +315,10 @@ a.async=true;a.type=\"text/javascript\";b.parentNode.insertBefore(a,b)}, 1);
        [:div#devices-api-info
        [:h2 "Devices"]
        [:h3 [:b "List of Devices"]]
-       [:pre "curl -X GET -H 'Authorization: api-key " [:span.api-info-api-key-view] "' opensensors.IO/api/1.0/users/" [:span#api-info-user-id] "/devices/"]
+       [:pre "curl -X GET -H 'Authorization: api-key " [:span.api-info-api-key-view] "' " [:span#api-host-name] "/api/1.0/users/" [:span#api-info-user-id] "/devices/"]
         [:h3 [:b "New Devices"]]
        [:p "Send a POST request to this address to create new devices. Each POST will return a JSON map, containing the following entries :-"]
-       [:pre "curl -X POST -H 'Authorization: api-key " [:span.api-info-api-key-view] "' opensensors.IO/api/1.0/users/" [:span#api-info-user-id] "/devices/ -d '{}'"]
+       [:pre "curl -X POST -H 'Authorization: api-key " [:span.api-info-api-key-view] "' " [:span#api-host-name] "/api/1.0/users/" [:span#api-info-user-id] "/devices/ -d '{}'"]
        [:ul
         [:li "client-id : the client id to use for your device when connecting to the opensensors.io MQTT broker"]
         [:li "ownerUserId : the user name to use when connecting (this is the same as your username)"]
@@ -334,35 +334,35 @@ a.async=true;a.type=\"text/javascript\";b.parentNode.insertBefore(a,b)}, 1);
       [:div#topics-api-info
        [:h2 "Topics"]
         [:h3 [:b "List of Topics"]]
-       [:pre "curl -X GET -H 'Authorization: api-key " [:span.api-info-api-key-view] "' opensensors.IO/api/1.0/users/" [:span#api-info-user-id] "/topics/"]]
+       [:pre "curl -X GET -H 'Authorization: api-key " [:span.api-info-api-key-view] "' " [:span#api-host-name] "/api/1.0/users/" [:span#api-info-user-id] "/topics/"]]
       [:hr]
 
       [:div#firehose-api-info
        [:h2 "Real Time Data"]
        [:p "Get the streaming data feed of all topics you are subscribed to using"]
-       [:pre "curl -X GET -H 'Authorization: api-key " [:span.api-info-api-key-view] "' opensensors.IO/events/users/" [:span#api-info-user-id]]]
+       [:pre "curl -X GET -H 'Authorization: api-key " [:span.api-info-api-key-view] "' " [:span#api-host-name] "/events/users/" [:span#api-info-user-id]]]
       [:hr]
 
       [:div#messages-api-info
        [:h2 "Messages"]
        [:p "List of Messages By Owner"]
-       [:pre "curl -X GET -H 'Authorization: api-key " [:span.api-info-api-key-view] "' 'opensensors.IO/api/1.0/users/" [:span#api-info-user-id] "/messages-by-owner'"]
+       [:pre "curl -X GET -H 'Authorization: api-key " [:span.api-info-api-key-view] "' '" [:span#api-host-name] "/api/1.0/users/" [:span#api-info-user-id] "/messages-by-owner'"]
 
        [:p "List of Messages By Owner And Date"]
-       [:pre "curl -X GET -H 'Authorization: api-key " [:span.api-info-api-key-view] "' 'opensensors.IO/api/1.0/users/" [:span#api-info-user-id] "/messages-by-owner?start-date=2014-07-08&end-date=2014-08-08'"]
+       [:pre "curl -X GET -H 'Authorization: api-key " [:span.api-info-api-key-view] "' '" [:span#api-host-name] "/api/1.0/users/" [:span#api-info-user-id] "/messages-by-owner?start-date=2014-07-08&end-date=2014-08-08'"]
 
 
        [:p "List of Messages By Topic"]
-       [:pre "curl -X GET -H 'Authorization: api-key " [:span.api-info-api-key-view] "' 'opensensors.IO/api/1.0/users/" [:span#api-info-user-id] "/messages-by-topic?topic=/the-topic/you-want'"]
+       [:pre "curl -X GET -H 'Authorization: api-key " [:span.api-info-api-key-view] "' '" [:span#api-host-name] "/api/1.0/users/" [:span#api-info-user-id] "/messages-by-topic?topic=/the-topic/you-want'"]
 
        [:p "List of Messages By Topic And Date"]
-       [:pre "curl -X GET -H 'Authorization: api-key " [:span.api-info-api-key-view] "' 'opensensors.IO/api/1.0/users/" [:span#api-info-user-id] "/messages-by-topic?topic=/the-topic/you-want&start-date=2014-07-08&end-date=2014-08-08'"]
+       [:pre "curl -X GET -H 'Authorization: api-key " [:span.api-info-api-key-view] "' '" [:span#api-host-name] "/api/1.0/users/" [:span#api-info-user-id] "/messages-by-topic?topic=/the-topic/you-want&start-date=2014-07-08&end-date=2014-08-08'"]
 
        [:p "List of Messages By Device/Client"]
-       [:pre "curl -X GET -H 'Authorization: api-key " [:span.api-info-api-key-view] "' 'opensensors.IO/api/1.0/users/" [:span#api-info-user-id] "/messages-by-device?client=1'"]
+       [:pre "curl -X GET -H 'Authorization: api-key " [:span.api-info-api-key-view] "' '" [:span#api-host-name] "/api/1.0/users/" [:span#api-info-user-id] "/messages-by-device?client=1'"]
 
        [:p "List of Messages By Device/Client And Date"]
-       [:pre "curl -X GET -H 'Authorization: api-key " [:span.api-info-api-key-view] "' 'opensensors.IO/api/1.0/users/" [:span#api-info-user-id] "/messages-by-device?client=1&start-date=2014-07-08&end-date=2014-08-08'"]
+       [:pre "curl -X GET -H 'Authorization: api-key " [:span.api-info-api-key-view] "' ' " [:span#api-host-name] "/api/1.0/users/" [:span#api-info-user-id] "/messages-by-device?client=1&start-date=2014-07-08&end-date=2014-08-08'"]
 
 
        ]
