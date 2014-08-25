@@ -70,7 +70,7 @@
      [:h1 "The Operating System for the Internet of Things"]
      [:div.row
       [:div.col-xs-7
-       [:p#marketing-in-logo "Connect and manage your devices in one place using MQTT." [:br] "Open Data projects are created and shared for" [:b "FREE"] ". Private projects are free until the end of our early access period."]
+       [:p#marketing-in-logo "Connect and manage your devices in one place using MQTT." [:br] "Open Data projects are created and shared for" [:b "FREE."] "Private projects are free until the end of our early access period."]
 ]
       [:div.col-xs-5 [:form {:id "beta-signup" :role "form"}
                       [:div.form-inline
