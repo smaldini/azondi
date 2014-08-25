@@ -20,7 +20,6 @@
 (def hostname (let [a (.createElement js/document "a")]
                 (set! (.-href a) (.-URL js/document))
                 (.-hostname a)))
-
 (def uri-init "/api/1.0")
 
 (def app-model
@@ -286,7 +285,7 @@
           [:div#device-mosquitto [:h3 "Mosquitto"]
            [:p "Mosquitto is an MQTT messaging tool that you can use to test your device.  Download a mosquitto client library from " [:a {:href "http://mosquitto.org/"} "mosquitto.org"]]
            [:pre (str "mosquitto_pub"
-                      " -h " "opensensors.io"
+                      " -h " hostname
                       " -i " (-> app-state :device :client-id)
                       " -t " (str "/users/" (:user app-state) "/test")
                       " -m " "'This is a test'"
@@ -295,7 +294,7 @@
                       )]
 
            [:pre (str "mosquitto_sub"
-                      " -h " "opensensors.io"
+                      " -h " hostname
                       " -i " (-> app-state :device :client-id)
                       " -t " (str "/users/" (:user app-state) "/test")
                       " -u " (:user app-state)
