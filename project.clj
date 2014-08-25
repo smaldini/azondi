@@ -7,12 +7,16 @@
   :source-paths ["src/clojure" "ext/clojure"]
   :resource-paths ["resources"]
 
-  :exclusions [prismatic/schema prismatic/plumbing ;;org.clojure/tools.trace
-               ]
+  :exclusions [prismatic/schema
+               prismatic/plumbing
+               org.clojure/tools.trace]
 
   :dependencies [[org.clojure/clojure "1.6.0"]
                  ;; Assembly
                  [com.stuartsierra/component "0.2.1"]
+
+                 ;; Tracing - explictly required
+                 [org.clojure/tools.trace "0.7.8" :exclusions [org.clojure/clojure]]
 
                  ;; Front end
                  #_[org.clojure/clojurescript "0.0-2138"
