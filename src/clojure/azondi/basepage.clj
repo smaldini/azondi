@@ -40,7 +40,11 @@
     {:label "Getting Started"
       :security :all
       :location :navbar
-      :target "/help"}
+     :target "/help"}
+    {:label "Sign up"
+     :security :none
+     :location :navbar
+     :target "/signup"}
      {:label "Account"
       :security :user
       :location :navbar
@@ -58,6 +62,19 @@
       :location :navbar
       :target "/logout"}])
 
+(def sign-up-form [:form {:id "beta-signup" :role "form"}
+                      [:div.form-inline
+
+                       [:input {:type "text" :class "form-control" :id "beta-user-id" :name "beta-user-id" :placeholder "Pick a User ID"} [:i [:p#username_notification {:style "display:none"}]]]
+
+                       [:input {:type "text" :class "form-control" :id "beta-name" :name "beta-name" :placeholder "Your Name"}]
+                       [:input {:type "email" :class "form-control" :id "beta-email" :name "beta-email" :placeholder "Your Email"} [:i [:p#email_notification {:style "display:none"}]]]
+                       [:input {:type "password" :class "form-control" :id "beta-password" :name "beta-password" :placeholder "Your Password"}]
+                       [:button {:id "beta-access-btn" :type "submit" :class "btn btn-primary btn-lg"
+                                 :disabled true} "Get Free Access"]
+                       [:br]
+                       [:p#terms-by-signup "By creating an account, you agree to our " [:a {:href "/terms"} "terms of service"]]]])
+
 (def logo-area
   [:div#header
    [:div.jumbotron
@@ -72,19 +89,7 @@
       [:div.col-xs-7
        [:p#marketing-in-logo "Connect and manage your devices in one place using MQTT." [:br] "Open Data projects are created and shared for" [:b "FREE."] "Private projects are free until the end of our early access period."]
 ]
-      [:div.col-xs-5 [:form {:id "beta-signup" :role "form"}
-                      [:div.form-inline
-
-                       [:input {:type "text" :class "form-control" :id "beta-user-id" :name "beta-user-id" :placeholder "Pick a User ID"} [:i [:p#username_notification {:style "display:none"}]]]
-
-                       [:input {:type "text" :class "form-control" :id "beta-name" :name "beta-name" :placeholder "Your Name"}]
-                       [:input {:type "email" :class "form-control" :id "beta-email" :name "beta-email" :placeholder "Your Email"} [:i [:p#email_notification {:style "display:none"}]]]
-                       [:input {:type "password" :class "form-control" :id "beta-password" :name "beta-password" :placeholder "Your Password"}]
-                       [:button {:id "beta-access-btn" :type "submit" :class "btn btn-primary btn-lg"
-                                 :disabled true} "Get Free Access"]
-                       [:br]
-                       [:p#terms-by-signup "By creating an account, you agree to our " [:a {:href "/terms"} "terms of service"]]]]
-       ]]]]
+      [:div.col-xs-5 sign-up-form]]]]
    ])
 
 ;; MS: This is a bit of a hack that will have to do for now. A better solution is warranted.

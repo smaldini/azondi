@@ -133,9 +133,18 @@ h3 {font-weight: bold;
 	       height: 250px;
 	       }
 
+#sign-up-div {width:30%;
+	       margin: 0 auto;
+	       margin-top: 50px}
+
 #beta-signup {width:300px;
 	      margin-left: 50px;
-	     padding: 20px;
+	      padding: 20px;
+	      border: 1px solid rgba(0, 0, 0, 0.1);
+	       border-radius: 25px;
+	       height: 300px;}
+
+#beta-signup * {margin-bottom: 10px;
 	     }
 #beta-signup input {color: black;
 			   }

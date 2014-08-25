@@ -27,7 +27,9 @@
               [:div
                [:h1 "Unauthorized"]
                [:p "Please "
-                [:a {:href (path-for (:modular.bidi/routes req) :login)} "login in"] " to continue"]])})))
+                [:a {:href (path-for (:modular.bidi/routes req) :login)} "Login "] " or "
+                [:a {:href (path-for (:modular.bidi/routes req) :sign-up)} "Sign up"]
+                " to continue"]])})))
 
 (defn handlers [authenticator authorizer]
   {:index
@@ -36,6 +38,13 @@
       :body (base-page
              (authenticate authenticator req)
              index-page)})
+
+   :sign-up
+    (fn [req]
+     {:status 200
+      :body (base-page
+             (authenticate authenticator req)
+             [:div#sign-up-div sign-up-form])})
 
    :help
    (fn [req]
@@ -101,6 +110,7 @@
         ["api-docs" :api-docs-page]
         ["web-sockets" :web-sockets-page]
         ["topic-browser" :topic-browser]
+        ["signup" :sign-up]
         ]])
 
 (defrecord WebApp []
