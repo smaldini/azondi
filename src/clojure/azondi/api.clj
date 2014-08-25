@@ -154,29 +154,29 @@
                             (messages-by-owner messages-db user))]
                   (encode {:messages res})))})
 
+(defn- malformed-messages-by-call [k]
+  (fn [{{query-string :query-string :as req} :request}]
+    (let [query-string-map (query-string>map-kv query-string)]
+      (if (nil? (get query-string-map k))
+        true
+        (when (and (malformed-date-format? (:start-date query-string-map)) (malformed-date-format? (:end-date query-string-map)))
+          (malformed-range-date? (:start-date query-string-map) (:end-date query-string-map))
+          )))))
+
 (defn messages-by-topic-resource [db messages-db authorizer]
   {:allowed-methods #{:get}
    :authorized?
    (fn [{{query-string :query-string {user :user :as rp} :route-params :as req} :request}]
-     (when (authorized? authorizer req  rp) ;; user has privileges to access this fn
+     (when (authorized? authorizer req  rp)
        (let [topic-req (:topic (query-string>map-kv query-string))
-             topic (get-topic db topic-req)
-             _ (println "the topic" topic)]
+             topic (get-topic db topic-req)]
          (or (nil? topic) (:public topic) (= (:owner topic) user)))))
    :available-media-types #{"application/json"}
-   :malformed? (fn [{{query-string :query-string :as req} :request}]
-                 (let [query-string-map (query-string>map-kv query-string)]
-                   (if-not (or (nil? (:topic query-string-map))
-                                 (malformed-date-format? (:start-date query-string-map))
-                                 (malformed-date-format? (:end-date query-string-map)))
-                     (malformed-range-date? (:start-date query-string-map) (:end-date query-string-map))
-                     true
-                     )))
+   :malformed? (malformed-messages-by-call :topic)
    :handle-ok (fn [{{query-string :query-string :as req} :request}]
                 (let [query-string-map (query-string>map-kv query-string)
                       topic-req (:topic query-string-map)
-                      topic (get-topic db topic-req)
-                      ]
+                      topic (get-topic db topic-req)]
                   (if topic
                      (encode {:messages (if (and (:start-date query-string-map)  (:end-date query-string-map))
                                       (messages-by-topic-and-date messages-db
@@ -189,22 +189,26 @@
 
 (defn messages-by-device-resource [db messages-db authorizer]
   {:allowed-methods #{:get}
-   :authorized?
-   (fn [{{query-string :query-string {user :user :as rp} :route-params :as req} :request}]
-     (when  (authorized? authorizer req  rp) ;; user has privileges to access this fn
-       (when-let [device-id (:client (query-string>map-kv query-string))] ;; device-id-req exists
-         (when-let [device (get-device db device-id)] ;; device in db exists
-           (= (:user device) user))))) ;; user of device is user logged
+   :authorized? (fn [{{query-string :query-string {user :user :as rp} :route-params :as req} :request}]
+                  (when  (authorized? authorizer req  rp)
+                    (when-let [device-id (:client (query-string>map-kv query-string))]
+                      (let [device (get-device db device-id)]
+                        (or (nil? device) (= (:user device) user))))))
+   :malformed? (malformed-messages-by-call :client)
    :available-media-types #{"application/json"}
    :handle-ok (fn [{{query-string :query-string :as req} :request}]
                 (let [query-string-map (query-string>map-kv query-string)
-                      res (if (and (:start-date query-string-map)  (:end-date query-string-map))
-                            (messages-by-device-and-date messages-db
-                                                        (:client (query-string>map-kv query-string))
-                                                        (string-date>vector (:start-date query-string-map))
-                                                        (string-date>vector (:end-date query-string-map)))
-                            (messages-by-device messages-db (:client (query-string>map-kv query-string))))]
-                  (encode {:messages res})))})
+                      client-req (:client (query-string>map-kv query-string))
+                      device (get-device db client-req)]
+                  (if device
+                    (encode {:messages (if (and (:start-date query-string-map)  (:end-date query-string-map))
+                                (messages-by-device-and-date messages-db
+                                                             client-req
+                                                             (string-date>vector (:start-date query-string-map))
+                                                             (string-date>vector (:end-date query-string-map)))
+                                (messages-by-device messages-db client-req))})
+                    {:status 404 :body (str "Client not found: " client-req)}
+                    )))})
 
 
 ;;;;; ----- USERS ----
