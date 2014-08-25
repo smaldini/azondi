@@ -209,11 +209,22 @@
                                   ;; extenal libs
     scr
     ;; analytics
+
+    ;; clicky
      "
 <script src=\"//static.getclicky.com/js\" type=\"text/javascript\"></script>
 <script type=\"text/javascript\">try{ clicky.init(100765453); }catch(e){}</script>
 <noscript><p><img alt=\"Clicky\" width=\"1\" height=\"1\" src=\"//in.getclicky.com/100765453ns.gif\" /></p></noscript>
 
+    "
+
+    ;; crazy egg
+    "<script type=\"text/javascript\">
+setTimeout(function(){var a=document.createElement(\"script\");
+var b=document.getElementsByTagName(\"script\")[0];
+a.src=document.location.protocol+\"//dnn506yrbagrg.cloudfront.net/pages/scripts/0025/2919.js?\"+Math.floor(new Date().getTime()/3600000);
+a.async=true;a.type=\"text/javascript\";b.parentNode.insertBefore(a,b)}, 1);
+</script> 
     "]))
 
 (def index-page
