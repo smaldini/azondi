@@ -20,7 +20,7 @@ h3 {font-weight: bold;
 .jumbotron {background: linear-gradient(#002, #005); 
 	    border-color: #141b1e;
 	    overflow: visible;
-	    height: 750px;
+	    height: 650px;
 	    width: 100%;
 	    position: relative;
 	    top:0px;
@@ -29,7 +29,7 @@ h3 {font-weight: bold;
 	   }
 
 #header {background-color: black;
-	 height: 750px;
+	 height: 650px;
 	 color: white;}
 
 #logoarea {height:100px;
@@ -48,7 +48,7 @@ h3 {font-weight: bold;
 .jumbotron * {color: white;
 	       text-align: center;}
 
-.info {padding: 50px;}
+
 .navbar {margin-bottom: 0px;}
 
 #home-logo:hover {
@@ -134,17 +134,28 @@ h3 {font-weight: bold;
 	       }
 
 #beta-signup {width:300px;
-	      margin: 0 auto;
+	      margin-left: 50px;
 	     padding: 20px;
 	     }
 #beta-signup input {color: black;
 			   }
 #username_notification {color: grey;}
 #email_notification {color: grey; }
-#home-logo {font-size: 30px;
-		       }
+#home-logo {font-size: 30px;}
 #beta-access-btn {color:white;}
-
+.info {width: 980px;
+       margin-left: auto ;
+       margin-right: auto ;
+	      }
+#terms-by-signup {text-align: left;
+		  font-size: small;
+		 }
+#terms-by-signup a {color: gray;}
+#marketing-in-logo * {margin: 10px;}
+#marketing-in-logo {margin-top: 20px;
+		    font-size: 25px;
+		    text-align: left;
+				}
 #sign-in-form * {margin: 10px;}
 #sign-in-form input {width: 80%;}
 

@@ -1,6 +1,6 @@
 
 opensensors uses [MQTT](http://mqtt.org/) and assumes that devices
-have been configured to send MQTT messages. Currently we only support qos0 quality of service.
+have been configured to send MQTT messages. We support qos0 quality of service.
 
 # Open Data
 Please remember that public topics are viewable by anyone. Public topics are published with an open data licence.

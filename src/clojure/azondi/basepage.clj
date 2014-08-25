@@ -68,17 +68,23 @@
        [:animate {:attributeName "r" :begin "1s" :calcmode "linear" :dur "1s" :values="15; 4; 2; 1"}]]]]
     [:div.info
      [:h1 "The Operating System for the Internet of Things"]
-     [:h2 "Connect and manage your devices in one place." [:br] " Share your data or create private projects."]
-     [:form {:id "beta-signup" :role "form"}
-      [:div.form-inline
+     [:div.row
+      [:div.col-xs-7
+       [:p#marketing-in-logo "Connect and manage your devices in one place using MQTT." [:br] "Open Data projects are created and shared for" [:b "FREE"] ". Private projects are free until the end of our early access period."]
+]
+      [:div.col-xs-5 [:form {:id "beta-signup" :role "form"}
+                      [:div.form-inline
 
-       [:input {:type "text" :class "form-control" :id "beta-user-id" :name "beta-user-id" :placeholder "Your User ID"} [:i [:p#username_notification {:style "display:none"}]]]
+                       [:input {:type "text" :class "form-control" :id "beta-user-id" :name "beta-user-id" :placeholder "Pick a User ID"} [:i [:p#username_notification {:style "display:none"}]]]
 
-       [:input {:type "text" :class "form-control" :id "beta-name" :name "beta-name" :placeholder "Your Name"}]
-       [:input {:type "email" :class "form-control" :id "beta-email" :name "beta-email" :placeholder "Your Email"} [:i [:p#email_notification {:style "display:none"}]]]
-       [:input {:type "password" :class "form-control" :id "beta-password" :name "beta-password" :placeholder "Your Password"}]
-       [:button {:id "beta-access-btn" :type "submit" :class "btn btn-primary btn-lg"
-                 :disabled true} "Get Early Access"]]]]]
+                       [:input {:type "text" :class "form-control" :id "beta-name" :name "beta-name" :placeholder "Your Name"}]
+                       [:input {:type "email" :class "form-control" :id "beta-email" :name "beta-email" :placeholder "Your Email"} [:i [:p#email_notification {:style "display:none"}]]]
+                       [:input {:type "password" :class "form-control" :id "beta-password" :name "beta-password" :placeholder "Your Password"}]
+                       [:button {:id "beta-access-btn" :type "submit" :class "btn btn-primary btn-lg"
+                                 :disabled true} "Get Free Access"]
+                       [:br]
+                       [:p#terms-by-signup "By creating an account, you agree to our " [:a {:href "/terms"} "terms of service"]]]]
+       ]]]]
    ])
 
 ;; MS: This is a bit of a hack that will have to do for now. A better solution is warranted.
@@ -130,7 +136,7 @@
     [:meta {:name "viewport" :content "width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"}]
     [:meta {:property "dc:language" :content "en"}]
     [:meta {:property "dc:title" :content "opensensors.IO"}]
-    [:meta {:name "description" :content "The operating system for the Internet of Things. theopensensors.IO enables you to create real time IOT applications in minutes"}]
+    [:meta {:name "description" :content "The operating system for the Internet of Things. opensensors.IO enables you to create real time IOT applications in minutes"}]
     [:meta {:name "keywords" :content "IOT, IoT, Internet of Things, cloud, public cloud, smart systems, smart cities, future cities, smart environments, devices, sensors, open sensors, citizen science, open, arm, open data, open source, mbed, ti, texas instruments, mqtt, ble, blue tooth, raspberry pi, arduino, CoAP, physical analytics, big data, analytics"}]
     [:title "opensensors.IO - Create real time IOT applications in minutes"]
     ;; TODO Provide a local resource for offline dev...
