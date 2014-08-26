@@ -142,7 +142,7 @@
     [:meta {:property "dc:language" :content "en"}]
     [:meta {:property "dc:title" :content "opensensors.IO"}]
     [:meta {:name "description" :content "The operating system for the Internet of Things. opensensors.IO enables you to create real time IOT applications in minutes"}]
-    [:meta {:name "keywords" :content "IOT, IoT, Internet of Things, cloud, public cloud, smart systems, smart cities, future cities, smart environments, devices, sensors, open sensors, citizen science, open, arm, open data, open source, mbed, ti, texas instruments, mqtt, ble, blue tooth, raspberry pi, arduino, CoAP, physical analytics, big data, analytics"}]
+    [:meta {:name "keywords" :content "IOT, IoT, Internet of Things, web of things, smart things, internet of everything, smart systems, smart cities, future cities, smart environments, devices, sensors, open sensors, citizen science, open, arm, open data, open source, mbed, ti, texas instruments, mqtt, ble, blue tooth, raspberry pi, arduino, CoAP, analytics, big data, analytics"}]
     [:title "opensensors.IO - Create real time IOT applications in minutes"]
     ;; TODO Provide a local resource for offline dev...
     [:link {:href "//netdna.bootstrapcdn.com/font-awesome/4.1.0/css/font-awesome.min.css" :rel "stylesheet"}]
