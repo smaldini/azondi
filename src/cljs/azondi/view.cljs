@@ -1,10 +1,12 @@
 (ns azondi.view
-  (:require-macros [cljs.core.async.macros :refer [go go-loop]])
+  (:require-macros [cljs.core.async.macros :refer [go go-loop]]
+                   [dommy.macros :refer [node sel sel1]])
   (:require [om.core :as om :include-macros true]
             [azondi.net :refer (ajaj< listen-sse)]
             [goog.events :as events]
             [cljs.core.async :refer [<! >! chan put! sliding-buffer close! pipe map< filter< mult tap map> timeout]]
-            [sablono.core :as html :refer-macros [html]]))
+            [sablono.core :as html :refer-macros [html]]
+            [dommy.core :as dommy]))
 
 
 (def uri-init "/api/1.0")
@@ -19,38 +21,45 @@
          :msgs []
          }))
 
-(defn subscribe-btn [_]
+(declare unsubscribe-btn);; so I can use it in subscribe-btn
+
+(defn subscribe-btn [app-state]
   [:button#public-topic-subscribe-btn.btn.btn-primary
    {:onClick (fn [ev]
-               (if (:user app-state)
-                 (let [uri (str "/api/1.0/" (:user @app-state) "subscribe" (:topic @app-state))]
-                   (.preventDefault ev)
-                   (.log js/console "hi"))
-                 (.replace window.location "/login"))
-               )} "Subscribe"])
-;; onclick send an ajax message to subscribe or unsubscribe
-
-(def unsubscribe-btn [:button#public-topic-subscribe-btn.btn "UnSubscribe"])
-
-#_(defn sub-unsub-btn [app-model user]
-  ;; if the user is not null an ajax to see if the user is subscribed to that button
-  ;; if the user is subbed (unsub butn) if the user is unsubbed (sub buttn) (on click sub and unsub)
-  (if (:user app-model) 
-   
-    (let [ajax-send (chan)
-          uri (str uri-init "/users/" user "/is-subscribed" (:u app-model))
-          ajax-recv (ajaj< ajax-send
-                           :method :get
+               (if (:user @app-state)
+                 (let [ajax-send (chan)
+                       uri (str uri-init "/users/"
+                                (:user @app-state) "/public-topics"
+                                (-> @app-state
+                                    :public-topic
+                                    :topic))
+                       ajax-recv (ajaj< ajax-send
+                           :method :post
                            :uri uri)]
-      (go
-        (>! ajax-send {})
-        (let [r (<! ajax-recv)
-              subscribed? (:body r)]
-          (om/update! app-model :subscribed? subscribed?)))
-      (if subscribed? unsubscribe-btn subscribe-btn))
-    subscribe-btn
-    )
-  )
+                   (go
+                     (>! ajax-send {}))
+                   (dommy/replace! (sel1 "#public-topic-subscribe-btn") (unsubscribe-btn app-state)))
+                 (do (.replace window.location "/login"))))} "Subscribe"])
+
+(defn unsubscribe-btn [app-state]
+  [:button#public-topic-subscribe-btn.btn
+   {:onClick (fn [ev]
+               (if (:user @app-state)
+                 (let [ajax-send (chan)
+                       uri (str uri-init "/users/"
+                                (:user @app-state) "/public-topics"
+                                (-> @app-state
+                                    :public-topic
+                                    :topic))
+                       ajax-recv (ajaj< ajax-send
+                           :method :delete
+                           :uri uri)]
+                   (go
+                     (>! ajax-send {}))
+                   (dommy/replace! (sel1 "#public-topic-subscribe-btn") (subscribe-btn app-state)))
+                 (do (.replace window.location "/login") ;; TODO update this so that it once logged in it sends you back to where you were
+                     )))}
+   "UnSubscribe"])
 
 (defn public-topics-list-component
   "show a list of all public topics for each user"
@@ -60,7 +69,7 @@
     (will-mount [this]
       ;; get all public topics for this user
       (let [ajax-send (chan)
-            uri (str uri-init (:u app-state) "/public-topics/")
+            uri (str uri-init (:u app-state) "/public-topics")
             ajax-recv (ajaj< ajax-send
                              :method :get
                              :uri uri)]
@@ -95,31 +104,6 @@
             [:p (str "Unable to find any public topics for " (:u app-state))]))
          ]))))
 
-;; {:onClick              ; if we click on one of the topics
-;;                      (fn [ev]
-;;                        ;;(.preventDefault ev)   ; don't follow the link
-;;                        (let [uri (str "/api/1.0" (:u @app-state) "/public-topics/" (subs topic (count (str (:u @app-state) "/"))))
-;;                              ajax-send (chan)
-;;                              ajax-recv (ajaj< ajax-send
-;;                                               :method :get
-;;                                               :uri uri
-;;                                               :content {})]
-;;                          (.log js/console uri)
-;;                          (go
-;;                            (>! ajax-send {}) ; Trigger a 'GET' of the latest topic details
-;;                            (let [{:keys [status body] :as response} (<! ajax-recv)]
-;;                              (when (= status 200)
-;;                                ;; Update the device in the app-state. This
-;;                                ;; causes the device details component to
-;;                                ;; refresh.
-;;                                (om/update! app-state :public-topic
-;;                                            ;; We must avoid setting controlled
-;;                                            ;; component input values to nil,
-;;                                            ;; so we merge in empty string
-;;                                            ;; defaults!
-;;                                            (merge {:name "" :description "" :unit "" :topic ""}
-;;                                                   (select-keys body [:name :description :unit :topic ]))))))))}
-
 (defn ^:export public-topics-list-page [user]
   (swap! app-model-public-topics assoc :user user)
   (om/root public-topics-list-component app-model-public-topics
@@ -128,8 +112,6 @@
 
 ;; I want to see the latest messages of this topic
 ;; In the future I want to graph this topic
-;; I want to be able to subscribe to this topic
-
 (defn public-topic-component [app-state owner]
   (reify
     om/IWillMount
@@ -173,25 +155,23 @@
                 [:td (:topic public-topic)]
                 [:td (:description public-topic)]
                 [:td (:unit public-topic)]
-                [:td (if (= true (:subscribed public-topic)) unsubscribe-btn (subscribe-btn 1))]]]]]
+                [:td (if (= true (:subscribed public-topic))
+                       (unsubscribe-btn app-state)
+                       (subscribe-btn app-state))]]]]]
             [:p (str "Unable to find topic" )]))
          ]))))
 
 
 ;; checks if you are logged in if not asks you to
 ;; if you are already subscribed you can unsubscribe
-;; 
 
 (defn message-view-component [app-state owner]
   (reify
     om/IWillMount
     (will-mount [this])
-    ;;create a chan and listen to the events from this topic
-    ;; have a go loop that updates app-state messages
-    
     om/IRender
     (render [this]
-      ;; in a debugger show the messages
+      ;; TO DO in a debugger show the messages
       [:pre
        (for [msg (-> app-state :msgs)]
          (str msg "\r\n"))])))

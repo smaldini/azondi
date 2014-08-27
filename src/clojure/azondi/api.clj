@@ -399,7 +399,7 @@
 
 (defn public-topic-resource [db]
   {:available-media-types #{"application/json"}
-   :allowed-methods #{:get}
+   :allowed-methods #{:get :post :delete}
    :known-content-type? #{"application/json"}
    :exists? (fn [{{{user :user topic-name :topic-name} :route-params} :request}]
               (infof "topic resource exists..?")
@@ -411,8 +411,16 @@
                   :subscribed? (user-subscribed? db user topic-name)
                   }]))
    :handle-ok (fn [{topic-name :topic-name user :user existing :existing subscribed? :subscribed?}]
-                 (merge existing {:subscribed subscribed?})
-                                  )})
+                (merge existing {:subscribed subscribed?}))
+
+   :post! (fn [{{{user :user topic-name :topic-name} :route-params} :request}]
+            {:subscription
+             (create-subscription db user topic-name)})
+
+   :delete! (fn [{{{user :user topic-name :topic-name} :route-params} :request}]
+              (unsubscribe db user topic-name))
+
+   :handle-created (fn [{body :response-body}] body)})
 
 (def subscriptions-attributes-schema
   {(s/required-key :topic) s/Str})
