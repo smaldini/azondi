@@ -146,11 +146,11 @@
     [:title "opensensors.IO - Create real time IOT applications in minutes"]
     ;; TODO Provide a local resource for offline dev...
     [:link {:href "//netdna.bootstrapcdn.com/font-awesome/4.1.0/css/font-awesome.min.css" :rel "stylesheet"}]
-    [:link {:href "css/bootstrap.min.css" :rel "stylesheet"}]
-    [:link {:href "css/style.css" :rel "stylesheet"}]
-    [:script {:src "js/jquery.min.js"}]
-    [:script {:src "js/bootstrap.min.js"}]
-    [:script {:src "js/jquery.session.js"}]]
+    [:link {:href "/css/bootstrap.min.css" :rel "stylesheet"}]
+    [:link {:href "/css/style.css" :rel "stylesheet"}]
+    [:script {:src "/js/jquery.min.js"}]
+    [:script {:src "/js/bootstrap.min.js"}]
+    [:script {:src "/js/jquery.session.js"}]]
    [:body
     [:div#wrap
      [:nav {:class "navbar navbar-default" :role "navigation"}
@@ -194,9 +194,10 @@
     [:script {:src "cljs/cljs.js"}]
     [:script {:src "cljs/azondi.js"}]
     [:script {:src "cljs/logo.js"}]
+    [:script {:src "/cljs/view.js"}]
     [:script {:src "cljs/topic-browser.js"}]
 
-    [:script {:src "js/helpers.js"}]
+    [:script {:src "/js/helpers.js"}]
     [:div#footer {:class "navbar-default navbar-fixed-bottom"}
      [:div.row
       [:div.col-xs-3
@@ -391,8 +392,7 @@ a.async=true;a.type=\"text/javascript\";b.parentNode.insertBefore(a,b)}, 1);
                  [:br]
                  [:span#ws-session-url "URL: " [:strong [:span#ws-session-url-info]] [:br]]
                  [:br]
-                 [:a#ws-info-ws-session-token-link {:href "#"} "reset your session id"]]
-                ]
+                 [:a#ws-info-ws-session-token-link {:href "#"} "reset your session id"]]]
                [:script "populate_ws_page ()"]))
 
 (defn topic-browser [user]
@@ -474,4 +474,14 @@ a.async=true;a.type=\"text/javascript\";b.parentNode.insertBefore(a,b)}, 1);
     [:script (format "azondi.topic_browser.main('%s');" user)]
     ])
 
-)
+  )
+(defn public-topics-list [user]
+  (base-page user [:div#public-topic
+                   [:div#content [:p.loading "Loading..."]]]
+             [:script (format "azondi.view.public_topics_list_page('%s');" user)]))
+
+
+(defn public-topic-page [user]
+  (base-page user [:div#public-topic
+                   [:div#content [:p.loading "Loading..."]]]
+             [:script (format "azondi.view.public_topic_page('%s');" user)]))

@@ -121,6 +121,16 @@
    topic-id]
   (p/delete-topic! component topic-id))
 
+(s/defn public-topics-by-owner
+  [component :- (s/protocol p/DataStore)
+   user]
+  (p/public-topics-by-owner component user))
+
+(s/defn get-public-topic
+  [component :- (s/protocol p/DataStore)
+   topic :- s/Str]
+  (p/get-public-topic component topic))
+
 (s/defn patch-device!
   [component :- (s/protocol p/DataStore)
    client-id :- StrNotEmpty
@@ -149,6 +159,12 @@
    user
    topic]
   (p/unsubscribe component user topic))
+
+(s/defn user-subscribed?
+  [component :- (s/protocol p/DataStore)
+   user
+   topic]
+  (p/user-subscribed? component user topic))
 
 (s/defn get-api-key :- (s/maybe {:id s/Str
                                  :created_on s/Inst

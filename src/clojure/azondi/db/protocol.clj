@@ -22,10 +22,14 @@
   (delete-topic! [_ topic-id])
   (patch-device! [_ client-id data])
   (patch-topic! [_ topic-id data])
+  (public-topics-by-owner [_ user])
+  (get-public-topic [_ topic])
+  
   ;;subscriptions
   (subscriptions-by-owner [_ user])
   (create-subscription [_ user topic])
   (unsubscribe [_ user topic])
+  (user-subscribed? [_ user topic])
   ;;api
   (get-api-key [_ user])
   (delete-api-key [_ user])

@@ -42,7 +42,7 @@
         token        (get query-params "token")]
     (with-channel req ws
       (if true ;; (authenticated? pg-conn username token)
-        (let [rows [] #_(j/query pg-conn
+        (let [rows [] #_(j/query pg-conn  ;; why!!
                             ["SELECT user_id, topic FROM subscriptions WHERE user_id = ?" username])
               subs (set (map :topic rows))]
           (log/infof "Accepted WebSocket bridge connection from %s (username: %s)" (:remote-addr req) username)

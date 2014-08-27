@@ -31,6 +31,11 @@
                 [:a {:href (path-for (:modular.bidi/routes req) :sign-up)} "Sign up"]
                 " to continue"]])})))
 
+(defn unrestricted-pages [authorizer page]
+   (fn [req]
+    (let [user (authorized? authorizer req nil)]
+      {:status 200 :body (page user)})))
+
 (defn handlers [authenticator authorizer]
   {:index
    (fn [req]
@@ -89,8 +94,11 @@
    :web-sockets-page (restrict-to-valid-user authorizer web-sockets)
 
    :topic-browser (restrict-to-valid-user authorizer topic-browser)
+   :topics-list (unrestricted-pages authorizer public-topics-list)
 
+   :topic-show (unrestricted-pages authorizer public-topic-page)
    })
+
 
 (def routes
   ["/" [["" :index]
@@ -111,13 +119,18 @@
         ["web-sockets" :web-sockets-page]
         ["topic-browser" :topic-browser]
         ["signup" :sign-up]
+        [["users/" :user]
+         [["" :topics-list]
+          [["/" [#".*" :topic-name]] :topic-show]
+          ]]
         ]])
 
+
 (defrecord WebApp []
-  WebService
-  (request-handlers [this] (handlers (:authenticator this) (:authorizer this)))
-  (routes [_] routes)
-  (uri-context [_] ""))
+           WebService
+           (request-handlers [this] (handlers (:authenticator this) (:authorizer this)))
+           (routes [_] routes)
+           (uri-context [_] ""))
 
 (defn new-webapp []
   (component/using (->WebApp) [:authenticator :authorizer]))

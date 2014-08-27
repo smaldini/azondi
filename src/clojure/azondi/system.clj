@@ -77,6 +77,8 @@
      :cljs-main (new-cljs-module :name :azondi :mains ['azondi.main] :dependencies #{:cljs})
      :cljs-logo (new-cljs-module :name :logo :mains ['azondi.logo] :dependencies #{:cljs})
      :cljs-topic-browser (new-cljs-module :name :topic-browser :mains ['azondi.topic-browser] :dependencies #{:cljs})
+     :cljs-view (new-cljs-module :name :view :mains ['azondi.view] :dependencies #{:cljs})
+     ;;     :cljs-reset (new-cljs-module :name :reset-password :mains ['azondi.reset-password] :dependencies #{:cljs})
 
      :main-cljs-builder (new-cljs-builder :source-path "src/cljs")
 
@@ -125,8 +127,7 @@
   {:mqtt-handler {:db :database}
    :mqtt-server [:mqtt-handler :mqtt-decoder :mqtt-encoder]
    :ws [:reactor :database]
-   :main-cljs-builder [:cljs-core :cljs-main :cljs-logo :cljs-topic-browser]
-
+   :main-cljs-builder [:cljs-core :cljs-main :cljs-logo :cljs-topic-browser :cljs-view]
    :webserver {:request-handler :webrouter}
    :webrouter [:webapp :api :sse-debug :main-cljs-builder :login-form :sse-bridge]
    :login-form {:authorizer :valid-user-authorizer}

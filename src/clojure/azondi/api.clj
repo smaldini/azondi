@@ -13,7 +13,7 @@
    [cheshire.core :refer (decode decode-stream encode)]
    [schema.core :as s]
    [camel-snake-kebab :refer (->kebab-case-keyword ->camelCaseString)]
-   [azondi.db :refer (get-users get-user get-user-by-email delete-user! create-user! devices-by-owner get-device delete-device! create-device! patch-device! topics-by-owner get-topic delete-topic! create-topic! patch-topic! set-device-password! get-api-key delete-api-key create-api-key reset-user-password find-user-by-api-key create-subscription unsubscribe subscriptions-by-owner get-ws-session-token delete-ws-session-token create-ws-session-token find-ws-session-by-token)]
+   [azondi.db :refer :all]
    [azondi.messages-db :refer (messages-by-owner messages-by-topic messages-by-topic-and-date messages-by-owner-and-date messages-by-device messages-by-device-and-date)]
    [azondi.emails :refer (beta-signup-email)]
    [hiccup.core :refer (html)]
@@ -482,6 +482,44 @@
    :handle-ok (fn [{topic :topic existing :existing}] existing)
    :handle-created (fn [_] {:message "Patched"})})
 
+(defn public-topics-resource [db]
+  {:available-media-types #{"application/json"}
+   :allowed-methods #{:get}
+   :known-content-type? #{"application/json"}
+   :handle-ok (fn [{{{user :user} :route-params} :request}]
+                (let [body
+                      {:user user
+                       :topics (->>
+                                (public-topics-by-owner db user)
+                                (map #(select-keys % [:owner :description :unit :topic :public]))
+                                (map #(reduce-kv (fn [acc k v] (assoc acc (->camelCaseString k) v)) {} %)))}]
+                  (encode body)))})
+
+
+(defn public-topic-resource [db]
+  {:available-media-types #{"application/json"}
+   :allowed-methods #{:get :post :delete}
+   :known-content-type? #{"application/json"}
+   :exists? (fn [{{{user :user topic-name :topic-name} :route-params} :request}]
+              (infof "topic resource exists..?")
+              (let [existing (get-public-topic db topic-name)]
+                [existing
+                 {:existing (first existing)
+                  :topic-name topic-name
+                  :user user
+                  :subscribed? (user-subscribed? db user topic-name)
+                  }]))
+   :handle-ok (fn [{topic-name :topic-name user :user existing :existing subscribed? :subscribed?}]
+                (merge existing {:subscribed subscribed?}))
+
+   :post! (fn [{{{user :user topic-name :topic-name} :route-params} :request}]
+            {:subscription
+             (create-subscription db user topic-name)})
+
+   :delete! (fn [{{{user :user topic-name :topic-name} :route-params} :request}]
+              (unsubscribe db user topic-name))
+
+   :handle-created (fn [{body :response-body}] body)})
 
 (def subscriptions-attributes-schema
   {(s/required-key :topic) s/Str})
@@ -589,6 +627,8 @@
     ::reset-password (resource (reset-device-password-resource db authorizer))
     ::topics (resource (topics-resource db authorizer))
     ::topic (resource (topic-resource db authorizer))
+    ::public-topic (resource (public-topic-resource db))
+    ::public-topics (resource (public-topics-resource db))
     ::subscriptions (resource (subscriptions-resource db authorizer))
     ::api-key (resource (api-resource db authorizer))
     ::reset-user-password (resource (reset-user-password-resource db authorizer))
@@ -615,7 +655,10 @@
                           ["/devices/" :client-id "/reset-password"] ::reset-password
                           "/topics/" ::topics
                           "/topics" (->Redirect 307 ::topics)
-                          ["/topics/" :topic-name] ::topic
+                          ["/topics/" [#".*" :topic-name]] ::topic
+                          "/public-topics" ::public-topics
+                          ;;"/public-topics" (->Redirect 307 ::public-topics)
+                          ["/public-topics" [#"/.*" :topic-name]] ::public-topic
                           "/subscriptions/" ::subscriptions
                           "/subscriptions" (->Redirect 307 ::subscriptions)
                           "/api-key/" ::api-key
@@ -626,9 +669,8 @@
                           "/messages-by-owner" ::messages-by-owner
                           "/messages-by-topic"  ::messages-by-topic
                           "/messages-by-device"  ::messages-by-device}}]
-  )
-
-
+)
+ 
 (defrecord Api []
   WebService
   (request-handlers [this] (handlers (:database this) (:cassandra this) (:authorizer this)))

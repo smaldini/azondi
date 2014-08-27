@@ -112,6 +112,9 @@
   (unsubscribe [this user topic]
     (j/delete! (conn this) :subscriptions ["user_id = ?" user]))
 
+  (user-subscribed? [this user topic]
+    (not (empty? (j/query (conn this) ["Select * from subscriptions where user_id = ? and topic = ?;" user topic]))))
+
   (topic-of-owner [this user topic]
     (clj->psql (first
                 (j/query (conn this)
@@ -125,9 +128,8 @@
           t (clj->psql (merge {:public true} topic {:name s}))]
       (psql->clj (-> (j/insert! (conn this) :topics t)
                      first
-                     (dissoc :created_on))
-                 )))
-
+                     (dissoc :created_on)))))
+  
   (maybe-create-topic! [this {:keys [topic owner]}]
     (let [name (extract-topic-name topic)]
       (j/execute! (conn this)
@@ -143,17 +145,20 @@
       (merge
        {:owner (:owner row)
         :topic (:topic row)
-        :public (:public row)
-        }
+        :public (:public row)}
        (when-let [x (:description row)] {:description x})
-       (when-let [x (:unit row)] {:unit x})
-       )
-      ))
+       (when-let [x (:unit row)] {:unit x}))))
 
   (delete-topic! [this topic-id]
     (do
       (j/delete! (conn this) :topics ["topic = ?" topic-id])
       (j/delete! (conn this) :subscriptions ["user_id = ?" user])))
+
+  (public-topics-by-owner [this user]
+    (clj->psql (j/query (conn this) ["SELECT * FROM topics WHERE owner = ? and public = 't';" user])))
+
+  (get-public-topic [this topic]
+    (clj->psql (j/query (conn this) ["SELECT * FROM topics WHERE topic = ? and public = 't';" topic])))
 
   (patch-topic! [this topic-id data]
     (j/update! (conn this) :topics data ["topic = ?" topic-id]))

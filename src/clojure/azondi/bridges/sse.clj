@@ -55,15 +55,53 @@
         {:status 401
          :body "Unauthorized access to event stream"}))))
 
+
+(defn server-topic-source [reactor database]
+  (fn [{{prefix :prefix} :route-params :as req}]
+    (with-channel req channel
+      (send! channel
+             {:headers {"Content-Type" "text/event-stream"}} false)
+      (let [rsub
+            (mr/on
+             reactor
+             ;; QUESTION (for MK): it appears from ws.clj that we
+             ;; should be able to select on topics, instead of these
+             ;; general 'messages.published' key - is this the
+             ;; ultimate goal?
+             (set-membership #"/users/yods/test")
+             (fn [evt]
+               #_(when
+                     (when-let [topic (-> evt :data :topic)]
+                       (and
+                        (contains? subscribed-topics topic)
+                        (.startsWith topic prefix))))
+               (send! channel
+                      (let [data (:data evt)]
+                        (str "data: "
+                             #_(cond-> data
+                                       charset
+                                       (update-in [:payload] read-bytes charset))
+                             "hello"
+                             "\r\n\r\n"))
+                      false)))]
+        (on-close channel (fn [status]
+                            (debugf "Closing firehose")
+                            (mc/cancel rsub)))))))
+
+
+(defn handlers [reactor authorizer database]
+  {:events (server-event-source (:reactor reactor) authorizer database)
+   :topics (server-topic-source (:reactor reactor) database)})
+
+(def routes
+  ["/" [[["public-stream" [#".*" :prefix]] :topics]
+        [["events" [#".*" :prefix]] :events]]])
+
 (defrecord ServerSentEventBridge [uri-context reactor authorizer database]
   WebService
-  (request-handlers [component]
-    {::events (server-event-source (:reactor reactor) authorizer database)})
-  (routes [component]
-    [["/events" [#".*" :prefix]] ::events])
-  (uri-context [component]
-    uri-context))
-
+  (request-handlers [_] (handlers (:reactor reactor) authorizer database))
+  (routes [_] routes)
+  (uri-context [_] uri-context))
 
 (defn new-sse-bridge [& {:as opts}]
   (->> opts
