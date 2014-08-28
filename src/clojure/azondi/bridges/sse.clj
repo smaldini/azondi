@@ -26,6 +26,7 @@
                  {:headers {"Content-Type" "text/event-stream"}} false)
           (debugf "Opening firehose (prefix:%s)" prefix)
           (debugf "Subscriptions are: [%s]" (apply str (interpose " " (map :topic (subscriptions-by-owner database user)))))
+          (assert reactor)
           (debugf "Reactor is %s" reactor)
           (let [subscribed-topics (set (map :topic (subscriptions-by-owner database user)))
                 rsub
