@@ -92,8 +92,6 @@
 
    :api-docs-page (restrict-to-valid-user authorizer api-page)
 
-   :web-sockets-page (restrict-to-valid-user authorizer web-sockets)
-
    :topic-browser (restrict-to-valid-user authorizer topic-browser)
    :topics-list (unrestricted-pages authorizer public-topics-list)
 
