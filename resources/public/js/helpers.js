@@ -119,7 +119,7 @@ function populate_api_page () {
 	    $('.api-info-api-key-view').empty ().append ("<span#api-info-api-key-view>"+ data.api + "</span>");
 	    $ ('#uuid-api-view').empty ().append ("<span#uuid-api-view>?user=" + data.user + "&API=" + data.api + "</span>");},
     	failure: function(errMsg) {alert(errMsg);}});
-    $('span#api-host-name').replaceWith("<span#api-host-name>"+ window.location.host + "</host-name>");
+    $('span#api-host-name').replaceWith("<span#api-host-name>" + window.location.protocol+"//" + window.location.host + "</host-name>");
 
 }
 
