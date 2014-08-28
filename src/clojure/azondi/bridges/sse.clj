@@ -25,7 +25,7 @@
           (send! channel
                  {:headers {"Content-Type" "text/event-stream"}} false)
           (debugf "Opening firehose (prefix:%s)" prefix)
-          (debugf "Subscriptions are: [%s]" (apply str (map :topic (subscriptions-by-owner database user))))
+          (debugf "Subscriptions are: [%s]" (apply str (interpose " " (map :topic (subscriptions-by-owner database user)))))
           (let [subscribed-topics (set (map :topic (subscriptions-by-owner database user)))
                 rsub
                 (mr/on
