@@ -33,10 +33,6 @@
                  {:label "Messages"
                   :security :user
                   :target "/api-docs#messages-api-info"}]}
-     {:label "Web Sockets"
-      :security :user
-      :location :sidebar
-      :target "/web-sockets"}
     {:label "Getting Started"
       :security :all
       :location :navbar
@@ -381,19 +377,6 @@ a.async=true;a.type=\"text/javascript\";b.parentNode.insertBefore(a,b)}, 1);
        ]
       [:hr]]]]
    [:script "populate_api_page ()"]))
-
-(defn web-sockets [user]
-    (base-page user
-               [:div#web-socket-information.row
-                [:p "To use the real time device data streams in your websites or applications use the provided URL"]
-                [:div#your-websocket-session
-                 [:h3 [:b "Firehose Details"]] [:br]
-                 [:span "Session Token ID: " [:strong [:span.ws-info-session-token]] [:br]]
-                 [:br]
-                 [:span#ws-session-url "URL: " [:strong [:span#ws-session-url-info]] [:br]]
-                 [:br]
-                 [:a#ws-info-ws-session-token-link {:href "#"} "reset your session id"]]]
-               [:script "populate_ws_page ()"]))
 
 (defn topic-browser [user]
   (html5
