@@ -26,6 +26,7 @@
                  {:headers {"Content-Type" "text/event-stream"}} false)
           (debugf "Opening firehose (prefix:%s)" prefix)
           (debugf "Subscriptions are: [%s]" (apply str (interpose " " (map :topic (subscriptions-by-owner database user)))))
+          (debugf "Reactor is %s" reactor)
           (let [subscribed-topics (set (map :topic (subscriptions-by-owner database user)))
                 rsub
                 (mr/on
@@ -90,8 +91,8 @@
 
 
 (defn handlers [reactor authorizer database]
-  {:events (server-event-source (:reactor reactor) authorizer database)
-   :topics (server-topic-source (:reactor reactor) database)})
+  {:events (server-event-source reactor authorizer database)
+   :topics (server-topic-source reactor database)})
 
 (def routes
   ["/" [[["public-stream" [#".*" :prefix]] :topics]
