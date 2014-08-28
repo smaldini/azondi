@@ -42,7 +42,8 @@
      {:status 200
       :body (base-page
              (authenticate authenticator req)
-             index-page)})
+             index-page
+             [:script {:src "cljs/logo.js"}])})
 
    :sign-up
     (fn [req]
