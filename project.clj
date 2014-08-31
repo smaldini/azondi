@@ -37,9 +37,9 @@
                  [byte-streams "0.1.11"]
 
                  ;; Metrics
-                 [metrics-clojure          "2.2.0-beta1"]
-                 [metrics-clojure-ring     "2.2.0-beta1"]
-                 [metrics-clojure-graphite "2.2.0-beta1"]
+                 [metrics-clojure          "2.3.0-beta2"]
+                 [metrics-clojure-ring     "2.3.0-beta2"]
+                 [metrics-clojure-graphite "2.3.0-beta2"]
 
                  ;; for query string parsing
                  ;;[javax.servlet/servlet-api "2.5"]
