@@ -3,6 +3,7 @@
    [com.stuartsierra.component :as component]
    [clojure.tools.logging :refer :all]
    [clj-time.core   :as tc]
+   [clj-time.coerce :as tcc]
    [clj-time.format :as tf]
    [azondi.cassandra :refer (date-and-hour-formatter)]
    azondi.db)
@@ -125,8 +126,22 @@
 
   )
 
+(defprotocol MessagesStoreTestUtils
+  (archive-message-with-date! [this now data]))
+
+
 (defn new-inmemory-datastore []
   (->InmemoryDataStore))
+
+
+(defn archive-message-fn! [this now data]
+  (let [data (merge data
+                      {:created_at (.toDate now)
+                       :date_and_hour (tf/unparse date-and-hour-formatter now)})]
+      (dosync (alter (-> this :database :messages) conj  data))))
+
+(defn convert-to-date [ints]
+   ints)
 
 (defrecord InMemoryMessageStore []
   component/Lifecycle
@@ -145,19 +160,27 @@
     (throw (Exception. "unimplemented")))
 
   (messages-by-owner-and-date [this owner start-date end-date]
-    (throw (Exception. "unimplemented")))
+    (filter #(and (tc/within?  start-date end-date
+                               (tcc/from-date (:created_at %))) (= (:owner %) owner)) (-> this :database :messages deref))
+
+    )
   (messages-by-topic-and-date [this topic start-date end-date]
-    (throw (Exception. "unimplemented")))
+    (filter #(and (tc/within?  start-date end-date
+                               (tcc/from-date (:created_at %)))
+                  (= (:topic %) topic)) (-> this :database :messages deref)))
   (messages-by-device-and-date [this device start-date end-date]
-    (throw (Exception. "unimplemented")))
+    (filter #(and (tc/within?  start-date end-date
+                               (tcc/from-date (:created_at %)))
+                  (= (:device_id %) device)) (-> this :database :messages deref)))
 
   (archive-message! [this data]
-    (let [now  (tc/now)
-          data (merge data
-                      {:created_at (.toDate now)
-                       :date_and_hour (tf/unparse date-and-hour-formatter now)})]
-      (dosync
-       (alter (-> this :database :messages) conj  data)))))
+      (archive-message-fn! this (tc/now) data))
+  MessagesStoreTestUtils
+  (archive-message-with-date! [this now data]
+    (archive-message-fn! this now data))
+
+  )
+
 
 
 (defn new-inmemory-message-store []

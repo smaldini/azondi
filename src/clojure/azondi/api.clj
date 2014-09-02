@@ -111,24 +111,25 @@
 (defn string-date>vector
   [str-date ]
   (let [res (into [] (map #(. Integer parseInt  %) (clojure.string/split str-date  #"-")))
-          c (count res )]
-    (assert (or (= c 3) (= c 4)))
+        c (count res )]
+    (assert (or (= c 3) (= c 4)) "date format incorrect")
     (let [[y m d h] res]
-      (assert (and (> y 2000) (< y (inc (t/year (t/now))))))
-      (assert (and (> m 0) (< m 13)))
-      (assert (and (> d 0) (< d 31)))
-      (assert (or (nil? h) (and (>= h 0) (< h 24))))
-      )
+      (assert (and (> y 2000) (< y (inc (t/year (t/now))))) "the year number can't be prior to 2000")
+      (assert (and (> m 0) (< m 13)) "the month number has to be within 1 and 12")
+      (assert (and (> d 0) (< d 31)) "the day has to be within 1 and 31")
+      (assert (or (nil? h) (and (>= h 0) (< h 24))) "the hour has to be within 0 and 23"))
     res))
 
 (defn malformed-range-date? [start-date end-date]
-  (try
-    (let [start  (apply t/date-time  (string-date>vector start-date))
-          end  (apply t/date-time  (string-date>vector end-date))]
-    (assert (or (t/before? start end) (= start end)))
-    nil)
-    (catch AssertionError e (println (.getMessage e)) true)))
+  (let [start  (apply t/date-time  (string-date>vector start-date))
+        end  (apply t/date-time  (string-date>vector end-date))]
 
+    (if (or (t/before? start end) (= start end))
+      [false { ::start-date start ::end-date end}]
+      [true {::error (format "The start-date have to be prior to end-date. Dates provided, start-date: %s end-date: %s" start-date end-date)
+             :representation {:media-type "application/json"}}])
+    )
+  )
 
 
 (defn malformed-date-format? [str-date]
@@ -136,32 +137,60 @@
     (when-not (nil? str-date)
       (string-date>vector str-date)
       nil)
-    (catch Exception e (println (.getMessage e)) true)
+    (catch NumberFormatException e  [true { ::error  (format "The date value can contain only numbers, you provided: %s" str-date)}])
+    (catch AssertionError  e  [true { ::error  (.getMessage e)}])
 ))
 
+(defn check-dates [{{query-string :query-string :as req} :request}]
+  (let [query-string-map (query-string>map-kv query-string)]
+    (if (and (:start-date query-string-map)  (:end-date query-string-map))
+      (let [date-condition-fn (fn [k] (= true (let [[a _] (malformed-date-format? (get query-string-map k))]
+                                           a
+                                           )))
+        date-error-response-fn  (fn [k] [true {::error (format "%s value malfomed. %s. \n Accepted date format: YYYY-MM-DD or YYYY-MM-DD-HH.\n "
+                                                              (name k)
+                                                              (::error (second (malformed-date-format? (get query-string-map k)))))
+                                              :representation {:media-type "application/json"}}])
+        first-date-level-check (cond
+                   (date-condition-fn :start-date) (date-error-response-fn :start-date)
+                   (date-condition-fn :end-date) (date-error-response-fn :end-date)
+                   :else nil)
+        ]
+    (if first-date-level-check
+      first-date-level-check
+      (malformed-range-date? (:start-date query-string-map) (:end-date query-string-map))))
+      [false]
+     ))
+
+  )
+
+
+
+(defn- malformed-messages-by-call? [k]
+  (fn [{{query-string :query-string :as req} :request}]
+    (let [query-string-map (query-string>map-kv query-string)]
+      (if (nil? (get query-string-map k))
+        [true {:representation {:media-type "application/json"}
+               ::error (format "You need to provide a %s" (name k)) }]
+        (check-dates {:request req})))))
 
 (defn messages-by-owner-resource [messages-db authorizer]
   {:allowed-methods #{:get}
    :available-media-types #{"application/json"}
    :authorized? (fn [{{{user :user :as rp} :route-params :as request} :request}]
                   (authorized? authorizer request rp))
-   :handle-ok (fn [{{{user :user} :route-params :as req} :request}]
+   :malformed? check-dates
+   :handle-malformed (fn [ctx] {:status 400 :error (::error ctx)})
+   :handle-ok (fn [{{{user :user} :route-params :as req} :request :as ctx} ]
                 (let [query-string-map (query-string>map-kv (:query-string req))
                       res (if (and (:start-date query-string-map)  (:end-date query-string-map))
                             (messages-by-owner-and-date messages-db user
-                                                        (string-date>vector (:start-date query-string-map))
-                                                        (string-date>vector (:end-date query-string-map)))
+                                                        (::start-date ctx)
+                                                        (::end-date ctx))
                             (messages-by-owner messages-db user))]
                   (encode {:messages res})))})
 
-(defn- malformed-messages-by-call [k]
-  (fn [{{query-string :query-string :as req} :request}]
-    (let [query-string-map (query-string>map-kv query-string)]
-      (if (nil? (get query-string-map k))
-        true
-        (when (and (malformed-date-format? (:start-date query-string-map)) (malformed-date-format? (:end-date query-string-map)))
-          (malformed-range-date? (:start-date query-string-map) (:end-date query-string-map))
-          )))))
+
 
 (defn messages-by-topic-resource [db messages-db authorizer]
   {:allowed-methods #{:get}
@@ -169,22 +198,34 @@
    (fn [{{query-string :query-string {user :user :as rp} :route-params :as req} :request}]
      (when (authorized? authorizer req  rp)
        (let [topic-req (:topic (query-string>map-kv query-string))
-             topic (get-topic db topic-req)]
-         (or (nil? topic) (:public topic) (= (:owner topic) user)))))
+             topic (get-topic db topic-req)
+             pass? (or (nil? topic)
+             (:public topic)
+             (= (:owner topic) user))]
+         (if pass?
+           [true { ::topic topic ::topic-req topic-req}]
+           [false]
+           )
+         )))
    :available-media-types #{"application/json"}
-   :malformed? (malformed-messages-by-call :topic)
-   :handle-ok (fn [{{query-string :query-string :as req} :request}]
-                (let [query-string-map (query-string>map-kv query-string)
-                      topic-req (:topic query-string-map)
-                      topic (get-topic db topic-req)]
-                  (if topic
-                     (encode {:messages (if (and (:start-date query-string-map)  (:end-date query-string-map))
-                                      (messages-by-topic-and-date messages-db
-                                                                  topic-req
-                                                                  (string-date>vector (:start-date query-string-map))
-                                                                  (string-date>vector (:end-date query-string-map)))
-                                      (messages-by-topic messages-db topic-req))})
-                     {:status 404 :body (str "Topic not found: " topic-req)})))})
+   :malformed? (malformed-messages-by-call? :topic)
+   :handle-malformed (fn [ctx] {:status 400 :error (::error ctx)} )
+   :exists? (fn [ctx]
+               (println "topic " (::topic ctx))
+               (if-let [topic (::topic ctx)]
+                        [true ]
+                        [false {:status 404 ::error (str "Topic not found: " (::topic-req ctx)) :representation {:media-type "application/json"}}]) )
+   :handle-not-found (fn [ctx] {:status 404 :error (::error ctx)} )
+   :handle-ok (fn [ctx]
+                (let [topic-req (::topic-req ctx)
+                      topic (::topic ctx)]
+
+                  (encode {:messages (if (and (::start-date ctx) (::end-date ctx))
+                                       (messages-by-topic-and-date messages-db
+                                                                   topic-req
+                                                                   (::start-date ctx)
+                                                                   (::end-date ctx))
+                                       (messages-by-topic messages-db topic-req))})))})
 
 
 (defn messages-by-device-resource [db messages-db authorizer]
@@ -192,23 +233,33 @@
    :authorized? (fn [{{query-string :query-string {user :user :as rp} :route-params :as req} :request}]
                   (when  (authorized? authorizer req  rp)
                     (when-let [device-id (:client (query-string>map-kv query-string))]
-                      (let [device (get-device db device-id)]
-                        (or (nil? device) (= (:user device) user))))))
-   :malformed? (malformed-messages-by-call :client)
+                      (let [device (get-device db device-id)
+                            pass? (or (nil? device) (= (:user device) user))]
+                        (if pass?
+                          [true { ::device device ::device-req device-id}]
+                          [false])
+
+
+                        ))))
+   :malformed? (malformed-messages-by-call? :client)
+   :handle-malformed (fn [ctx] {:status 400 :error (::error ctx)} )
+   :exists? (fn [ctx]
+                  (if-let [device (::device ctx)]
+                        [true ]
+                        [false {:status 404 ::error (str "Client not found: " (::device-req ctx)) :representation {:media-type "application/json"}}]) )
+      :handle-not-found (fn [ctx] {:status 404 :error (::error ctx)} )
+
    :available-media-types #{"application/json"}
-   :handle-ok (fn [{{query-string :query-string :as req} :request}]
-                (let [query-string-map (query-string>map-kv query-string)
-                      client-req (:client (query-string>map-kv query-string))
-                      device (get-device db client-req)]
-                  (if device
-                    (encode {:messages (if (and (:start-date query-string-map)  (:end-date query-string-map))
-                                (messages-by-device-and-date messages-db
-                                                             client-req
-                                                             (string-date>vector (:start-date query-string-map))
-                                                             (string-date>vector (:end-date query-string-map)))
-                                (messages-by-device messages-db client-req))})
-                    {:status 404 :body (str "Client not found: " client-req)}
-                    )))})
+   :handle-ok (fn [ctx]
+                (let [device-req (::device-req ctx)
+                      device (::device ctx )]
+                  (encode {:messages (if (and (::start-date ctx) (::end-date ctx))
+                                       (messages-by-device-and-date messages-db
+                                                                    device-req
+                                                                    (::start-date ctx)(::end-date ctx))
+                                       (messages-by-device messages-db device-req))})
+
+                  ))})
 
 
 ;;;;; ----- USERS ----
