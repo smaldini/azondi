@@ -14,8 +14,8 @@
 
 
 (defn- filter-date [start-date end-date]
-  [:created_at [> (.toDate (apply t/date-time start-date))]
-   :created_at [< (.toDate (apply t/date-time end-date))]])
+  [:created_at [>= (.toDate start-date)]
+   :created_at [<= (.toDate end-date)]])
 
 (defrecord Database [hosts keyspace]
   component/Lifecycle

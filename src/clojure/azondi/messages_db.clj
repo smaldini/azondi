@@ -1,9 +1,13 @@
 (ns azondi.messages-db
   (:require
    [azondi.db.protocol :as p]
+
    [azondi.db :refer (StrNotEmpty)]
    [schema.core :as s]
-   [byte-streams :refer (convert)]))
+   [byte-streams :refer (convert)])
+  (:import   [org.joda.time DateTime])
+)
+
 
 
 (defn payload>Str [p] (convert p String) )
@@ -15,8 +19,8 @@
 
 (s/defn messages-by-owner-and-date [component :- (s/protocol p/MessageStore)
                                     owner :- s/Str
-                                    start-date  :- [s/Int]
-                                    end-date  :- [s/Int]]
+                                    start-date  :- DateTime
+                                    end-date  :- DateTime]
   (->> (p/messages-by-owner-and-date component owner start-date end-date)
        (map #(update-in % [:payload] payload>Str))))
 
@@ -28,8 +32,8 @@
 
 (s/defn messages-by-device-and-date [component :- (s/protocol p/MessageStore)
                                      device-id :- s/Str
-                                     start-date  :- [s/Int]
-                                     end-date  :- [s/Int]]
+                                     start-date  :- DateTime
+                                     end-date  :- DateTime]
   (->> (p/messages-by-device-and-date component device-id start-date end-date)
        (map #(update-in % [:payload] payload>Str))))
 
@@ -42,8 +46,8 @@
 
 (s/defn messages-by-topic-and-date [component :- (s/protocol p/MessageStore)
                                     topic :- s/Str
-                                    start-date  :- [s/Int]
-                                    end-date  :- [s/Int]]
+                                    start-date  :- DateTime
+                                    end-date  :- DateTime]
   (->> (p/messages-by-topic-and-date component topic start-date end-date)
        (map #(update-in % [:payload] payload>Str))))
 
