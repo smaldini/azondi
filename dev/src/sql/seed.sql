@@ -70,6 +70,16 @@ INSERT INTO subscriptions (user_id, topic)
             VALUES ('michaelklishin', '/users/yods/pm10-2');
 INSERT INTO subscriptions (user_id, topic)
             VALUES ('michaelklishin', '/users/yods/e12/temp1');
+INSERT INTO subscriptions (user_id, topic)
+            VALUES ('yods', '/users/yods/pm10-1');	    
+INSERT INTO subscriptions (user_id, topic)
+            VALUES ('yods', '/users/yods/pm10-2');	    
+INSERT INTO subscriptions (user_id, topic)
+            VALUES ('yods', '/users/yods/e12/temp1');	    
+INSERT INTO subscriptions (user_id, topic)
+            VALUES ('yods', '/users/yods/pm10-private');	    
+
+	    
 
 --
 -- WS bridge session tokens

@@ -494,7 +494,8 @@
                                 (topics-by-owner db user)
                                 (map #(select-keys % [:owner :description :unit :topic :public]))
                                 (map #(reduce-kv (fn [acc k v] (assoc acc (->camelCaseString k) v)) {} %)))}]
-                  (encode body)))})
+                   (encode body)))
+   })
 
 (defn topic-resource [db authorizer]
   {:available-media-types #{"application/json"}

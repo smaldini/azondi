@@ -47,6 +47,16 @@
     ;; we intentionally don't use SQL escaping for table names here. MK.
     (psql/execute! db [(format "TRUNCATE TABLE %s CASCADE" t)])))
 
+(defn drop-postgresql-tables!
+  []
+  (let [db         {:user        test-postgresql-user
+                    :password    "opendata"
+                    :subprotocol "postgresql"
+                    :subname     (format "//localhost:5432/%s" test-postgresql-db)
+                    :classname   "org.postgresql.Driver"}]
+    (doseq [t tables] (psql/execute! db [(format "DROP TABLE IF EXISTS %s CASCADE;" t)]))))
+
+
 (defn load-postgresql-schema!
   []
   (let [db         {:user        test-postgresql-user
@@ -56,11 +66,18 @@
                     :classname   "org.postgresql.Driver"}
         schema-sql (slurp schema-file-location)
         seed-sql   (slurp seed-file-location)]
+
+   
     ;; can't drop current DB with JDBC. MK.
     (sh/sh "dropdb"   "-U" test-postgresql-user test-postgresql-db)
     (sh/sh "createdb" "-U" test-postgresql-user test-postgresql-db)
+
+     ;; in case tables exist
+    (drop-postgresql-tables!)
     (psql/execute! db [schema-sql] :transaction? false)
     (psql/execute! db [seed-sql])))
+
+
 
 (defn load-cassandra-schema!
   []
