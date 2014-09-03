@@ -50,6 +50,15 @@
 (def tables ["users" "api_keys" "devices" "topics"
              "subscriptions" "ws_session_tokens"])
 
+(def cassandra (cass/new-database
+                  {:keyspace "opensensors_test"
+                   :hosts ["127.0.0.1"]}))
+
+(def postgres  (new-database {:host "127.0.0.1"
+                               :dbname test-postgresql-db
+                               :user test-postgresql-user
+                               :password "opendata"}))
+
 (defn truncate-postgresql-tables
   [db]
   (doseq [t tables]
@@ -150,13 +159,8 @@
       :topic-injector (new-topic-injector)
       :metrics (new-metrics {:hostname (.. java.net.InetAddress getLocalHost getHostName)
                              :prefix "azondi"})
-      :database (new-database {:host "127.0.0.1"
-                               :dbname test-postgresql-db
-                               :user test-postgresql-user
-                               :password "opendata"})
-      :cassandra (cass/new-database
-                  {:keyspace "opensensors_test"
-                   :hosts ["127.0.0.1"]})
+      :database postgres
+      :cassandra cassandra
       :message-archiver (new-message-archiver)
       :user-domain (new-postgres-user-domain))
      {:mqtt-handler {:db :database}
@@ -170,13 +174,8 @@
    (component/system-map
     :webserver (new-webserver :port 8020)
     :webrouter (new-router)
-    :database (new-database {:host "127.0.0.1"
-                               :dbname test-postgresql-db
-                               :user test-postgresql-user
-                               :password "opendata"})
-    :cassandra  (cass/new-database
-                  {:keyspace "opensensors_test"
-                   :hosts ["127.0.0.1"]})
+    :database postgres
+    :cassandra cassandra
     :api (new-api :uri-context "/api/1.0")
     :authorizer (new-user-authorizer)
     :http-authenticator (new-http-basic-authenticator)
