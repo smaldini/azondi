@@ -145,12 +145,12 @@
             (recur)))
         (listen-sse (str "/public-stream" (:u app-state)) notify-ch)))
 
-    om/IWillUpdate
-    (will-update [this next-props next-state]
-      (let [old-topic (get-in app-state [:public-topic :topic])
-            new-topic (get-in next-props [:public-topic :topic])]
-        (when (not= old-topic new-topic)
-          (listen-sse (str "/public-stream" (:u app-state)) (om/get-state owner :public-stream)))))
+    ;; om/IWillUpdate
+    ;; (will-update [this next-props next-state]
+    ;;   (let [old-topic (get-in app-state [:public-topic :topic])
+    ;;         new-topic (get-in next-props [:public-topic :topic])]
+    ;;     (when (not= old-topic new-topic)
+    ;;       (listen-sse (str "/public-stream" (:u app-state)) (om/get-state owner :public-stream)))))
 
     om/IRender
     (render [this]

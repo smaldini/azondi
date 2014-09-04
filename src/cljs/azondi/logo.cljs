@@ -35,10 +35,9 @@
               el (node [:circle {:cx x :cy 50 :r 1 :style (random-color)} anim])]
 
           (go-loop []                ; create a go block for each circle
-                   (<! (timeout (rand-int 8000))) ; wait for some random time
-                   (.beginElement anim)           ; flash!
-                   (recur))
-
+            (<! (timeout (rand-int 8000))) ; wait for some random time
+            (.beginElement anim)           ; flash!
+            (recur))
           (append! svg el))))))
 
 (set! (.-onload js/window) init)

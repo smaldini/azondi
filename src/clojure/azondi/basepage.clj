@@ -189,7 +189,6 @@
     [:script {:src "/js/react.js"}]
     [:script {:src "/cljs/cljs.js"}]
     [:script {:src "/cljs/azondi.js"}]
-    [:script {:src "/cljs/logo.js"}]
     [:script {:src "/cljs/view.js"}]
     [:script {:src "/cljs/topic-browser.js"}]
 
