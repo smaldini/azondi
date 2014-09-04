@@ -1,7 +1,7 @@
 (ns azondi.bridges.sse
   (:require
    [com.stuartsierra.component :refer (using)]
-   [azondi.db :refer (subscriptions-by-owner)]
+   [azondi.db :refer (subscriptions-by-owner get-topic)]
    [bidi.bidi :refer (->Redirect)]
    [clojure.tools.logging :refer :all]
    [schema.core :as s]
@@ -11,7 +11,7 @@
    [clojure.java.io :as io]
    [clojurewerkz.meltdown.reactor :as mr]
    [clojurewerkz.meltdown.consumers :as mc]
-   [clojurewerkz.meltdown.selectors :refer (set-membership predicate)]
+   [clojurewerkz.meltdown.selectors :refer (set-membership predicate match-all)]
    [cylon.authentication :refer (authenticate)]))
 
 (defn read-bytes [bs cs]
@@ -58,7 +58,7 @@
          :body "Unauthorized access to event stream"}))))
 
 
-(defn server-topic-source [reactor database]
+(defn server-public-topic-source [reactor database]
   (fn [{{prefix :prefix} :route-params :as req}]
     (with-channel req channel
       (send! channel
@@ -66,26 +66,23 @@
       (let [rsub
             (mr/on
              reactor
-             ;; QUESTION (for MK): it appears from ws.clj that we
-             ;; should be able to select on topics, instead of these
-             ;; general 'messages.published' key - is this the
-             ;; ultimate goal?
-             (set-membership #"/users/yods/test")
+             ;; select on the topic
+             (set-membership #{prefix})
              (fn [evt]
-               #_(when
-                     (when-let [topic (-> evt :data :topic)]
-                       (and
-                        (contains? subscribed-topics topic)
-                        (.startsWith topic prefix))))
-               (send! channel
-                      (let [data (:data evt)]
-                        (str "data: "
-                             #_(cond-> data
+               (when
+                   (when-let [topic (-> evt :data :topic)]
+                     (and
+                      (let [public-topic? (-> (get-topic database topic)
+                                              :public)]
+                        public-topic?)))
+                 (send! channel
+                        (let [{:keys [charset] :as data} (:data evt)]
+                          (str "data: "
+                               (cond-> data
                                        charset
                                        (update-in [:payload] read-bytes charset))
-                             "hello"
-                             "\r\n\r\n"))
-                      false)))]
+                               "\r\n\r\n"))
+                        false))))]
         (on-close channel (fn [status]
                             (debugf "Closing firehose")
                             (mc/cancel rsub)))))))
@@ -93,7 +90,7 @@
 
 (defn handlers [reactor authorizer database]
   {:events (server-event-source reactor authorizer database)
-   :topics (server-topic-source reactor database)})
+   :topics (server-public-topic-source reactor database)})
 
 (def routes
   ["/" [[["public-stream" [#".*" :prefix]] :topics]
