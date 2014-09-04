@@ -140,10 +140,7 @@
           (when-let [message (<! notify-ch)]
             (om/transact! app-state [:msgs]
                           (fn [e]
-                            (.log js/console e)
-                            ;;(take-last 10)
-                            (take 10 (cons (:message message) e))      
-                            ))
+                            (take 10 (cons (:message message) e))))
             
             (recur)))
         (listen-sse (str "/public-stream" (:u app-state)) notify-ch)))

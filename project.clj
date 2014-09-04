@@ -81,12 +81,11 @@
                  [camel-snake-kebab "0.1.4"]
 
                  ;; ClojureScript libraries
-
-                 [org.clojure/clojurescript "0.0-2173"]
+                 [org.clojure/clojurescript "0.0-2322"]
                  [sablono "0.2.6" :exclusions [com.facebook/react org.clojure/clojurescript]]
                  [om "0.6.0"]
-
-                 [org.clojure/core.async "0.1.267.0-0d7780-alpha"]
+                 
+                 [org.clojure/core.async "0.1.338.0-5c5012-alpha"]
 
                  [org.clojars.ideal-knee/dommy "0.1.3-SNAPSHOT"]
                  [jarohen/chord "0.3.1"]
