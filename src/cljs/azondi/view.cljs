@@ -98,7 +98,7 @@
                    [:a
                     {:href (str topic)}
                     topic]]
-                  
+
                   [:td description]
                   [:td unit]])]]]
             [:p (str "Unable to find any public topics for " (:u app-state))]))
@@ -129,7 +129,7 @@
             ajax-recv (ajaj< ajax-send
                              :method :get
                              :uri uri)
-            notify-ch (om/get-state owner :public-stream)]        
+            notify-ch (om/get-state owner :public-stream)]
         (go
           (>! ajax-send {})
           (let [r (<! ajax-recv)]
@@ -141,7 +141,7 @@
             (om/transact! app-state [:msgs]
                           (fn [e]
                             (take 10 (cons (:message message) e))))
-            
+
             (recur)))
         (listen-sse (str "/public-stream" (:u app-state)) notify-ch)))
 
@@ -150,8 +150,8 @@
       (let [old-topic (get-in app-state [:public-topic :topic])
             new-topic (get-in next-props [:public-topic :topic])]
         (when (not= old-topic new-topic)
-          (listen-sse (str "/public-stream" (:u app-state)) :public-stream))))
-    
+          (listen-sse (str "/public-stream" (:u app-state)) (om/get-state owner :public-stream)))))
+
     om/IRender
     (render [this]
       (html
