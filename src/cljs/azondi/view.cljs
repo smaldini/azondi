@@ -18,7 +18,7 @@
          :user nil
          :public-topics []
          :public-topic nil
-         :msgs []
+         :msgs [{:device_id "53", :payload "This is a test", :content_type "application/json", :charset "UTF-8", :topic "/users/yods/test", :owner "yods"}]
          }))
 
 (declare unsubscribe-btn);; so I can use it in subscribe-btn
@@ -114,26 +114,47 @@
 ;; In the future I want to graph this topic
 (defn public-topic-component [app-state owner]
   (reify
+     om/IInitState
+    (init-state [this]
+      {:public-stream (chan)})
     om/IWillMount
     (will-mount [this]
       (let [ajax-send (chan)
             topic (.-pathname js/location)
             uuid (-> (clojure.string/split topic #"/")
                      (nth 2))
-            
             uri (if (:user app-state)
                   (str uri-init "/users/" (:user app-state) "/public-topics" topic) ;; if logged in
                   (str uri-init "/users/" "guest" "/public-topics" topic))
             ajax-recv (ajaj< ajax-send
                              :method :get
-                             :uri uri)]
-        
-        
+                             :uri uri)
+            notify-ch (om/get-state owner :public-stream)]        
         (go
           (>! ajax-send {})
           (let [r (<! ajax-recv)]
-            (om/update! app-state :public-topic (-> r :body))))))
+            (om/update! app-state :public-topic (-> r :body))))
 
+        ;;update msgs a message arrives
+        (go-loop []
+          (when-let [message (<! notify-ch)]
+            (om/transact! app-state [:msgs]
+                          (fn [e]
+                            (.log js/console e)
+                            ;;(take-last 10)
+                            (take 10 (cons (:message message) e))      
+                            ))
+            
+            (recur)))
+        (listen-sse (str "/public-stream" (:u app-state)) notify-ch)))
+
+    om/IWillUpdate
+    (will-update [this next-props next-state]
+      (let [old-topic (get-in app-state [:public-topic :topic])
+            new-topic (get-in next-props [:public-topic :topic])]
+        (when (not= old-topic new-topic)
+          (listen-sse (str "/public-stream" (:u app-state)) :public-stream))))
+    
     om/IRender
     (render [this]
       (html
@@ -157,24 +178,14 @@
                 [:td (:unit public-topic)]
                 [:td (if (= true (:subscribed public-topic))
                        (unsubscribe-btn app-state)
-                       (subscribe-btn app-state))]]]]]
-            [:p (str "Unable to find topic" )]))
-         ]))))
+                       (subscribe-btn app-state))]]]]
+             [:div#topic-events [:h3 "Events"]
+              [:p "Messages on Topic"]
+              [:pre
+               (for [msg (-> app-state :msgs)]
+                 (str (:payload msg) "\r\n"))]]]
+            [:p (str "Unable to find topic" )]))]))))
 
-
-;; checks if you are logged in if not asks you to
-;; if you are already subscribed you can unsubscribe
-
-(defn message-view-component [app-state owner]
-  (reify
-    om/IWillMount
-    (will-mount [this])
-    om/IRender
-    (render [this]
-      ;; TO DO in a debugger show the messages
-      [:pre
-       (for [msg (-> app-state :msgs)]
-         (str msg "\r\n"))])))
 
 (defn ^:export public-topic-page [user]
   (when (not= "null" user) (swap! app-model-public-topics assoc :user user))

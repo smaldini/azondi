@@ -3,6 +3,7 @@
    [com.stuartsierra.component :refer (using)]
    [azondi.db :refer (subscriptions-by-owner get-topic)]
    [bidi.bidi :refer (->Redirect)]
+   [cheshire.core :refer (decode decode-stream encode)]
    [clojure.tools.logging :refer :all]
    [schema.core :as s]
    [modular.bidi :refer (WebService)]
@@ -46,9 +47,9 @@
                      (send! channel
                             (let [{:keys [charset] :as data} (:data evt)]
                               (str "data: "
-                                   (cond-> data
-                                           charset
-                                           (update-in [:payload] read-bytes charset))
+                                   (encode (cond-> data
+                                                   charset
+                                                   (update-in [:payload] read-bytes charset)))
                                    "\r\n\r\n"))
                             false))))]
             (on-close channel (fn [status]
@@ -78,9 +79,9 @@
                  (send! channel
                         (let [{:keys [charset] :as data} (:data evt)]
                           (str "data: "
-                               (cond-> data
-                                       charset
-                                       (update-in [:payload] read-bytes charset))
+                               (encode (cond-> data
+                                               charset
+                                               (update-in [:payload] read-bytes charset)))
                                "\r\n\r\n"))
                         false))))]
         (on-close channel (fn [status]
