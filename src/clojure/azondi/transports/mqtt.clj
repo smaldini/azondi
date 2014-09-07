@@ -366,14 +366,14 @@
                                                                :payload payload
                                                                ;; TODO This should come from topic content/type
                                                                :content_type "application/json"
-                                                               :charset "UTF-8"
+                                                               ;;:charset "UTF-8"
                                                                :topic topic
                                                                :owner username})
                       (mr/notify reactor topic {:device_id client-id
                                                                :payload payload
                                                                ;; TODO This should come from topic content/type
                                                                :content_type "application/json"
-                                                               :charset "UTF-8"
+                                                               ;;:charset "UTF-8"
                                                                :topic topic
                                                                :owner username}))
             (mh/update! (:mqtt-messages-payload-size metrics) (alength payload))
