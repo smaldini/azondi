@@ -3,6 +3,9 @@
             [clojure.java.jdbc :as psql]
             [clojure.java.shell :as sh]
             [clojure.core.async :as async]
+            [byte-streams :refer (convert)]
+            [clj-time.core   :as tc]
+            [clj-time.format :as tf]
             [com.stuartsierra.component :as component :refer (system-map system-using)]
             [azondi.config :refer [user-config config-from-classpath]]
             [clojurewerkz.cassaforte.client :as cc]
@@ -26,6 +29,7 @@
             [azondi.webapp :refer (new-webapp)]
             [azondi.api :refer (new-api new-user-authorizer new-api-key-authenticator)]
             [azondi.cassandra :as cass]
+            [azondi.messages-db :as cassdb]
             [azondi.dev-system :refer (new-dev-user-domain)]))
 
 
@@ -95,7 +99,39 @@
     (psql/execute! db [schema-sql] :transaction? false)
     (psql/execute! db [seed-sql])))
 
+(defn archive-message-fn! [db now data]
+  (let [data (merge data
+                      {:created_at (.toDate now)
+                       :date_and_hour (tf/unparse cass/date-and-hour-formatter now)})]
+      (dosync (cassdb/archive-message! db data))))
 
+
+(defn seed-cassandra []
+  (let [session (cc/connect ["127.0.0.1"])]
+    (cql/use-keyspace session "opensensors_test")
+    (let [db (assoc cassandra :session session)]
+      (archive-message-fn! db
+                           (tc/date-time 2014 1 15 0)
+                           {:device_id "1001" :topic "/users/juan/test-public" :owner "juan"
+                            :payload (convert "message-1" java.nio.ByteBuffer) :content_type "text"})
+      (archive-message-fn! db
+                             (tc/date-time 2014 1 16 0)
+                             {:device_id "1001" :topic "/users/juan/test-public" :owner "juan"
+                              :payload (convert "message-2" java.nio.ByteBuffer) :content_type "text"})
+      (archive-message-fn! db
+                             (tc/date-time 2014 1 17 0)
+                             {:device_id "1002" :topic "/users/juan/test-private" :owner "juan"
+                              :payload (convert "message-3" java.nio.ByteBuffer) :content_type "text"})
+      (archive-message-fn! db
+                             (tc/date-time 2014 1 18 0)
+                             {:device_id "1002" :topic "/users/juan/test-private" :owner "juan"
+                              :payload (convert "message-4" java.nio.ByteBuffer) :content_type "text"}))))
+
+
+(defn drop-cassandra-table []
+  (let [session (cc/connect ["127.0.0.1"])]
+    (cql/use-keyspace session "opensensors_test")
+    (cql/drop-table session "messages")))
 
 (defn load-cassandra-schema!
   []
@@ -116,7 +152,10 @@
                                            :content_type  :text
                                            :primary-key [[:device_id :date_and_hour]
                                                          :created_at]})
-                      (if-not-exists))))
+                      (if-not-exists))
+
+    (seed-cassandra)))
+
 
 ;;
 ;; API
@@ -182,8 +221,7 @@
     :api-key-authenticator (new-api-key-authenticator)
     :authenticator (new-composite-disjunctive-authenticator
                     :http-authenticator
-                    :api-key-authenticator
-                    )
+                    :api-key-authenticator)
     :user-domain (new-dev-user-domain))
 
    {:webserver {:request-handler :webrouter}

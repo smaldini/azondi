@@ -18,10 +18,6 @@
                  ;; Tracing - explictly required
                  [org.clojure/tools.trace "0.7.8" :exclusions [org.clojure/clojure]]
 
-                 ;; Front end
-                 #_[org.clojure/clojurescript "0.0-2138"
-                  :exclusions [org.apache.ant/ant]]
-
                  ;; Back-end
                  [clojurewerkz/triennium  "1.0.0-beta2"]
                  [cheshire                "5.3.1"]
@@ -95,6 +91,8 @@
 
                  ;; email
                  [com.draines/postal "1.11.1"]
+
+                 [clojurewerkz/stream-punk "1.0.0-beta1"]
                 ]
 
   :jvm-opts ^:replace ["-server" "-Xss8m" "-Xmx1g" "-Duser.timezone=UTC"]

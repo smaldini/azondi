@@ -19,3 +19,11 @@ CREATE TABLE IF NOT EXISTS messages (
 CREATE INDEX ON messages (device_id);
 CREATE INDEX ON messages (owner);
 CREATE INDEX ON messages (topic);
+
+
+CREATE TABLE IF NOT EXISTS topic-summary (
+        created_at timestamp,
+	 date_and_hour text,
+	topic-summary text,
+	PRIMARY KEY (created_at)
+)

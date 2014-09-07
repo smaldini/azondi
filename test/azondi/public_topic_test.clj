@@ -2,7 +2,8 @@
   (:require [clojure.test :refer :all]
             [azondi.test-helpers :as thelp]
             [azondi.http :refer (request)]
-            [com.stuartsierra.component :as component :refer (system-map system-using)]))
+            [com.stuartsierra.component :as component :refer (system-map system-using)]
+            ))
 
 
 (use-fixtures :once thelp/maybe-load-schema-fixture)

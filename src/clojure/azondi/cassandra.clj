@@ -6,10 +6,12 @@
             [clj-time.core   :as tc]
             [clj-time.format :as tf]
             [clj-time.core :as t]
+            [clojure.tools.logging :refer :all]
             [com.stuartsierra.component  :as component]
             [azondi.db.protocol :refer (MessageStore)]))
 
 (def ^:const table "messages")
+(def ^:const summary-table "topic-summary")
 (def date-and-hour-formatter (tf/formatter "yyyy-MM-dd HH"))
 
 
@@ -56,10 +58,12 @@
 
   (archive-message! [this data]
     (let [now (tc/now)]
-      (cql/insert-async (:session this) table
+      (debugf "write %s" data)
+      (cql/insert (:session this) table
                         (merge data
                                {:created_at    (.toDate now)
-                                :date_and_hour (tf/unparse date-and-hour-formatter now)})))))
+                                :date_and_hour (tf/unparse date-and-hour-formatter now)}))
+      (debugf "Data to be inserted is %s" data))))
 
 (defn new-database
   [{:keys [hosts keyspace] :as opts}]

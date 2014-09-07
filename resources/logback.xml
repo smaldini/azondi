@@ -14,7 +14,8 @@
   <!-- For debugging SSE traffic -->
   <logger name="azondi.bridges.sse" level="DEBUG"/>
   <logger name="cylon" level="INFO"/>
-
+  <logger name="azondi.cassandra" level="INFO"/>
+  <logger name="azondi.cassandra" level="DEBUG"/>
   <root level="INFO">
     <appender-ref ref="CONSOLE"/>
   </root>

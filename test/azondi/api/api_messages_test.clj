@@ -3,28 +3,19 @@
    [clojure.test :refer :all]
    [clojure.string :refer (capitalize)]
    [com.stuartsierra.component :as component]
-   [azondi.dev-db :refer (new-inmemory-message-store)]
    [azondi.seed :refer (new-direct-db-seed-data)]
    [azondi.system :refer (config)]
    [azondi.http :refer (request)]
    [clojure.pprint :refer (pprint)]
    [clj-time.core :as tc]
    [clj-time.coerce :as tcc]
-   [azondi.api.api-test :refer (new-api-system with-system *system* make-uri)]
    [schema.core :as s]
-   [clojure.data.json :as json]))
+   [clojure.data.json :as json]
+   [azondi.test-helpers :refer :all]))
 
-(defn new-api-messages-system []
-  (assoc (new-api-system) :direct-db-seed (new-direct-db-seed-data)
-         :cassandra (new-inmemory-message-store)))
+(load-cassandra-schema!)
 
-(defn system-fixture [f]
-  (with-system (new-api-messages-system)
-    (s/with-fn-validation
-      (f))))
-
-(use-fixtures :each system-fixture)
-
+(use-fixtures :each (with-system-fixture new-api-system))
 
 (defn create-uri-with-dates
   ([key-route api-key start-date end-date ]
@@ -270,5 +261,7 @@
 
      response)
 
-   )
-)
+   ))
+
+(drop-cassandra-table)
+
