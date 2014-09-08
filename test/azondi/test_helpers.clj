@@ -41,6 +41,7 @@
 (def seed-file-location   (io/resource "seed.sql"))
 (def cassandra-schema-file-location (io/resource "schema.cql"))
 
+
 (def loaded-schema? (atom false))
 
 (def ^:const test-postgresql-db (or (System/getenv "AZONDI_TEST_POSTGRESQL_DATABASE")

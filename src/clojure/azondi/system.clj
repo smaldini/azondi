@@ -34,7 +34,7 @@
    [azondi.metrics :refer (new-metrics)]
    [azondi.messages :refer (new-message-archiver)]
 
-   [azondi.sse :refer (new-event-service)]
+   [azondi.bridges.sse :refer (new-event-service-debug)]
    [azondi.postgres :refer (new-database new-postgres-user-domain)]
    [azondi.cassandra :as cass]
    [azondi.api :refer (new-api new-api-key-authenticator new-user-authorizer)]
@@ -100,7 +100,7 @@
      :sse-debug (let [sse-ch (async/chan 64)
                       ;; SSE splits on client-id
                       sse-pub (async/pub (async/tap debug-mult sse-ch) :client-id)]
-                  (new-event-service :async-pub sse-pub))
+                  (new-event-service-debug :async-pub sse-pub))
 
      ;; Security
 

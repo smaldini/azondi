@@ -23,7 +23,7 @@ CREATE INDEX ON messages (topic);
 
 CREATE TABLE IF NOT EXISTS topic-summary (
         created_at timestamp,
-	 date_and_hour text,
-	topic-summary text,
-	PRIMARY KEY (created_at)
+	date_and_hour text,
+	topic_summary text,
+	PRIMARY KEY (date_and_hour, created_at)
 )

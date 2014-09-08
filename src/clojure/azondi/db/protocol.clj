@@ -56,3 +56,6 @@
   (messages-by-topic-and-date [_ topic start-date end-date])
   (messages-by-date [_ start-date end-date])
   (archive-message! [_ data]))
+
+(defprotocol TopicSummaryStore
+  (archive-summary! [_ data]))

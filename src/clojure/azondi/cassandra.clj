@@ -8,7 +8,7 @@
             [clj-time.core :as t]
             [clojure.tools.logging :refer :all]
             [com.stuartsierra.component  :as component]
-            [azondi.db.protocol :refer (MessageStore)]))
+            [azondi.db.protocol :refer (MessageStore TopicSummaryStore)]))
 
 (def ^:const table "messages")
 (def ^:const summary-table "topic-summary")
@@ -63,7 +63,16 @@
                         (merge data
                                {:created_at    (.toDate now)
                                 :date_and_hour (tf/unparse date-and-hour-formatter now)}))
-      (debugf "Data to be inserted is %s" data))))
+      (debugf "Data to be inserted is %s" data)))
+
+  TopicSummaryStore
+  (archive-summary! [this data]
+    (debugf "archive topic summary data %s" data)
+    (let [now (tc/now)]
+      (cql/insert (:session this) summary-table
+                  (merge data
+                         {:created_at    (.toDate now)
+                          :date_and_hour (tf/unparse date-and-hour-formatter now)})))))
 
 (defn new-database
   [{:keys [hosts keyspace] :as opts}]

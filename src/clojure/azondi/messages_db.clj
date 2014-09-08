@@ -68,3 +68,8 @@
             :payload [Byte]
             :content_type s/Str}]
   (p/archive-message! component data))
+
+(s/defn archive-summary!
+  [component :- (s/protocol p/TopicSummaryStore)
+   data :- {:data StrNotEmpty}]
+  (p/archive-message! component data))

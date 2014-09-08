@@ -13,7 +13,10 @@
    [clojurewerkz.meltdown.reactor :as mr]
    [clojurewerkz.meltdown.consumers :as mc]
    [clojurewerkz.meltdown.selectors :refer (set-membership predicate match-all)]
-   [cylon.authentication :refer (authenticate)]))
+   [cylon.authentication :refer (authenticate)]
+   [org.httpkit.timer :refer (schedule-task)]
+   [clojure.core.async :as async :refer (go <! Mult Pub tap untap chan close!)]
+   [schema.core :as s]))
 
 (defn read-bytes [bs cs]
   (slurp (io/reader bs :encoding cs)))
@@ -58,6 +61,24 @@
         {:status 401
          :body "Unauthorized access to event stream"}))))
 
+(defn server-event-source-debug [async-pub]
+  (fn [{{:keys [client-id]} :route-params :as req}]
+    (let [ch (chan 16)]
+      (async/sub async-pub client-id ch)
+      (with-channel req channel
+        (on-close channel
+                  (fn [_]
+                    (async/unsub async-pub client-id ch)
+                    (close! ch)))
+        (send! channel {:headers {"Content-Type" "text/event-stream"}} false)
+        (go
+          (loop []
+            (when-let [data (<! ch)]
+              (send! channel
+                     (str "data: " (-> data (assoc :time (System/currentTimeMillis)) encode) "\r\n\r\n")
+                     false)
+              (recur))))))))
+
 
 (defn server-public-topic-source [reactor database]
   (fn [{{prefix :prefix} :route-params :as req}]
@@ -91,7 +112,8 @@
 
 (defn handlers [reactor authorizer database]
   {:events (server-event-source reactor authorizer database)
-   :topics (server-public-topic-source reactor database)})
+   :topics (server-public-topic-source reactor database)
+   })
 
 (def routes
   ["/" [[["public-stream" [#".*" :prefix]] :topics]
@@ -109,3 +131,14 @@
        (s/validate {:uri-context s/Str})
        map->ServerSentEventBridge
        (<- (using [:reactor :authorizer :database]))))
+
+(defrecord EventService [async-pub]
+  WebService
+  (request-handlers [_] {::events (server-event-source-debug async-pub)})
+  (routes [_] ["/" {[[#"\d+" :client-id]] ::events}])
+  (uri-context [_] "/debug-events"))
+
+(defn new-event-service-debug [& {:as opts}]
+  (->> opts
+       (s/validate {:async-pub (s/protocol Pub)})
+       map->EventService))
