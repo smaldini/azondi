@@ -83,7 +83,13 @@
       :body (base-page
              (authenticate authenticator req)
              [:div.markdown-page (md->html (io/resource "markdown/careers.md"))])})
-
+   :clojure-cup
+    (fn [req]
+     {:status 200
+      :body (base-page
+             (authenticate authenticator req)
+             [:div.markdown-page (md->html (io/resource "markdown/clojure-cup.md"))])})
+   
    :devices (restrict-to-valid-user authorizer devices-page)
 
    :topics (restrict-to-valid-user authorizer topics-page)
@@ -118,6 +124,7 @@
         ["web-sockets" :web-sockets-page]
         ["topic-browser" :topic-browser]
         ["signup" :sign-up]
+        ["clojure-cup" :clojure-cup]
         [["users/" :user]
          [["" :topics-list]
           [["/" [#".*" :topic-name]] :topic-show]
