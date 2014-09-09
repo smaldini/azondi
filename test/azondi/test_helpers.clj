@@ -129,7 +129,7 @@
                               :payload (convert "message-4" java.nio.ByteBuffer) :content_type "text"}))))
 
 
-(defn drop-cassandra-table []
+(defn drop-cassandra-tables []
   (let [session (cc/connect ["127.0.0.1"])]
     (cql/use-keyspace session "opensensors_test")
     (cql/drop-table session "messages")))

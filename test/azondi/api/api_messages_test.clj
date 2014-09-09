@@ -263,5 +263,5 @@
 
    ))
 
-(drop-cassandra-table)
+(drop-cassandra-tables)
 
