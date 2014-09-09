@@ -3,7 +3,7 @@
             [azondi.transports.mqtt :as mqtt]
             [clojurewerkz.triennium.mqtt :as tr]))
 
-(deftest test-record-subscribers
+(deftest ^{:mqtt true} test-record-subscribers
   (let [ctx :ctx ;; stub
         xs  [["a/topic" 0] ["b/topic" 0]]
         m   (ref (tr/make-trie))]
@@ -19,7 +19,7 @@
            :topic "b/topic"
            :qos   0))))
 
-(deftest test-unrecord-subscribers
+(deftest ^{:mqtt true} test-unrecord-subscribers
   (let [ctx :ctx ;; stub
         xs  [["a/topic" 0] ["b/topic" 0]]
         m   (ref (tr/make-trie))]

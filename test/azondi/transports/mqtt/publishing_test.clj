@@ -19,19 +19,20 @@
 ;; Publishing
 ;;
 
-(let [uri "tcp://127.0.0.1:1883"]
-  (deftest test-publishing-empty-messages-to-existing-public-topic
-    (let [c  (mh/connect uri "1" {:username "yods"
-                                  :password "device-1-pwd"})
+(let [uri "tcp://127.0.0.1:1883"
+      p   (md/new-memory-persister)]
+  (deftest ^{:mqtt true} test-publishing-empty-messages-to-existing-public-topic
+    (let [c  (mh/connect uri "1" p {:username "yods"
+                                    :password "device-1-pwd"})
           t  "/users/yods/pm10-1"]
       (is (mh/connected? c))
       (dotimes [i 1000]
         (mh/publish c t "" 0))
       (mh/disconnect-and-close c)))
 
-  (deftest test-publishing-and-consuming-messages-to-existing-public-topic
-    (let [c  (mh/connect uri "1" {:username "yods"
-                                  :password "device-1-pwd"})
+  (deftest ^{:mqtt true} test-publishing-and-consuming-messages-to-existing-public-topic
+    (let [c  (mh/connect uri "1" p {:username "yods"
+                                    :password "device-1-pwd"})
           l  (CountDownLatch. 50)
           t  "/users/yods/pm10-1"]
       (is (mh/connected? c))
@@ -42,11 +43,11 @@
       (await l)
       (mh/disconnect-and-close c)))
 
-  (deftest test-publishing-and-consuming-messages-with-multiple-consumers
-    (let [c1  (mh/connect uri "1" {:username "yods"
-                                   :password "device-1-pwd"})
-          c2  (mh/connect uri "2" {:username "yods"
-                                   :password "device-2-pwd"})
+  (deftest ^{:mqtt true} test-publishing-and-consuming-messages-with-multiple-consumers
+    (let [c1  (mh/connect uri "1" p {:username "yods"
+                                     :password "device-1-pwd"})
+          c2  (mh/connect uri "2" p {:username "yods"
+                                     :password "device-2-pwd"})
           l  (CountDownLatch. 50)
           f  (fn [^String topic meta ^bytes payload]
                (.countDown l))

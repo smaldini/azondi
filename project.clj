@@ -104,4 +104,5 @@
                    :resource-paths ["test/resources" "dev/src/sql" "dev/src/cql"]}
 
              :uberjar {:main azondi.main
-                       :aot [azondi.main]}})
+                       :aot [azondi.main]}}
+  :test-selectors {:mqtt :mqtt})
