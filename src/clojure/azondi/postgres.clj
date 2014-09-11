@@ -6,6 +6,7 @@
    [schema.core :as s]
    [com.stuartsierra.component :as component]
    [clojure.java.jdbc :as j]
+   [clojure.string :as cs]
    [azondi.db.protocol :refer (DataStore)]
    [azondi.db :refer (get-user)]
    [azondi.passwords :as sc]
@@ -206,9 +207,10 @@
   UserDomain
   (verify-user [this uid password]
     (s/with-fn-validation
-      (let [user (get-user (:database this) uid)]
-        (infof "Verifying user: %s against password %s" uid password)
-        (infof "User in database is: %s" user)
+      (let [user   (get-user (:database this) uid)
+            masked (cs/join "" (repeat (.length password) "x"))]
+        (infof "Verifying user: %s against password %s" uid masked)
+        (debugf "User in database is: %s" user)
         (and (not (nil? user))
              (pwd/verify password (:password user uid)))))))
 
