@@ -21,9 +21,9 @@ CREATE INDEX ON messages (owner);
 CREATE INDEX ON messages (topic);
 
 
-CREATE TABLE IF NOT EXISTS topic-summary (
+CREATE TABLE IF NOT EXISTS topic_summary (
         created_at timestamp,
 	date_and_hour text,
 	topic_summary text,
 	PRIMARY KEY (date_and_hour, created_at)
-)
+);

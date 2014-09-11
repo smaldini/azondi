@@ -11,7 +11,7 @@
             [azondi.db.protocol :refer (MessageStore TopicSummaryStore)]))
 
 (def ^:const table "messages")
-(def ^:const summary-table "topic-summary")
+(def ^:const summary-table "topic_summary")
 (def date-and-hour-formatter (tf/formatter "yyyy-MM-dd HH"))
 
 
