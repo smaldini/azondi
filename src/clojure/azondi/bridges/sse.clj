@@ -2,6 +2,8 @@
   (:require
    [com.stuartsierra.component :refer (using)]
    [azondi.db :refer (subscriptions-by-owner get-topic)]
+   [azondi.stream-summary :as stream]
+   [azondi.reactor.keys :as rk]
    [bidi.bidi :refer (->Redirect)]
    [cheshire.core :refer (decode decode-stream encode)]
    [clojure.tools.logging :refer :all]
@@ -109,15 +111,62 @@
                             (debugf "Closing firehose")
                             (mc/cancel rsub)))))))
 
+(defn topic-stream-summary [reactor database]
+  (fn [req]
+    (with-channel req channel
+      (send! channel
+             {:headers {"Content-Type" "text/event-stream"}} false)
+      (let [rsub
+            (mr/on reactor
+                   (set-membership #{rk/topic-summary})
+                   (fn [evt]
+                     (when-let [topic (-> evt :data :topic)]
+                       (and
+                        (let [public-topic? (-> (get-topic database topic) :public)]
+                          public-topic?))
+                       (send! channel
+                              (str "data: "
+                                   (encode evt)
+                                   "\r\n\r\n")
+                              false))))]
+        (on-close channel (fn [status]
+                            (debugf "Closing firehose")
+                            (mc/cancel rsub)))))))
+
+(defn topic-device-stream-summary [reactor database]
+  (fn [req ;;{{prefix :prefix} :route-params :as req}
+       ]
+    (with-channel req channel
+      (send! channel
+             {:headers {"Content-Type" "text/event-stream"}} false)
+      (let [rsub
+            (mr/on reactor
+                   (set-membership #{rk/topic-device-summary})
+                   (fn [evt]
+                     (debug "topic stream %s" evt)
+                     (when-let [data (-> evt :data)]
+                       (debug "topic summary %s" data)
+                       (send! channel
+                              (str data
+                                   "\r\n\r\n")
+                              false))))]
+        (on-close channel (fn [status]
+                            (debugf "Closing firehose")
+                            (mc/cancel rsub)))))))
 
 (defn handlers [reactor authorizer database]
   {:events (server-event-source reactor authorizer database)
    :topics (server-public-topic-source reactor database)
+   :topic-summary (topic-stream-summary reactor database)
+   :topic-device-summary (topic-device-stream-summary reactor database)
    })
 
 (def routes
   ["/" [[["public-stream" [#".*" :prefix]] :topics]
-        [["events" [#".*" :prefix]] :events]]])
+        [["events" [#".*" :prefix]] :events]
+        ["topic-summary" {"" :topic-summary
+			  [[#".*" :prefix]] :topic-device-summary}          
+          ]]])
 
 (defrecord ServerSentEventBridge [uri-context reactor authorizer database]
   WebService

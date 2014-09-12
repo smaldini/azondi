@@ -109,11 +109,6 @@
                        [:span.icon-bar]
                        [:span.icon-bar]]
                       [:span {:class "visible-xs navbar-brand"} "Menu"]]
-
-   ;;To do
-   ;; on click of parent open accordian
-   ;; on click clild go to header of child
-
    [:ul
     (for [menu menus
           :when (displayed? menu user)]

@@ -11,3 +11,7 @@
 ;;
 
 (def ^:const consumer-subscribed "consumers.subscribed")
+
+(def ^:const topic-summary "topic-summary")
+
+(def ^:const topic-device-summary "topic-device-summary")

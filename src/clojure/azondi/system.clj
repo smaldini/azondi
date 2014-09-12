@@ -40,7 +40,7 @@
    [azondi.api :refer (new-api new-api-key-authenticator new-user-authorizer)]
    [azondi.webapp :refer (new-webapp)]
    [azondi.login :refer (new-custom-login-form-renderer)]
-
+   [azondi.stream-summary :refer (new-topic-summarizer)]
    )
   (:import [modular.cljs ClojureScriptBuilder]))
 
@@ -70,7 +70,7 @@
      :reactor (new-reactor)
      :ws (new-websocket-bridge {:port 8083})
      :sse-bridge (using (new-sse-bridge) {:reactor :reactor})
-
+     :topic-summarizer (new-topic-summarizer)
      ;; Webserver and routing
 
      :cljs-core (new-cljs-module :name :cljs :mains ['cljs.core] :dependencies #{})

@@ -81,6 +81,10 @@
    p]
   (p/allowed-device? component client-id user p))
 
+(s/defn all-topics
+  [component :- (s/protocol p/DataStore)]
+  (p/all-topics component))
+
 (s/defn topic-of-owner
   [component :- (s/protocol p/DataStore)
    user

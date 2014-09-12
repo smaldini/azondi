@@ -115,6 +115,9 @@
   (user-subscribed? [this user topic]
     (not (empty? (j/query (conn this) ["Select * from subscriptions where user_id = ? and topic = ?;" user topic]))))
 
+  (all-topics [this]
+    (j/query (conn this) ["Select * FROM topics;"]))
+
   (topic-of-owner [this user topic]
     (clj->psql (first
                 (j/query (conn this)
