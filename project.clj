@@ -21,7 +21,7 @@
                  ;; Back-end
                  [clojurewerkz/triennium  "1.0.0-beta2"]
                  [cheshire                "5.3.1"]
-                 [clojurewerkz/meltdown   "1.0.0"]
+                 [clojurewerkz/meltdown   "1.1.0-beta1"]
                  [org.clojure/core.cache  "0.6.3"]
 
                  ;; Database
