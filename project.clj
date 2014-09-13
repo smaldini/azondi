@@ -80,7 +80,7 @@
                  [org.clojure/clojurescript "0.0-2322"]
                  [sablono "0.2.6" :exclusions [com.facebook/react org.clojure/clojurescript]]
                  [om "0.6.0"]
-                 
+
                  [org.clojure/core.async "0.1.338.0-5c5012-alpha"]
 
                  [org.clojars.ideal-knee/dommy "0.1.3-SNAPSHOT"]
@@ -93,6 +93,9 @@
                  [com.draines/postal "1.11.1"]
 
                  [clojurewerkz/stream-punk "1.0.0-beta1"]
+
+                 ;; database migrations
+                 [ragtime "0.3.7"]
                 ]
 
   :jvm-opts ^:replace ["-server" "-Xss8m" "-Xmx1g" "-Duser.timezone=UTC"]
