@@ -27,7 +27,7 @@
                  ;; Database
                  [org.clojure/java.jdbc "0.3.3"]
                  [postgresql/postgresql "8.4-702.jdbc4"]
-                 [clojurewerkz/cassaforte "2.0.0-beta1"]
+                 [clojurewerkz/cassaforte "2.0.0-beta3"]
 
                  ;; HeapByteBuffer - String converter
                  [byte-streams "0.1.11"]
