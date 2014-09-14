@@ -5,11 +5,13 @@
             :url "http://www.eclipse.org/legal/epl-v10.html"}
 
   :source-paths ["src/clojure" "ext/clojure"]
-  :resource-paths ["resources"]
+  :resource-paths ["resources" "src/joplin"]
 
   :exclusions [prismatic/schema
                prismatic/plumbing
                org.clojure/tools.trace]
+
+  :plugins [[joplin.lein "0.1.11"]]
 
   :dependencies [[org.clojure/clojure "1.6.0"]
                  ;; Assembly
@@ -95,13 +97,25 @@
                  [clojurewerkz/stream-punk "1.0.0-beta1"]
 
                  ;; database migrations
-                 [joplin           "0.1.11"]
+                 [joplin.core      "0.1.11"]
+                 [joplin.jdbc      "0.1.11"]
                  [joplin.cassandra "0.1.11"]
                 ]
 
   :jvm-opts ^:replace ["-server" "-Xss8m" "-Xmx1g" "-Duser.timezone=UTC"]
   :main azondi.main
   :repl-options {:init-ns user}
+  ;; data migrations
+  :joplin {:migrators {:pg-mig "src/joplin/migrators/sql"
+                       :c*-mig "src/joplin/migrators/cassandra"}
+           :seeds     {:pg-seed "azondi.seeds.sql"
+                       :c*-seed "azondi.seeds.cassandra"}
+           :databases {:pg-dev {:type :jdbc :url "jdbc:postgresql://127.0.0.1/osio?user=azondi&password=opendata"}
+                       :c*-dev {:type :cass :hosts ["127.0.0.1"] :keyspace "opensensors"}}
+           :environments {:dev  [{:db       :pg-dev
+                                  :migrator :pg-mig
+                                  :seed     :pg-seed}]
+                          :prod []}}
   :profiles {:dev {:dependencies [[org.clojure/tools.namespace "0.2.4"]
                                   [clojurewerkz/machine_head "1.0.0-beta9"]]
                    :source-paths ["dev/src/clojure" "src/cljs"]
