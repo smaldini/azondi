@@ -8,7 +8,7 @@
    [azondi.db :refer (get-user create-user!)]
    [azondi.db.protocol :refer (DataStore)]
    [azondi.dev-db :refer (new-inmemory-datastore new-inmemory-message-store)]
-   [azondi.seed :refer (new-seed-data)]
+   [azondi.seed :refer (new-seed-data new-direct-db-seed-data)]
    [azondi.postgres :refer (new-database new-postgres-user-domain)]
    [azondi.passwords :as pwd]
    [azondi.messages :refer (new-message-archiver)]
