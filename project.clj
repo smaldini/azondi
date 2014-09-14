@@ -4,8 +4,8 @@
   :license {:name "Eclipse Public License"
             :url "http://www.eclipse.org/legal/epl-v10.html"}
 
-  :source-paths ["src/clojure" "ext/clojure"]
-  :resource-paths ["resources" "src/joplin"]
+  :source-paths ["src/clojure" "ext/clojure" "joplin"]
+  :resource-paths ["resources"]
 
   :exclusions [prismatic/schema
                prismatic/plumbing
@@ -106,15 +106,16 @@
   :main azondi.main
   :repl-options {:init-ns user}
   ;; data migrations
-  :joplin {:migrators {:pg-mig "src/joplin/migrators/sql"
-                       :c*-mig "src/joplin/migrators/cassandra"}
+  :joplin {:migrators {:pg-mig "joplin/migrators/sql"
+                       :c*-mig "joplin/migrators/cassandra"}
            :seeds     {:pg-seed "azondi.seeds.sql"
                        :c*-seed "azondi.seeds.cassandra"}
            :databases {:pg-dev {:type :jdbc :url "jdbc:postgresql://127.0.0.1/osio?user=azondi&password=opendata"}
                        :c*-dev {:type :cass :hosts ["127.0.0.1"] :keyspace "opensensors"}}
            :environments {:dev  [{:db       :pg-dev
-                                  :migrator :pg-mig
-                                  :seed     :pg-seed}]
+                                  :migrator :pg-mig}
+                                 {:db       :c*-dev
+                                  :migrator :c*-mig}]
                           :prod []}}
   :profiles {:dev {:dependencies [[org.clojure/tools.namespace "0.2.4"]
                                   [clojurewerkz/machine_head "1.0.0-beta9"]]
