@@ -108,14 +108,16 @@
   ;; data migrations
   :joplin {:migrators {:pg-mig "joplin/migrators/sql"
                        :c*-mig "joplin/migrators/cassandra"}
-           :seeds     {:pg-seed "azondi.seeds.sql"
-                       :c*-seed "azondi.seeds.cassandra"}
+           :seeds     {:pg-seed "azondi.seeds.sql/run"
+                       :c*-seed "azondi.seeds.cassandra/run"}
            :databases {:pg-dev {:type :jdbc :url "jdbc:postgresql://127.0.0.1/osio?user=azondi&password=opendata"}
                        :c*-dev {:type :cass :hosts ["127.0.0.1"] :keyspace "opensensors"}}
            :environments {:dev  [{:db       :pg-dev
-                                  :migrator :pg-mig}
+                                  :migrator :pg-mig
+                                  :seed     :pg-seed}
                                  {:db       :c*-dev
-                                  :migrator :c*-mig}]
+                                  :migrator :c*-mig
+                                  :seed     :c*-seed}]
                           :prod []}}
   :profiles {:dev {:dependencies [[org.clojure/tools.namespace "0.2.4"]
                                   [clojurewerkz/machine_head "1.0.0-beta9"]]
