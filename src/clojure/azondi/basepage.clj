@@ -80,7 +80,7 @@
                        [:input {:type "email" :class "form-control" :id "beta-email" :name "beta-email" :placeholder "Your Phone Number"}]
                        [:input {:type "email" :class "form-control" :id "beta-email" :name "beta-email" :placeholder "Any comments"}]
                        [:button {:id "beta-access-btn" :type "submit" :class "btn btn-primary btn-lg"
-                                 :disabled true} "Submit"]
+                                 :disabled true} "Submit"]]])
 
 (def logo-area
   [:div#header
