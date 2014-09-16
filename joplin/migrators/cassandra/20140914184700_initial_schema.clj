@@ -39,4 +39,5 @@
 
 (defn down
   [db]
-  )
+  (cql/drop-table conn "messages")
+  (cql/drop-table conn "topic_summary"))
