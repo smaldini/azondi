@@ -1,6 +1,0 @@
-DROP TABLE users CASCADE;
-DROP TABLE api_keys CASCADE;
-DROP TABLE devices CASCADE;
-DROP TABLE topics CASCADE;
-DROP TABLE subscriptions CASCADE;
-DROP TABLE ws_session_tokens CASCADE;
