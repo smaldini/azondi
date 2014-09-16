@@ -6,7 +6,7 @@
             [azondi.transports.test-helpers :as th])
   (:import java.util.UUID))
 
-(use-fixtures :once th/maybe-load-schema-fixture)
+(use-fixtures :once th/maybe-migrate-fixture)
 (use-fixtures :each th/with-system-fixture)
 
 ;;
