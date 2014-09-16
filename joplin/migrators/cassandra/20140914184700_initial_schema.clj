@@ -6,7 +6,7 @@
 (defn up
   [db]
   (let [conn (jc/get-connection (:hosts db) (:keyspace db))
-        ks   "opensensors"]
+        ks   (:keyspace db)]
     (cql/create-keyspace conn ks
                          (with {:replication {:class              "SimpleStrategy"
                                               :replication_factor 2}})
