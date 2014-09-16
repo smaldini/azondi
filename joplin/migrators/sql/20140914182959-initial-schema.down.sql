@@ -1,3 +1,19 @@
+DROP INDEX users_email_idx;
+DROP INDEX users_created_on_idx;
+DROP INDEX api_user_id_idx;
+DROP INDEX api_id_key_idx;
+DROP INDEX api_created_on_idx;
+DROP INDEX devices_client_id_idx;
+DROP INDEX devices_owner_idx;
+DROP INDEX devices_client_id_owner_idx;
+DROP INDEX devices_created_on_idx;
+DROP INDEX topics_id_idx;
+DROP INDEX topics_owner_idx;
+DROP INDEX topics_id_owner_idx;
+DROP INDEX topics_created_on_idx;
+DROP INDEX subscriptions_user_id_idx;
+DROP INDEX subscriptions_user_id_topic_idx;
+
 DROP TABLE users CASCADE;
 DROP TABLE api_keys CASCADE;
 DROP TABLE devices CASCADE;
