@@ -19,7 +19,8 @@
             [azondi.postgres :refer (new-database new-postgres-user-domain)]
             [azondi.cassandra :as cass]
             [joplin.core :as jp]
-            joplin.jdbc.database))
+            joplin.jdbc.database
+            joplin.cassandra.database))
 
 
 ;;
@@ -31,7 +32,7 @@
 
 (def migrated? (atom false))
 
-(def joplin-target
+(def pg-target
   {:db {:type :jdbc
         :url  (format "jdbc:postgresql://127.0.0.1/%s?user=%s&password=opendata"
                       test-postgresql-db
@@ -39,9 +40,16 @@
    :migrator "joplin/migrators/sql"
    :seed     "azondi.seeds.sql/run"})
 
+(def c*-target
+  {:db {:type :cass
+        :hosts ["127.0.0.1"] :keyspace "opensensors_test"}
+   :migrator "joplin/migrators/cassandra"
+   :seed     "azondi.seeds.cassandra/run"})
+
 (defn migrate!
   []
-  (jp/reset-db joplin-target))
+  (jp/reset-db pg-target)
+  (jp/reset-db c*-target))
 
 ;;
 ;; API
