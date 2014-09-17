@@ -39,5 +39,6 @@
 
 (defn down
   [db]
-  (cql/drop-table conn "messages")
-  (cql/drop-table conn "topic_summary"))
+  (let [conn (jc/get-connection (:hosts db) (:keyspace db))]
+    (cql/drop-table conn "messages")
+    (cql/drop-table conn "topic_summary")))
