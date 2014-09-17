@@ -9,7 +9,7 @@
   [target & args]
   (j/with-db-connection [db {:connection-uri (get-in target [:db :url])}]
     (let [t "users"]
-      (j/delete! db t ["true"])
+      (j/execute! db [(format "DELETE FROM %s CASCADE" t)])
       (j/insert! db t
                  ;; password: yods-pwd
                  {:id "yods" :name "Yodit S" :email "yodit@opensensors.io"
@@ -21,7 +21,7 @@
                  {:id "michaelklishin" :name "Michael Klishin" :email "michael@opensensors.io",
                   :password_hash "$s0$e0801$1/DTkx1MtXX511KH9TRjqg==$Skpfo5t6IyBY465bKXaTcOdMCL/jJEUF/kqM/swzGwc=" :role "user"}))
     (let [t "devices"]
-      (j/delete! db t ["true"])
+      (j/execute! db [(format "DELETE FROM %s CASCADE" t)])
       (j/insert! db t
                  ;; password: device-1-pwd
                  {:name "Pollution 1" :owner_user_id "yods"
@@ -36,14 +36,14 @@
                  {:name "Fab 5" :owner_user_id "michaelklishin"
                   :device_password_hash "$s0$e0801$fndkuyOGRHJcwU0LsTQwpw==$3t5c0YAk6F7ekWD8fbyOvSJholAKYReCdCq8uD/suWM="}))
     (let [t "topics"]
-      (j/delete! db t ["true"])
+      (j/execute! db [(format "DELETE FROM %s CASCADE" t)])
       (j/insert! db t
                  {:unit "PM10"    :name "pm10"   :topic "/users/yods/pm10-1" :public true :owner "yods"}
                  {:unit "PM10"    :name "pm10-2" :topic "/users/yods/pm10-2" :public true :owner "yods"}
                  {:unit "celcius" :name "temperature"  :topic "/users/yods/e12/temp1" :public true :owner "yods"}
                  {:unit "PM10"    :name "pm10-private" :topic "/users/yods/pm10-private" :public true :owner "yods"}))
     (let [t "subscriptions"]
-      (j/delete! db t ["true"])
+      (j/execute! db [(format "DELETE FROM %s CASCADE" t)])
       (j/insert! db t
                  {:user_id "michaelklishin" :topic "/users/yods/pm10-1"}
                  {:user_id "michaelklishin" :topic "/users/yods/pm10-2"}
