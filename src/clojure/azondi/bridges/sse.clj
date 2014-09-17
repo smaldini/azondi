@@ -29,7 +29,8 @@
       (if user
         (with-channel req channel
           (send! channel
-                 {:headers {"Content-Type" "text/event-stream"}} false)
+                 {:headers {"Content-Type" "text/event-stream"
+                            "Access-Control-Allow-Origin" "*"}} false)
           (debugf "Opening firehose (prefix:%s)" prefix)
           (debugf "Subscriptions are: [%s]" (apply str (interpose " " (map :topic (subscriptions-by-owner database user)))))
           (assert reactor)
@@ -85,7 +86,8 @@
   (fn [{{prefix :prefix} :route-params :as req}]
     (with-channel req channel
       (send! channel
-             {:headers {"Content-Type" "text/event-stream"}} false)
+             {:headers {"Content-Type" "text/event-stream"
+                        "Access-Control-Allow-Origin" "*"}} false)
       (let [rsub
             (mr/on
              reactor
