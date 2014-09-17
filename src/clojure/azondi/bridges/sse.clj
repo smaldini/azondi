@@ -52,9 +52,8 @@
                      (send! channel
                             (let [{:keys [charset] :as data} (:data evt)]
                               (str "data: "
-                                   (encode (cond-> data
-                                                   charset
-                                                   (update-in [:payload] read-bytes charset)))
+                                   (encode (-> data
+                                               (update-in [:payload] read-bytes charset)))
                                    "\r\n\r\n"))
                             false))))]
             (on-close channel (fn [status]
@@ -99,11 +98,11 @@
                       (let [public-topic? (-> (get-topic database topic)
                                               :public)]
                         public-topic?)))
+                 (debugf "Sending event source")
                  (send! channel
                         (let [{:keys [charset] :as data} (:data evt)]
                           (str "data: "
-                               (encode (cond-> data
-                                               charset
+                               (encode (-> data
                                                (update-in [:payload] read-bytes charset)))
                                "\r\n\r\n"))
                         false))))]
