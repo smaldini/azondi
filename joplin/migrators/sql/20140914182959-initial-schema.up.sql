@@ -23,7 +23,7 @@ CREATE TABLE IF NOT EXISTS api_keys (api text,
 CREATE UNIQUE INDEX api_user_id_idx ON api_keys(id);
 CREATE UNIQUE INDEX api_id_key_idx ON api_keys(api, id);
 CREATE INDEX api_created_on_idx ON api_keys(created_on);
-ALTER TABLE api_keys ADD CONSTRAINT api_id_fk FOREIGN KEY (id) REFERENCES users (id);
+ALTER TABLE api_keys ADD CONSTRAINT api_id_fk FOREIGN KEY (id) REFERENCES users (id) ON DELETE CASCADE;
 
 
 --
@@ -42,7 +42,7 @@ CREATE INDEX devices_owner_idx ON devices(owner_user_id);
 CREATE UNIQUE INDEX devices_client_id_owner_idx ON devices(client_id, owner_user_id);
 CREATE INDEX devices_created_on_idx ON devices(created_on);
 
-ALTER TABLE devices ADD CONSTRAINT devices_owner_fk FOREIGN KEY (owner_user_id) REFERENCES users (id);
+ALTER TABLE devices ADD CONSTRAINT devices_owner_fk FOREIGN KEY (owner_user_id) REFERENCES users (id)  ON DELETE CASCADE;
 
 --
 -- Topics & Subscriptions
@@ -60,7 +60,7 @@ CREATE UNIQUE INDEX topics_id_idx ON topics(topic);
 CREATE INDEX topics_owner_idx ON topics(owner);
 CREATE UNIQUE INDEX topics_id_owner_idx ON topics(topic, owner);
 CREATE INDEX topics_created_on_idx ON topics(created_on);
-ALTER TABLE topics ADD CONSTRAINT topics_owner_fk FOREIGN KEY (owner) REFERENCES users (id);
+ALTER TABLE topics ADD CONSTRAINT topics_owner_fk FOREIGN KEY (owner) REFERENCES users (id) ON DELETE CASCADE;
 
 CREATE TABLE IF NOT EXISTS subscriptions (user_id text NOT NULL,
                            topic text NOT NULL,
