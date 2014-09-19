@@ -4,7 +4,7 @@
 }
 
 body {
-   font-size: 20px;  
+   font-size: 20px;
   line-height: 1.428571429;
   background-color: #white;
   margin-top: auto;
@@ -17,7 +17,7 @@ h2 {font-weight: bold;}
 h3 {font-weight: bold;
 		 }
 
-.jumbotron {background: linear-gradient(#002, #005); 
+.jumbotron {background: linear-gradient(#002, #005);
 	    border-color: #141b1e;
 	    overflow: visible;
 	    height: 650px;
@@ -33,7 +33,7 @@ h3 {font-weight: bold;
 	 color: white;}
 
 #logoarea {height:100px;
-	
+
 	  }
 
 #osioheader{font-size: 4.250em;
@@ -54,18 +54,18 @@ h3 {font-weight: bold;
 #home-logo:hover {
     opacity: 0.4;
     filter: alpha(opacity=100); /* For IE8 and earlier */
-} 
+}
 .container-narrow {margin-left: 50px;
 		   margin-right: 50px;}
 
 #sidebar{width:20px;}
 
-/* make sidebar nav vertical */ 
+/* make sidebar nav vertical */
 @media (min-width: 768px) {
     .sidebar-nav .navbar .navbar-collapse {
     padding: 0;
     max-height: none;
-   
+
   }
   .sidebar-nav .navbar ul {
     float: none;
@@ -79,12 +79,12 @@ h3 {font-weight: bold;
     padding-top: 12px;
     padding-bottom: 12px;
   }
-  
+
 }
 
 .sbar {background-color: white;
       border-color: white;
-      } 
+      }
 #wrap {margin-bottom: 100px;
        margin-left: 0px;
        margin-right: 0px;
@@ -147,6 +147,22 @@ h3 {font-weight: bold;
 #beta-signup * {margin-bottom: 10px;
 	     }
 #beta-signup input {color: black;
+			   }
+#contact-us-form {width:300px;
+	      margin-left: 50px;
+	      padding: 20px;
+	      border: 1px solid rgba(0, 0, 0, 0.1);
+	      border-radius: 25px;
+	      height: 350px;}
+#contact-us-form .form-inline {margin-bottom: 0;
+	     }
+#contact-us-form button {margin-bottom: 0;
+	     }
+#contact-us-form input {color: black;
+        margin-bottom: 10px;
+			   }
+#contact-us-form textarea {color: black;
+        margin-bottom: 10px;
 			   }
 #username_notification {color: grey;}
 #email_notification {color: grey; }
@@ -216,13 +232,13 @@ h3 {font-weight: bold;
 .markdown-page * {padding: 10px;}
 #footer {
     position: relative;
-    background: linear-gradient(#002, #005); 
+    background: linear-gradient(#002, #005);
     clear:both;
      padding-top: 50px;
      padding-left: 200px;
      padding-bottom: 50px;
      color:white;
-     
+
 }
 
 #footer a {color: #ddd
