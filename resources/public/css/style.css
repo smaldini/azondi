@@ -154,9 +154,8 @@ h3 {font-weight: bold;
 	      border: 1px solid rgba(0, 0, 0, 0.1);
 	      border-radius: 25px;
 	      height: 350px;}
-#contact-us-form .form-inline {margin-bottom: 0;
-	     }
-#contact-us-form button {margin-bottom: 0;
+#contact-us-form button {
+        margin-top: 10px;
 	     }
 #contact-us-form input {color: black;
         margin-bottom: 10px;
