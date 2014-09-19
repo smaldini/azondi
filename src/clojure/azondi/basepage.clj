@@ -75,10 +75,10 @@
                       [:div.form-inline
 
                        [:input {:type "text" :class "form-control" :id "beta-name" :name "beta-name" :placeholder "Your Name"}]
-                       [:input {:type "text" :class "form-control" :id "beta-name" :name "beta-name" :placeholder "Your company"}]
+                       [:input {:type "text" :class "form-control" :id "beta-name" :name "beta-company" :placeholder "Your company"}]
                        [:input {:type "email" :class "form-control" :id "beta-email" :name "beta-email" :placeholder "Your Email"} [:i [:p#email_notification {:style "display:none"}]]]
-                       [:input {:type "email" :class "form-control" :id "beta-email" :name "beta-email" :placeholder "Your Phone Number"}]
-                       [:input {:type "email" :class "form-control" :id "beta-email" :name "beta-email" :placeholder "Any comments"}]
+                       [:input {:type "text" :class "form-control" :id "beta-name" :name "beta-phone" :placeholder "Your Phone Number"}]
+                       [:textarea {:cols 20 :rows 2 :id "beta-name" :name "beta-comments" :placeholder "Any comments"}]
                        [:button {:id "beta-access-btn" :type "submit" :class "btn btn-primary btn-lg"
                                  :disabled true} "Submit"]]])
 
