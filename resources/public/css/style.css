@@ -148,6 +148,9 @@ h3 {font-weight: bold;
 	     }
 #beta-signup input {color: black;
 			   }
+#contact-us-div {width:30%;
+	       margin: 0 auto;
+	       margin-top: 50px}
 #contact-us-form {width:300px;
 	      margin-left: 50px;
 	      padding: 20px;

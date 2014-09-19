@@ -57,7 +57,7 @@
      {:status 200
       :body (base-page
              (authenticate authenticator req)
-             [:div#sign-up-div contact-us-form])})
+             [:div#contact-us-div contact-us-form])})
 
    :help
    (fn [req]
