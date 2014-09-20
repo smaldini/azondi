@@ -57,6 +57,7 @@
                 (allow-filtering true)))
 
   (archive-message! [this data]
+    (println this)
     (let [now (tc/now)]
       (debugf "write %s" data)
       (cql/insert (:session this) table

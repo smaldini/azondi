@@ -11,14 +11,14 @@
    [clj-time.coerce :as tcc]
    [schema.core :as s]
    [clojure.data.json :as json]
-   [azondi.test-helpers :refer :all]))
+   [azondi.test-helpers :refer :all]
+   [azondi.joplin-helpers :as jh]))
 
-(load-cassandra-schema!)
-
+(use-fixtures :once jh/maybe-migrate-fixture)
 (use-fixtures :each (with-system-fixture new-api-system))
 
 (defn create-uri-with-dates
-  ([key-route api-key start-date end-date ]
+  ([key-route api-key start-date end-date]
      (create-uri-with-dates key-route api-key start-date end-date nil nil))
   ([key-route api-key start-date end-date entity-k entity-v ]
      (let [res (format  "%s?start-date=%s&end-date=%s"
@@ -28,14 +28,16 @@
          (format "%s&%s=%s" res entity-k entity-v)
          res))))
 
-(defn create-uri-device-topic-with-dates [ api-key start-date end-date]
+(defn create-uri-device-topic-with-dates
+  [api-key start-date end-date]
   (format  "%s?start-date=%s&end-date=%s"
            (make-uri :azondi.api/messages-by-owner :user "juan")
            start-date end-date))
 
 
 
-(defn date-test-fail [description route-key entity date-start date-end & contains]
+(defn date-test-fail
+  [description route-key entity date-start date-end & contains]
   (testing
     (let [api-key   (:api (.get-api-key (-> *system* :database) "juan"))
           uri-with-dates  (if-let [[k v] entity]
@@ -70,7 +72,8 @@
       (is (= 400 (:status response)))
       (is (= (format "You need to provide a %s" entity-str) (:error body))))))
 
-(defn test-entity-doesnt-exist [description key-route entity-str ]
+(defn test-entity-doesnt-exist
+  [description key-route entity-str ]
   (testing description
     (let [api-key   (:api (.get-api-key (-> *system* :database) "juan"))
           uri    (format  "%s?%s=%s"
@@ -135,7 +138,7 @@
                                      "1002")
          response (request :get uri-without-dates :api-key api-key :expected 200)]
 
-     (is (= 2(count (get-in response [:body :messages])))))
+     (is (= 2 (count (get-in response [:body :messages])))))
 
     (let [api-key   (:api (.get-api-key (-> *system* :database) "juan"))
           uri-with-dates    (format  "%s?client=%s&start-date=%s&end-date=%s"
@@ -143,7 +146,7 @@
                                      "1002" "2014-01-15" "2014-01-17")
          response (request :get uri-with-dates :api-key api-key :expected 200)]
 
-     (is (= 1(count (get-in response [:body :messages]))))))
+     (is (= 1 (count (get-in response [:body :messages]))))))
 
   (testing "messages topic public/private"
     (let [api-key   (:api (.get-api-key (-> *system* :database) "yods"))
@@ -209,8 +212,7 @@
                                      (make-uri :azondi.api/messages-by-topic :user "juan")
                                      "/users/juan/test-private")
          response (request :get uri-without-dates :api-key api-key :expected 200)]
-     (is (= 2 (count (get-in response [:body :messages])))))
-    )
+     (is (= 2 (count (get-in response [:body :messages]))))))
 
 
   ;; testing date values and format
@@ -239,29 +241,3 @@
                   "2014-01-15" "2014-00-17"
                   "the month number has to be within 1 and 12"
                   "end-date value malfomed")))
-
-(comment
-  (with-system (new-api-messages-system)
-
-    (.create-topic! (-> *system* :database ) {:topic "mytopic" :owner "juan" :public true})
-    (map :device_id (-> *system* :cassandra :database :messages deref))
-
-)
-
-
-
-
-  (with-system (new-api-messages-system)
-   (let [api-key   (:api (.get-api-key (-> *system* :database) "yods"))
-          uri-with-dates    (format  "%s?topic=%s&start-date=%s&end-date=%s"
-                                     (make-uri :azondi.api/messages-by-topic :user "yods")
-                                     "/users/juan/test-private"
-                                     "2014-01-15" "2014-01-17")
-         response (request :get uri-with-dates :api-key api-key :expected 401)]
-
-     response)
-
-   ))
-
-(drop-cassandra-tables)
-
