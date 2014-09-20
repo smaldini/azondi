@@ -97,9 +97,11 @@
                  [clojurewerkz/stream-punk "1.0.0-beta1"]
 
                  ;; database migrations
-                 [joplin.core      "0.1.11"]
-                 [joplin.jdbc      "0.1.11"]
-                 [joplin.cassandra "0.1.11"]
+                 [joplin.core          "0.1.11" :exclusions [ragtime/ragtime]]
+                 ;; see weavejester/ragtime#44
+                 [clojurewerkz/ragtime "0.3.8"]
+                 [joplin.jdbc          "0.1.11"]
+                 [joplin.cassandra     "0.1.11"]
                 ]
 
   :jvm-opts ^:replace ["-server" "-Xss8m" "-Xmx1g" "-Duser.timezone=UTC"]
