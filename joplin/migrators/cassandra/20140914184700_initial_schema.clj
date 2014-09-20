@@ -5,13 +5,8 @@
 
 (defn up
   [db]
-  (let [conn (jc/get-connection (:hosts db) (:keyspace db))
-        ks   (:keyspace db)]
-    (cql/create-keyspace conn ks
-                         (with {:replication {:class              "SimpleStrategy"
-                                              :replication_factor 2}})
-                         (if-not-exists))
-    (cql/use-keyspace conn ks)
+  (let [ks   (:keyspace db)
+        conn (jc/get-connection (:hosts db) ks)]
     (cql/create-table conn "messages"
                       (if-not-exists)
                       (column-definitions {:device_id     :text
