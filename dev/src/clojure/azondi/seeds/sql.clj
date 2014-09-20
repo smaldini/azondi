@@ -24,16 +24,16 @@
       (j/execute! db [(format "DELETE FROM %s CASCADE" t)])
       (j/insert! db t
                  ;; password: device-1-pwd
-                 {:name "Pollution 1" :owner_user_id "yods"
+                 {:name "Pollution 1" :client_id 1 :owner_user_id "yods"
                   :device_password_hash "$s0$e0801$UFqu7r6NqzzA8f2Izbgjig==$D5QttKRnviio4CT8YON+m9OoesbDNen4r0c7P19pqsE="}
                  ;; password: device-2-pwd
-                 {:name "Pollution 2" :owner_user_id "yods"
+                 {:name "Pollution 2" :client_id 2 :owner_user_id "yods"
                   :device_password_hash "$s0$e0801$obspyjv/9zmFcD9we9A3oA==$fqeO5pvrR57aaqy4EAy9P3hZ+DS/yoT9GtfJnA3aLq4="}
                  ;; password: device-3-pwd
-                 {:name "Foo 3" :owner_user_id "yods"
+                 {:name "Foo 3" :client_id 3 :owner_user_id "yods"
                   :device_password_hash "$s0$e0801$EGG/OmC7ZEIUOkU9t/m5XQ==$oyI8bQInV1jeaMYaV4tHxleK3Hzarr4IrLGb6dA+Vtc="}
                  ;; password: device-4-pwd
-                 {:name "Fab 5" :owner_user_id "michaelklishin"
+                 {:name "Fab 5" :client_id 4 :owner_user_id "michaelklishin"
                   :device_password_hash "$s0$e0801$fndkuyOGRHJcwU0LsTQwpw==$3t5c0YAk6F7ekWD8fbyOvSJholAKYReCdCq8uD/suWM="}))
     (let [t "topics"]
       (j/execute! db [(format "DELETE FROM %s CASCADE" t)])
