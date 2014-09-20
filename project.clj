@@ -111,11 +111,19 @@
            :seeds     {:pg-seed "azondi.seeds.sql/run"
                        :c*-seed "azondi.seeds.cassandra/run"}
            :databases {:pg-dev {:type :jdbc :url "jdbc:postgresql://127.0.0.1/osio?user=azondi&password=opendata"}
-                       :c*-dev {:type :cass :hosts ["127.0.0.1"] :keyspace "opensensors"}}
+                       :c*-dev {:type :cass :hosts ["127.0.0.1"] :keyspace "opensensors"}
+                       :pg-test {:type :jdbc :url "jdbc:postgresql://127.0.0.1/opensensors_test?user=azondi&password=opendata"}
+                       :c*-test {:type :cass :hosts ["127.0.0.1"] :keyspace "opensensors_test"}}
            :environments {:dev  [{:db       :pg-dev
                                   :migrator :pg-mig
                                   :seed     :pg-seed}
                                  {:db       :c*-dev
+                                  :migrator :c*-mig
+                                  :seed     :c*-seed}]
+                          :test [{:db       :pg-test
+                                  :migrator :pg-mig
+                                  :seed     :pg-seed}
+                                 {:db       :c*-test
                                   :migrator :c*-mig
                                   :seed     :c*-seed}]
                           :prod []}}
