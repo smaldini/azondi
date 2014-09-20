@@ -14,7 +14,6 @@
           sub (mr/on r ($ rk/message-published)
                      (fn [{:keys [data]}]
                        (archive-message! (:cassandra this) data)))]
-     ;; (debugf "archiving data %s" data)
       (-> this
           (assoc :subscription sub))))
   (stop [this]
