@@ -4,11 +4,12 @@
             [azondi.transports.mqtt :as mqtt]
             [clojurewerkz.machine-head.client :as mh]
             [clojurewerkz.machine-head.durability :as md]
+            [azondi.joplin-helpers :as jh]
             [azondi.transports.test-helpers :as th])
   (:import [java.util.concurrent CountDownLatch TimeUnit]
            java.util.UUID))
 
-(use-fixtures :once th/maybe-migrate-fixture)
+(use-fixtures :once jh/maybe-migrate-fixture)
 (use-fixtures :each th/with-system-fixture)
 
 (defn await
