@@ -60,9 +60,9 @@
   (let [tk (topk/stream-summary 100)
         notify-reactor (fn [evt date]
                          (when-let [topic (-> evt :data :topic)]
-                           (debugf "daily topic is %s" topic)
+                           #_ (debugf "daily topic is %s" topic)
                            (do (topk/offer tk {:date date :topic topic :device-id (-> evt :data :device_id)})
-                               (debugf "daily device top k are %s" (encode (topk/top-k-as-maps tk 100)))
+                               #_ (debugf "daily device top k are %s" (encode (topk/top-k-as-maps tk 100)))
                                (mr/notify reactor rk/topic-device-summary (encode {:topic-summary (topk/top-k-as-maps tk 100)})))))
         rsub  (mr/on
                reactor
