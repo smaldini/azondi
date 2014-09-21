@@ -211,7 +211,6 @@
    :malformed? (malformed-messages-by-call? :topic)
    :handle-malformed (fn [ctx] {:status 400 :error (::error ctx)} )
    :exists? (fn [ctx]
-               (println "topic " (::topic ctx))
                (if-let [topic (::topic ctx)]
                         [true ]
                         [false {:status 404 ::error (str "Topic not found: " (::topic-req ctx)) :representation {:media-type "application/json"}}]) )

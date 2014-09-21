@@ -57,7 +57,6 @@
                 (allow-filtering true)))
 
   (archive-message! [this data]
-    (println this)
     (let [now (tc/now)]
       (cql/insert (:session this) table
                   (merge data
