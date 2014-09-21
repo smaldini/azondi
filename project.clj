@@ -29,7 +29,7 @@
                  ;; Database
                  [org.clojure/java.jdbc "0.3.3"]
                  [postgresql/postgresql "8.4-702.jdbc4"]
-                 [clojurewerkz/cassaforte "2.0.0-beta3"]
+                 [clojurewerkz/cassaforte "2.0.0-beta4"]
 
                  ;; HeapByteBuffer - String converter
                  [byte-streams "0.1.11"]
@@ -97,11 +97,11 @@
                  [clojurewerkz/stream-punk "1.0.0-beta1"]
 
                  ;; database migrations
-                 [joplin.core          "0.1.11" :exclusions [ragtime/ragtime]]
+                 [joplin.core          "0.1.12" :exclusions [ragtime/ragtime]]
                  ;; see weavejester/ragtime#44
                  [clojurewerkz/ragtime "0.3.8"]
-                 [joplin.jdbc          "0.1.11"]
-                 [joplin.cassandra     "0.1.11"]
+                 [joplin.jdbc          "0.1.12"]
+                 [joplin.cassandra     "0.1.12"]
                 ]
 
   :jvm-opts ^:replace ["-server" "-Xss8m" "-Xmx1g" "-Duser.timezone=UTC"]
