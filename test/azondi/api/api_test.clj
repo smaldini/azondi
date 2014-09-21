@@ -77,7 +77,7 @@
           (uri-context (-> *system* :api))
           (apply path-for (routes (-> *system* :api)) target args)))
 
-(deftest test-welcome
+(deftest ^{:api true} test-welcome
   (testing "control"
     (is (= (+ 2 2) 4)))
 
@@ -85,7 +85,7 @@
     (is (= (make-uri :azondi.api/welcome)
            (format "http://localhost:%d/api/1.0" PORT)))))
 
-(deftest test-users
+(deftest ^{:api true} test-users
   (testing "user path"
     (is (= (make-uri :azondi.api/user :user "alice")
            (format "http://localhost:%d/api/1.0/users/alice" PORT))))
@@ -235,7 +235,7 @@
               (is (= (-> topics-response :body :topics count) 0)))))))))
 
 
-(deftest test-users-via-api-key
+(deftest ^{:api true} test-users-via-api-key
   (testing "user path"
     (is (= (make-uri :azondi.api/user :user "alice")
            (format "http://localhost:%d/api/1.0/users/alice" PORT))))

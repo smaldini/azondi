@@ -9,12 +9,12 @@
 (use-fixtures :once jh/maybe-migrate-fixture)
 (use-fixtures :each (th/with-system-fixture th/new-api-system))
 
-(deftest test-welcome
+(deftest ^{:api true} test-welcome
   (testing "welcome path"
     (is (= (th/make-uri :azondi.api/welcome)
            (format "http://localhost:%d/api/1.0" 8020)))))
 
-(deftest public-topics
+(deftest ^{:api true} public-topics
   (testing "public topics"
     (let [public-topics-uri (th/make-uri :azondi.api/public-topics :user "yods")
           response (request :get public-topics-uri)]
@@ -23,7 +23,7 @@
       (is (= 200 (:status response)))
       (is (= 4 (count (-> response :body :topics)))))))
 
-(deftest public-topic
+(deftest ^{:api true} public-topic
   (testing "public topic"
     (let [public-topic-uri (th/make-uri :azondi/public-topics :user "yods" :topic-name "/users/yods/foo")
           response (request :get public-topic-uri)]
