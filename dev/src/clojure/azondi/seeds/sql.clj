@@ -22,7 +22,10 @@
                   :password_hash "$s0$e0801$1/DTkx1MtXX511KH9TRjqg==$Skpfo5t6IyBY465bKXaTcOdMCL/jJEUF/kqM/swzGwc=" :role "user"}
                  ;; password: juan-pwd
                  {:id "juan" :name "Juan Antonio Ruz" :email "juan@opensensors.io",
-                  :password_hash "$s0$e0801$qoEgrYNdem4lbyclYlogYg==$OHuRJ6yT9YmuJhHtJMvS5x3SE9ztTX/D2fuM7iP2lP0=" :role "user"}))
+                  :password_hash "$s0$e0801$qoEgrYNdem4lbyclYlogYg==$OHuRJ6yT9YmuJhHtJMvS5x3SE9ztTX/D2fuM7iP2lP0=" :role "user"}
+                 ;; password: andrey-pwd
+                 {:id "andrey" :name "Andrey Barkanov" :email "andrey@opensensors.io",
+                  :password_hash "$s0$e0801$0ATDyEeSCb9Ur/pTq08nYw==$f7cktstlonSxwe6U+f2EZpRMXJgio3bq8+j3bauSe0w=" :role "user"}))
     (let [t "devices"]
       (j/execute! db [(format "DELETE FROM %s" t)])
       (j/insert! db t
@@ -47,7 +50,10 @@
       (j/insert! db t
                  {:id "michaelklishin" :api "aa858dc6-4172-11e4-99bb-28cfe917f97b"})
       (j/insert! db t
-                 {:id "juan"           :api "aadd4d36-4172-11e4-a0bf-28cfe917f97b"}))
+                 {:id "juan"           :api "aadd4d36-4172-11e4-a0bf-28cfe917f97b"})
+      (j/insert! db t
+                 {:id "andrey"         :api "5d70ee3a-4173-11e4-ae7a-28cfe917f97b"}))
+
     (let [t "topics"]
       (j/execute! db [(format "DELETE FROM %s" t)])
       (j/insert! db t
