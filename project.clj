@@ -136,4 +136,5 @@
 
              :uberjar {:main azondi.main
                        :aot [azondi.main]}}
-  :test-selectors {:mqtt :mqtt})
+  :test-selectors {:mqtt :mqtt
+                   :api  :api})
