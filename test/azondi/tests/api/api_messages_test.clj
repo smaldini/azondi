@@ -73,17 +73,18 @@
 (defn test-entity-doesnt-exist
   [description key-route entity-str ]
   (testing description
-    (let [api-key   (:api (.get-api-key (-> *system* :database) "juan"))
-          uri    (format  "%s?%s=%s"
-                          (make-uri key-route :user "juan")
-                          entity-str
-                          "nonexistent-value")
+    (let [id      "99826109972999"
+          api-key (:api (.get-api-key (-> *system* :database) "juan"))
+          uri     (format  "%s?%s=%s"
+                           (make-uri key-route :user "juan")
+                           entity-str
+                           id)
           response (request :get uri :api-key api-key :expected 404)
           body (json/read-str (:body response) :key-fn keyword)]
       (is (= 404 (:status response)))
       (is (true? (.contains (:error body)
                             (format "%s not found: %s"
-                                    (capitalize entity-str) "nonexistent-value")))))))
+                                    (capitalize entity-str) id)))))))
 
 (defn authorization-test-fail
   ([key-route]
