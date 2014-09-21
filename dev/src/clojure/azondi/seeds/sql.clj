@@ -43,12 +43,16 @@
                  ;; password: device-4-pwd
                  {:name "Fab 5" :client_id 4 :owner_user_id "michaelklishin"
                   :device_password_hash "$s0$e0801$fndkuyOGRHJcwU0LsTQwpw==$3t5c0YAk6F7ekWD8fbyOvSJholAKYReCdCq8uD/suWM="}
+                 ;; password: passwd1
                  {:name "Juan's device 1" :client_id 1001 :owner_user_id "juan"
                   :device_password_hash "$s0$e0801$CGJC1yHaAthChweDa8LVjQ==$0yDl/ZjncxdY6DgrlKhEbGPUxTXfZRqd7joJKCFa69U="}
+                 ;; password: passwd2
                  {:name "Juan's device 2" :client_id 1002 :owner_user_id "juan"
                   :device_password_hash "$s0$e0801$9eYh6m47O6X9Rb1AjphvjA==$tzwfWFGc+IBCpOIlajyujdF34tcieukvmqtQzroK5aM="}
+                 ;; password: passwd-yods
                  {:name "Yods' device" :client_id 1003 :owner_user_id "yods"
                   :device_password_hash "$s0$e0801$LawK0Q5dY7ZIqUEcf24mpA==$xUazLtPjotNeyuidOzDPGYY5vZIPUe2o9+tV3kkoGlY="}
+                 ;; password: passwd-malcolm
                  {:name "Malcolm's device" :client_id 1004 :owner_user_id "malcolmsparks"
                   :device_password_hash "$s0$e0801$RcgIVVyrxhtkP1iyG9ReOA==$O76ki5sIAMl9rX6IfeybRykztZFM6dE+WUBQt1rqF6A="}))
     (let [t "api_keys"]
