@@ -13,7 +13,8 @@
 (defn make-uri [route]
   (str "http://localhost:8010/api/1.0" route))
 
-(defrecord DBSeedData []
+(comment
+  (defrecord DBSeedData []
   component/Lifecycle
   (start [this]
     (try
@@ -57,4 +58,4 @@
       (catch Exception e (errorf e "Error seeding data")))
     this
       )
-  (stop [this] this))
+  (stop [this] this)))
