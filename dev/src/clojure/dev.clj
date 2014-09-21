@@ -5,7 +5,6 @@
    [clojure.repl :refer (apropos dir doc find-doc pst source)]
    [com.stuartsierra.component :as component]
    [clojure.tools.namespace.repl :refer (refresh refresh-all)]
-   [azondi.dev-system :refer (new-dev-system)]
    [clojure.tools.logging :refer (infof)]
    env))
 

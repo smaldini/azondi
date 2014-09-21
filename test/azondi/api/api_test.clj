@@ -14,7 +14,6 @@
    [azondi.http :refer (request)]
    [azondi.dev-db :refer (new-inmemory-datastore)]
    [azondi.db :refer (get-user create-api-key get-api-key)]
-   [azondi.dev-system :refer (new-dev-user-domain)]
    [azondi.cassandra :as cass]
    [schema.core :as s]
    [azondi.system :refer (config)]))
@@ -40,7 +39,7 @@
                     :http-authenticator
                     :api-key-authenticator
                     )
-    :user-domain (new-dev-user-domain))
+    :user-domain {})
 
    {:webserver {:request-handler :webrouter}
     :webrouter [:api]

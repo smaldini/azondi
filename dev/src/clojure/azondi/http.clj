@@ -5,7 +5,8 @@
    [clojure.pprint :refer (pprint)]
    [azondi.api :refer (->js ->clj)]))
 
-(defn request [method uri & {:keys [data api-key expected auth]}]
+(defn request
+  [method uri & {:keys [data api-key expected auth]}]
   (let [response
         @(http-request
           (merge
