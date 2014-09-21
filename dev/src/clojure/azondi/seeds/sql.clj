@@ -71,7 +71,9 @@
                  {:unit "PM10"    :name "pm10"   :topic "/users/yods/pm10-1" :public true :owner "yods"}
                  {:unit "PM10"    :name "pm10-2" :topic "/users/yods/pm10-2" :public true :owner "yods"}
                  {:unit "celcius" :name "temperature"  :topic "/users/yods/e12/temp1" :public true :owner "yods"}
-                 {:unit "PM10"    :name "pm10-private" :topic "/users/yods/pm10-private" :public true :owner "yods"}))
+                 {:unit "PM10"    :name "pm10-private" :topic "/users/yods/pm10-private" :public true :owner "yods"}
+                 {:unit "dummy"   :name "juan-test-public"  :topic "/users/juan/test-public"  :public true :owner "juan"}
+                 {:unit "dummy"   :name "juan-test-private" :topic "/users/juan/test-private" :public false :owner "juan"}))
     (let [t "subscriptions"]
       (j/execute! db [(format "DELETE FROM %s" t)])
       (j/insert! db t
