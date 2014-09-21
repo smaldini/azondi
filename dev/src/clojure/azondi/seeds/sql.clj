@@ -9,7 +9,7 @@
   [target & args]
   (j/with-db-connection [db {:connection-uri (get-in target [:db :url])}]
     (let [t "users"]
-      (j/execute! db [(format "DELETE FROM %s CASCADE" t)])
+      (j/execute! db [(format "DELETE FROM %s" t)])
       (j/insert! db t
                  ;; password: yods-pwd
                  {:id "yods" :name "Yodit S" :email "yodit@opensensors.io"
@@ -19,9 +19,12 @@
                   :password_hash "$s0$e0801$/eFWoMrBH8qvbOV6Sha5oA==$1XCf1mQvBdIWqY0rtcZax426itISxCq/J/LMMqUuHqM=" :role "user"}
                  ;; password: michael-pwd
                  {:id "michaelklishin" :name "Michael Klishin" :email "michael@opensensors.io",
-                  :password_hash "$s0$e0801$1/DTkx1MtXX511KH9TRjqg==$Skpfo5t6IyBY465bKXaTcOdMCL/jJEUF/kqM/swzGwc=" :role "user"}))
+                  :password_hash "$s0$e0801$1/DTkx1MtXX511KH9TRjqg==$Skpfo5t6IyBY465bKXaTcOdMCL/jJEUF/kqM/swzGwc=" :role "user"}
+                 ;; password: juan-pwd
+                 {:id "juan" :name "Juan Antonio Ruz" :email "juan@opensensors.io",
+                  :password_hash "$s0$e0801$qoEgrYNdem4lbyclYlogYg==$OHuRJ6yT9YmuJhHtJMvS5x3SE9ztTX/D2fuM7iP2lP0=" :role "user"}))
     (let [t "devices"]
-      (j/execute! db [(format "DELETE FROM %s CASCADE" t)])
+      (j/execute! db [(format "DELETE FROM %s" t)])
       (j/insert! db t
                  ;; password: device-1-pwd
                  {:name "Pollution 1" :client_id 1 :owner_user_id "yods"
@@ -35,15 +38,25 @@
                  ;; password: device-4-pwd
                  {:name "Fab 5" :client_id 4 :owner_user_id "michaelklishin"
                   :device_password_hash "$s0$e0801$fndkuyOGRHJcwU0LsTQwpw==$3t5c0YAk6F7ekWD8fbyOvSJholAKYReCdCq8uD/suWM="}))
+    (let [t "api_keys"]
+      (j/execute! db [(format "DELETE FROM %s" t)])
+      (j/insert! db t
+                 {:id "yods"           :api "81f8f802-4172-11e4-8e10-28cfe917f97b"})
+      (j/insert! db t
+                 {:id "malcolmsparks"  :api "a4cdd38e-4172-11e4-b332-28cfe917f97b"})
+      (j/insert! db t
+                 {:id "michaelklishin" :api "aa858dc6-4172-11e4-99bb-28cfe917f97b"})
+      (j/insert! db t
+                 {:id "juan"           :api "aadd4d36-4172-11e4-a0bf-28cfe917f97b"}))
     (let [t "topics"]
-      (j/execute! db [(format "DELETE FROM %s CASCADE" t)])
+      (j/execute! db [(format "DELETE FROM %s" t)])
       (j/insert! db t
                  {:unit "PM10"    :name "pm10"   :topic "/users/yods/pm10-1" :public true :owner "yods"}
                  {:unit "PM10"    :name "pm10-2" :topic "/users/yods/pm10-2" :public true :owner "yods"}
                  {:unit "celcius" :name "temperature"  :topic "/users/yods/e12/temp1" :public true :owner "yods"}
                  {:unit "PM10"    :name "pm10-private" :topic "/users/yods/pm10-private" :public true :owner "yods"}))
     (let [t "subscriptions"]
-      (j/execute! db [(format "DELETE FROM %s CASCADE" t)])
+      (j/execute! db [(format "DELETE FROM %s" t)])
       (j/insert! db t
                  {:user_id "michaelklishin" :topic "/users/yods/pm10-1"}
                  {:user_id "michaelklishin" :topic "/users/yods/pm10-2"}
