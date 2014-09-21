@@ -59,16 +59,13 @@
   (archive-message! [this data]
     (println this)
     (let [now (tc/now)]
-      (debugf "write %s" data)
       (cql/insert (:session this) table
-                        (merge data
-                               {:created_at    (.toDate now)
-                                :date_and_hour (tf/unparse date-and-hour-formatter now)}))
-      (debugf "Data to be inserted is %s" data)))
+                  (merge data
+                         {:created_at    (.toDate now)
+                          :date_and_hour (tf/unparse date-and-hour-formatter now)}))))
 
   TopicSummaryStore
   (archive-summary! [this data]
-    (debugf "archive topic summary data %s" data)
     (let [now (tc/now)]
       (cql/insert (:session this) summary-table
                   (merge data
