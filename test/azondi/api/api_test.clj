@@ -11,12 +11,12 @@
    [cylon.impl.login-form :refer (new-login-form)]
    [cylon.impl.authentication :refer (new-composite-disjunctive-authenticator
                                       new-http-basic-authenticator)]
-   [azondi.http :refer (request)]
-   [azondi.dev-db :refer (new-inmemory-datastore)]
+   [azondi.helpers.http :refer [request]]
    [azondi.db :refer (get-user create-api-key get-api-key)]
    [azondi.cassandra :as cass]
    [schema.core :as s]
-   [azondi.system :refer (config)]))
+   [azondi.system :refer (config)]
+   [azondi.joplin-helpers :as jh]))
 
 (def PORT 8099)
 
@@ -28,7 +28,10 @@
    (component/system-map
     :webserver (new-webserver :port PORT)
     :webrouter (new-router)
-    :database (new-inmemory-datastore)
+    :database  {:host "127.0.0.1"
+                :dbname jh/test-postgresql-db
+                :user jh/test-postgresql-user
+                :password "opendata"}
     :cassandra (cass/new-database
                  (get (config) :cassandra {:keyspace "opensensors" :hosts ["127.0.0.1"]}))
     :api (new-api :uri-context "/api/1.0")
@@ -39,6 +42,7 @@
                     :http-authenticator
                     :api-key-authenticator
                     )
+    ;; TODO
     :user-domain {})
 
    {:webserver {:request-handler :webrouter}

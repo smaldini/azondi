@@ -56,7 +56,8 @@
     :authenticator (new-composite-disjunctive-authenticator
                     :http-authenticator
                     :api-key-authenticator)
-    :user-domain (new-dev-user-domain))
+    ;; TODO
+    :user-domain {})
 
    {:webserver {:request-handler :webrouter}
     :webrouter [:api]}))

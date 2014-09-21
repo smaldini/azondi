@@ -1,17 +1,25 @@
-(ns azondi.seed
+(ns azondi.helpers.seed
   (:require
    [com.stuartsierra.component :as component]
-   [azondi.http :refer (request)]
    [azondi.db :refer (create-user! create-api-key)]
    [byte-streams :refer (convert)]
    [azondi.messages-db :refer (archive-message!)]
-   [azondi.dev-db :refer (archive-message-with-date!)]
    [clojure.tools.logging :refer :all]
    [bidi.bidi :refer (path-for)]
-   [clj-time.core   :as tc]))
+   [clj-time.core   :as tc])
+  (:import org.joda.time.DateTime
+           java.sql.Timestamp))
 
-(defn make-uri [route]
-  (str "http://localhost:8010/api/1.0" route))
+(defn make-uri
+  [^String path]
+  (str "http://localhost:8010/api/1.0" path))
+
+(defn ^Timestamp sql-timestamp
+  "Like clj-time.core/date-time but produces a SQL timestamp that can be
+   used with JDBC"
+  [& args]
+  (let [^DateTime dt (apply tc/date-time args)]
+    (Timestamp. (.. dt toDate getTime))))
 
 (comment
   (defrecord DBSeedData []

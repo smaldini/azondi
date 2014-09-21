@@ -1,4 +1,4 @@
-(ns azondi.http
+(ns azondi.helpers.http
   (:require
    [org.httpkit.client :refer (request) :rename {request http-request}]
    [cheshire.core :refer (encode decode)]
