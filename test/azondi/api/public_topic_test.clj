@@ -1,8 +1,8 @@
-(ns azondi.public-topic-test
+(ns azondi.api.public-topic-test
   (:require [clojure.test :refer :all]
-            [azondi.test-helpers :as th]
-            [azondi.http :refer (request)]
             [com.stuartsierra.component :as component :refer (system-map system-using)]
+            [azondi.test-helpers :as th]
+            [azondi.helpers.http :refer (request)]
             [azondi.joplin-helpers :as jh]))
 
 
