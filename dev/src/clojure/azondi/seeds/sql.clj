@@ -42,22 +42,26 @@
                   :device_password_hash "$s0$e0801$EGG/OmC7ZEIUOkU9t/m5XQ==$oyI8bQInV1jeaMYaV4tHxleK3Hzarr4IrLGb6dA+Vtc="}
                  ;; password: device-4-pwd
                  {:name "Fab 5" :client_id 4 :owner_user_id "michaelklishin"
-                  :device_password_hash "$s0$e0801$fndkuyOGRHJcwU0LsTQwpw==$3t5c0YAk6F7ekWD8fbyOvSJholAKYReCdCq8uD/suWM="}))
+                  :device_password_hash "$s0$e0801$fndkuyOGRHJcwU0LsTQwpw==$3t5c0YAk6F7ekWD8fbyOvSJholAKYReCdCq8uD/suWM="}
+                 {:name "Juan's device 1" :client_id 1001 :owner_user_id "juan"
+                  :device_password_hash "$s0$e0801$CGJC1yHaAthChweDa8LVjQ==$0yDl/ZjncxdY6DgrlKhEbGPUxTXfZRqd7joJKCFa69U="}
+                 {:name "Juan's device 2" :client_id 1002 :owner_user_id "juan"
+                  :device_password_hash "$s0$e0801$9eYh6m47O6X9Rb1AjphvjA==$tzwfWFGc+IBCpOIlajyujdF34tcieukvmqtQzroK5aM="}
+                 {:name "Yods' device" :client_id 1003 :owner_user_id "yods"
+                  :device_password_hash "$s0$e0801$LawK0Q5dY7ZIqUEcf24mpA==$xUazLtPjotNeyuidOzDPGYY5vZIPUe2o9+tV3kkoGlY="}
+                 {:name "Malcolm's device" :client_id 1004 :owner_user_id "malcolmsparks"
+                  :device_password_hash "$s0$e0801$RcgIVVyrxhtkP1iyG9ReOA==$O76ki5sIAMl9rX6IfeybRykztZFM6dE+WUBQt1rqF6A="}))
     (let [t "api_keys"]
       (j/execute! db [(format "DELETE FROM %s" t)])
       (j/insert! db t
                  {:id "yods"           :api "81f8f802-4172-11e4-8e10-28cfe917f97b"
-                  :created_on (as/sql-timestamp 2014 1 12 12 0 0)})
-      (j/insert! db t
+                  :created_on (as/sql-timestamp 2014 1 12 12 0 0)}
                  {:id "malcolmsparks"  :api "a4cdd38e-4172-11e4-b332-28cfe917f97b"
-                  :created_on (as/sql-timestamp 2014 1 13 12 0 0)})
-      (j/insert! db t
+                  :created_on (as/sql-timestamp 2014 1 13 12 0 0)}
                  {:id "michaelklishin" :api "aa858dc6-4172-11e4-99bb-28cfe917f97b"
-                  :created_on (as/sql-timestamp 2014 1 18 12 0 0)})
-      (j/insert! db t
+                  :created_on (as/sql-timestamp 2014 1 18 12 0 0)}
                  {:id "juan"           :api "aadd4d36-4172-11e4-a0bf-28cfe917f97b"
-                  :created_on (as/sql-timestamp 2014 1 16 12 0 0)})
-      (j/insert! db t
+                  :created_on (as/sql-timestamp 2014 1 16 12 0 0)}
                  {:id "andrey"         :api "5d70ee3a-4173-11e4-ae7a-28cfe917f97b"
                   :created_on (as/sql-timestamp 2014 1 19 12 0 0)}))
 
