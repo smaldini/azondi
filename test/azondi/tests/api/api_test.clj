@@ -40,10 +40,8 @@
     :api-key-authenticator (new-api-key-authenticator)
     :authenticator (new-composite-disjunctive-authenticator
                     :http-authenticator
-                    :api-key-authenticator
-                    )
-    ;; TODO
-    :user-domain {})
+                    :api-key-authenticator)
+    :user-domain (new-postgres-user-domain))
 
    {:webserver {:request-handler :webrouter}
     :webrouter [:api]
