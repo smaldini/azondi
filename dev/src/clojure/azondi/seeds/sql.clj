@@ -1,5 +1,7 @@
 (ns azondi.seeds.sql
-  (:require [clojure.java.jdbc :as j]))
+  (:require [clojure.java.jdbc :as j]
+            [clj-time.core :as tc]
+            [azondi.helpers.seed :as as]))
 
 ;;
 ;; API
@@ -44,15 +46,20 @@
     (let [t "api_keys"]
       (j/execute! db [(format "DELETE FROM %s" t)])
       (j/insert! db t
-                 {:id "yods"           :api "81f8f802-4172-11e4-8e10-28cfe917f97b"})
+                 {:id "yods"           :api "81f8f802-4172-11e4-8e10-28cfe917f97b"
+                  :created_on (as/sql-timestamp 2014 1 12 12 0 0)})
       (j/insert! db t
-                 {:id "malcolmsparks"  :api "a4cdd38e-4172-11e4-b332-28cfe917f97b"})
+                 {:id "malcolmsparks"  :api "a4cdd38e-4172-11e4-b332-28cfe917f97b"
+                  :created_on (as/sql-timestamp 2014 1 13 12 0 0)})
       (j/insert! db t
-                 {:id "michaelklishin" :api "aa858dc6-4172-11e4-99bb-28cfe917f97b"})
+                 {:id "michaelklishin" :api "aa858dc6-4172-11e4-99bb-28cfe917f97b"
+                  :created_on (as/sql-timestamp 2014 1 18 12 0 0)})
       (j/insert! db t
-                 {:id "juan"           :api "aadd4d36-4172-11e4-a0bf-28cfe917f97b"})
+                 {:id "juan"           :api "aadd4d36-4172-11e4-a0bf-28cfe917f97b"
+                  :created_on (as/sql-timestamp 2014 1 16 12 0 0)})
       (j/insert! db t
-                 {:id "andrey"         :api "5d70ee3a-4173-11e4-ae7a-28cfe917f97b"}))
+                 {:id "andrey"         :api "5d70ee3a-4173-11e4-ae7a-28cfe917f97b"
+                  :created_on (as/sql-timestamp 2014 1 19 12 0 0)}))
 
     (let [t "topics"]
       (j/execute! db [(format "DELETE FROM %s" t)])
