@@ -98,7 +98,7 @@
        (is (= 401 (:status response))))))
 
 
-(deftest test-messages
+(deftest ^{:api true} test-messages
   "checking messages from seed-data"
 
   (authorization-test-fail :azondi.api/messages-by-owner)
