@@ -1,4 +1,4 @@
-(ns azondi.transports.test-helpers
+(ns azondi.tests.transports.test-helpers
   (:require [clojure.java.io :as io]
             [clojure.java.jdbc :as psql]
             [clojure.java.shell :as sh]
@@ -15,7 +15,7 @@
             [azondi.messages :refer (new-message-archiver)]
             [azondi.postgres :refer (new-database new-postgres-user-domain)]
             [azondi.cassandra :as cass]
-            [azondi.joplin-helpers :as jh]))
+            [azondi.tests.joplin-helpers :as jh]))
 
 
 (def ^:dynamic *system* nil)

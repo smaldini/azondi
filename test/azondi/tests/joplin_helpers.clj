@@ -1,4 +1,4 @@
-(ns azondi.joplin-helpers
+(ns azondi.tests.joplin-helpers
   (:require [joplin.core :as jp]
             joplin.jdbc.database
             joplin.cassandra.database))

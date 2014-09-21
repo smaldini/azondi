@@ -1,4 +1,4 @@
-(ns azondi.api.api-test
+(ns azondi.tests.api.api-test
   (:require
    [clojure.test :refer :all]
    [com.stuartsierra.component :as component]
@@ -16,7 +16,7 @@
    [azondi.cassandra :as cass]
    [schema.core :as s]
    [azondi.system :refer (config)]
-   [azondi.joplin-helpers :as jh]))
+   [azondi.tests.joplin-helpers :as jh]))
 
 (def PORT 8099)
 

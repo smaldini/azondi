@@ -1,10 +1,10 @@
-(ns azondi.transports.mqtt.connection-test
+(ns azondi.tests.transports.mqtt.connection-test
   (:require [clojure.test :refer :all]
             [azondi.transports.mqtt :as mqtt]
             [clojurewerkz.machine-head.client :as mh]
             [clojurewerkz.machine-head.durability :as md]
-            [azondi.joplin-helpers :as jh]
-            [azondi.transports.test-helpers :as th])
+            [azondi.tests.joplin-helpers :as jh]
+            [azondi.tests.transports.test-helpers :as th])
   (:import java.util.UUID))
 
 (use-fixtures :once jh/maybe-migrate-fixture)

@@ -1,4 +1,4 @@
-(ns azondi.api.api-messages-test
+(ns azondi.tests.api.api-messages-test
   (:require
    [clojure.test :refer :all]
    [clojure.string :refer (capitalize)]
@@ -9,8 +9,8 @@
    [clj-time.coerce :as tcc]
    [schema.core :as s]
    [clojure.data.json :as json]
-   [azondi.test-helpers :refer :all]
-   [azondi.joplin-helpers :as jh]))
+   [azondi.tests.test-helpers :refer :all]
+   [azondi.tests.joplin-helpers :as jh]))
 
 (use-fixtures :once jh/maybe-migrate-fixture)
 (use-fixtures :each (with-system-fixture new-api-system))

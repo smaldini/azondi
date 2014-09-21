@@ -1,4 +1,4 @@
-(ns azondi.transports.mqtt.unit-test
+(ns azondi.tests.transports.mqtt.unit-test
   (:require [clojure.test :refer :all]
             [azondi.transports.mqtt :as mqtt]
             [clojurewerkz.triennium.mqtt :as tr]))

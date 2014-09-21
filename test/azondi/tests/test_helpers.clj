@@ -1,4 +1,4 @@
-(ns azondi.test-helpers
+(ns azondi.tests.test-helpers
   (:require [clojure.java.io :as io]
             [clojure.java.jdbc :as psql]
             [clojure.java.shell :as sh]
@@ -29,7 +29,7 @@
             [azondi.webapp :refer (new-webapp)]
             [azondi.api :refer (new-api new-user-authorizer new-api-key-authenticator)]
             [azondi.cassandra :as cass]
-            [azondi.joplin-helpers :as jh]))
+            [azondi.tests.joplin-helpers :as jh]))
 
 
 (def ^:dynamic *system* nil)

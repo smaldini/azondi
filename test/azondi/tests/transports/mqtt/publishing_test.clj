@@ -1,11 +1,11 @@
-(ns azondi.transports.mqtt.publishing-test
+(ns azondi.tests.transports.mqtt.publishing-test
   (:refer-clojure :exclude [await])
   (:require [clojure.test :refer :all]
             [azondi.transports.mqtt :as mqtt]
             [clojurewerkz.machine-head.client :as mh]
             [clojurewerkz.machine-head.durability :as md]
-            [azondi.joplin-helpers :as jh]
-            [azondi.transports.test-helpers :as th])
+            [azondi.tests.joplin-helpers :as jh]
+            [azondi.tests.transports.test-helpers :as th])
   (:import [java.util.concurrent CountDownLatch TimeUnit]
            java.util.UUID))
 
