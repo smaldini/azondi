@@ -107,6 +107,60 @@ $('#beta-access-btn').click(function (e) {
         alert(errMsg);}});
 });
 
+//-------- START - Test for contact form application ----------//
+//Validate function
+//checks for madatory fields: name, email, comments
+function ValidateContactForm () {
+    if ($("#contact-us-form #beta-name").val() !== ""
+	& $("#contact-us-form #beta-comments").val() !== ""
+	& IsEmail ($("#contact-us-form #beta-email").val()))
+    {return true;} else{return false;}
+    //{document.getElementById ("#contact-form-btn").disabled = false;}
+}
+
+//Validate function calls each time a field is written to
+$("#contact-us-form input").on("keyup", function () {
+    console.log("calling validate function!");
+    if(ValidateContactForm())
+      {$("#contact-us-form #contact-form-btn").removeAttr('disabled'); console.log('1-If');}
+    else {$("#contact-us-form #contact-form-btn").attr('disabled','disabled'); console.log('1-Else');}
+});
+$("#contact-us-form #beta-comments").on("keyup", function () {
+    console.log("calling validate function!");
+    if(ValidateContactForm())
+      {$("#contact-us-form #contact-form-btn").removeAttr('disabled'); console.log('2-If');}
+    else {$("#contact-us-form #contact-form-btn").attr('disabled','disabled'); console.log('2-Else');}
+});
+//Validate again and send POST
+//with a json object containing the data
+$('#contact-form-btn').click(function (e) {
+    if(ValidateContactForm()){
+      alert('Submit btn clicked!');
+      e.preventDefault();
+      console.log("8-)");
+      $.ajax({
+	      url: "/api/1.0/contact-form/",
+	      type: "POST",
+	      data: JSON.stringify({ name: $ ("#beta-name").val (),
+             company:$ ("#beta-company").val(),
+			       email:$ ("#beta-email").val(),
+             phone:$ ("#beta-phone").val(),
+			       comments: $ ("#beta-comments").val ()}),
+	    contentType: "application/json; charset=utf-8",
+	    dataType: "json",
+      success: function(data){console.log(data);},
+	    //success: function(data){window.location.href = "/help";},
+	    failure: function(errMsg) {
+        alert(errMsg);}});
+      $(this).removeAttr('disabled');
+      $(this).closest('form').find("input, textarea").val("");
+      if($('#contact-us-div').find('span').val() !== ""){
+        $('#contact-us-div').prepend('<span>Thank you for getting in contact with us!</span>');
+      }
+       }
+});
+//-------- END - Test for contact form application ----------//
+
 function populate_api_page () {
     var user =  $.session.get ('user');
     $.ajax({
