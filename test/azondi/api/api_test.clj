@@ -81,13 +81,6 @@
   (testing "welcome path"
     (is (= (make-uri :azondi.api/welcome)
            (format "http://localhost:%d/api/1.0" PORT)))))
-
-;; Contact form
-#_(deftest contact-form
-  (testing "contact-form path"
-    (is (= (make-uri :azondi.api/contact-form/)
-           (format "http://localhost:%d/api/1.0/contact-form/" PORT)))))
-
 (deftest test-users
   (testing "user path"
     (is (= (make-uri :azondi.api/user :user "alice")

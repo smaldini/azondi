@@ -267,7 +267,7 @@
   {:allowed-methods #{:post}
    :available-media-types #{"application/json"}
    :handle-ok
-   (println "Hello API 8-)")})
+   (println "Hello API 8-D")})
 
 ;;;;; ----- USERS ----
 
