@@ -15,7 +15,7 @@
    [camel-snake-kebab :refer (->kebab-case-keyword ->camelCaseString)]
    [azondi.db :refer :all]
    [azondi.messages-db :refer (messages-by-owner messages-by-topic messages-by-topic-and-date messages-by-owner-and-date messages-by-device messages-by-device-and-date)]
-   [azondi.emails :refer (beta-signup-email)]
+   [azondi.emails :refer (beta-signup-email contact-form-email)]
    [hiccup.core :refer (html)]
    [clojure.walk :refer (postwalk)]
    liberator.representation
@@ -261,6 +261,13 @@
 
                   ))})
 
+;; Contact form
+
+(defn contact-resource []
+  {:allowed-methods #{:post}
+   :available-media-types #{"application/json"}
+   :handle-ok
+   (println "Hello API")})
 
 ;;;;; ----- USERS ----
 
@@ -674,6 +681,7 @@
     ::userid (resource (user-id-resource db))
     ::user-email (resource (user-email-resource db))
     ::user (resource (user-resource db authorizer))
+    ::contact-form (resource (contact-resource))
     ::devices (resource (devices-resource db authorizer))
     ::device (resource (device-resource db authorizer))
     ::reset-password (resource (reset-device-password-resource db authorizer))
@@ -700,6 +708,7 @@
        "/users" (->Redirect 307 "/users/")
        "/users/" ::users
        "/messages"  ::messages-all
+       "/contact-form/" ::contact-form
        ["/users/" :user] {"" ::user
                           "/devices/" ::devices
                           "/devices" (->Redirect 307 ::devices)
@@ -722,7 +731,7 @@
                           "/messages-by-topic"  ::messages-by-topic
                           "/messages-by-device"  ::messages-by-device}}]
 )
- 
+
 (defrecord Api []
   WebService
   (request-handlers [this] (handlers (:database this) (:cassandra this) (:authorizer this)))
