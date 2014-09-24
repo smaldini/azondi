@@ -52,6 +52,13 @@
              (authenticate authenticator req)
              [:div#sign-up-div sign-up-form])})
 
+   :contact-us
+    (fn [req]
+     {:status 200
+      :body (base-page
+             (authenticate authenticator req)
+             [:div#contact-us-div contact-us-form])})
+
    :help
    (fn [req]
      {:status 200
@@ -89,7 +96,7 @@
       :body (base-page
              (authenticate authenticator req)
              [:div.markdown-page (md->html (io/resource "markdown/clojure-cup.md"))])})
-   
+
    :devices (restrict-to-valid-user authorizer devices-page)
 
    :topics (restrict-to-valid-user authorizer topics-page)
@@ -124,6 +131,7 @@
         ["web-sockets" :web-sockets-page]
         ["topic-browser" :topic-browser]
         ["signup" :sign-up]
+        ["contact-us" :contact-us]
         ["clojure-cup" :clojure-cup]
         [["users/" :user]
          [["" :topics-list]
