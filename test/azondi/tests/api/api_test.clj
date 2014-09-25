@@ -13,6 +13,9 @@
                                       new-http-basic-authenticator)]
    [azondi.helpers.http :refer [request]]
    [azondi.db :refer (get-user create-api-key get-api-key)]
+
+   [azondi.postgres :refer (new-postgres-user-domain)] ;;added that line to fix an error
+
    [azondi.cassandra :as cass]
    [schema.core :as s]
    [azondi.system :refer (config)]
@@ -82,6 +85,17 @@
   (testing "welcome path"
     (is (= (make-uri :azondi.api/welcome)
            (format "http://localhost:%d/api/1.0" PORT)))))
+
+;; Contact form
+(deftest ^{:api true} contact-form
+  (testing "contact-form path"
+    (is (= (make-uri :azondi.api/contact-form)
+           (format "http://localhost:%d/api/1.0/contact-form/" PORT))))
+  (testing "contact-resource"
+        (let [response (request :post uri :data {})]
+          (is (contains? (:body response) :password))
+          (is (contains? (:body response) :client-id)))
+;;;
 
 (deftest ^{:api true} test-users
   (testing "user path"
