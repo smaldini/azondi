@@ -709,7 +709,6 @@
        "/users/" ::users
        "/contact-form" ::contact-form
        "/messages"  ::messages-all
-       "/contact-form/" ::contact-form
        ["/users/" :user] {"" ::user
                           "/devices/" ::devices
                           "/devices" (->Redirect 307 ::devices)
