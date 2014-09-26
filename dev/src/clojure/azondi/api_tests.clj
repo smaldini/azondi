@@ -6,7 +6,7 @@
    [bidi.bidi :refer (path-for)]
    [azondi.db :refer (get-user)]
    [azondi.system :refer (config)]
-   [azondi.http :refer (request)]))
+   [azondi.helpers.http :refer (request)]))
 
 (def db nil)
 (def routes nil)

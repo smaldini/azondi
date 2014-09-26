@@ -5,7 +5,7 @@
             [clj-time.core   :as tc]
             [clj-time.format :as tf]
             [byte-streams :refer [convert]]
-            [azondi.cassandra :refer [data-and-hour-formatter]]))
+            [azondi.cassandra :refer [date-and-hour-formatter]]))
 
 ;;
 ;; API

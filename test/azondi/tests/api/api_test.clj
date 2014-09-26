@@ -19,6 +19,7 @@
    [azondi.cassandra :as cass]
    [schema.core :as s]
    [azondi.system :refer (config)]
+   [azondi.postgres :refer (new-postgres-user-domain)]
    [azondi.tests.joplin-helpers :as jh]))
 
 (def PORT 8099)

@@ -260,12 +260,14 @@
 
                   ))})
 
-;; Contact form
-
+;;contact form
 (defn contact-resource []
-  {:allowed-methods #{:post}
+  {:allowed-methods #{:get :post}
    :available-media-types #{"application/json"}
-   (fn [] println "Hello api/contact-form 8-)")})
+   :handle-ok (fn [ctx] (str (get-in ctx [:request :query-string])))
+   :post! (fn [ctx]
+            {:b ctx})
+   :handle-created (fn [ctx] (:b ctx))})
 
 ;;;;; ----- USERS ----
 
@@ -705,6 +707,7 @@
        "/user-email" ::user-email
        "/users" (->Redirect 307 "/users/")
        "/users/" ::users
+       "/contact-form" ::contact-form
        "/messages"  ::messages-all
        "/contact-form/" ::contact-form
        ["/users/" :user] {"" ::user
