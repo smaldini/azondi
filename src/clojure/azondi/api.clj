@@ -265,7 +265,7 @@
   {:allowed-methods #{:get :post}
    :available-media-types #{"application/json"}
    ;:handle-ok (fn [ctx] (str (get-in ctx [:request :query-string])))
-   :handle-ok (fn [ctx] (str "Hello, world!"))
+   :handle-ok (fn [ctx] (str (keys ctx)))
    :post! (fn [ctx] {:b ctx})
    :handle-created (fn [ctx] (:b ctx))})
 
