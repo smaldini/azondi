@@ -268,7 +268,11 @@
    ;;GET: keys -> (:representation :resource :request :status :message)
    :handle-ok (fn [ctx] (str (get-in ctx [:status :message])))
    :post! (fn [ctx] {:b ctx})
+   ;;:post! (fn [ctx] {ctx})
    ;;:handle-created (fn [ctx] (:b ctx))})
+   ;;POST: keys -> (:representation :resource :request :b :status :message)
+   :handle-created (fn [ctx] (str (get-in ctx [:message])))})
+   ;;:handle-created (fn [ctx] (str "Hello Ele!"))})
 
 ;;;;; ----- USERS ----
 
