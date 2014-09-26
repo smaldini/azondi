@@ -136,7 +136,7 @@ $('#contact-form-btn').click(function (e) {
     if(ValidateContactForm()){
       e.preventDefault();
       $.ajax({
-	      url: "/api/1.0/contact-form/",
+	      url: "/api/1.0/contact-form",
 	      type: "POST",
 	      data: JSON.stringify({ name: $ ("#beta-name").val (),
              company:$ ("#beta-company").val(),
