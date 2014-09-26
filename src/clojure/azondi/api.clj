@@ -260,6 +260,15 @@
 
                   ))})
 
+;;contact form
+(defn contact-resource []
+  {:allowed-methods #{:get :post}
+   :available-media-types #{"application/json"}
+   :handle-ok (fn [ctx] (str (get-in ctx [:request :query-string])))
+   :post! (fn [ctx]
+            {:b ctx})
+   :handle-created (fn [ctx] (:b ctx))})
+
 
 ;;;;; ----- USERS ----
 
@@ -673,6 +682,7 @@
     ::userid (resource (user-id-resource db))
     ::user-email (resource (user-email-resource db))
     ::user (resource (user-resource db authorizer))
+    ::contact-form (resource (contact-resource))
     ::devices (resource (devices-resource db authorizer))
     ::device (resource (device-resource db authorizer))
     ::reset-password (resource (reset-device-password-resource db authorizer))
@@ -698,6 +708,7 @@
        "/user-email" ::user-email
        "/users" (->Redirect 307 "/users/")
        "/users/" ::users
+       "/contact-form" ::contact-form
        "/messages"  ::messages-all
        ["/users/" :user] {"" ::user
                           "/devices/" ::devices
