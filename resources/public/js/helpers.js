@@ -145,7 +145,10 @@ $('#contact-form-btn').click(function (e) {
 			       comments: $ ("#beta-comments").val ()}),
 	    contentType: "application/json; charset=utf-8",
 	    dataType: "json",
-	    success: function(data){window.location.href = "/help";},
+	    success: function(data){
+        console.log(data);
+        window.location.href = "/";
+      },
 	    failure: function(errMsg) {
         alert(errMsg);}});
       $(this).removeAttr('disabled');
