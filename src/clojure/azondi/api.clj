@@ -269,11 +269,13 @@
    :handle-ok (fn [ctx] (str (get-in ctx [:request])))
    ;;POST: ctx keys -> (:representation :resource :request :b :status :message)
    ;;GET: ctx/request keys -> (:remote-addr :route-params :headers :async-channel :server-port :modular.bidi/routes :content-length :websocket? :content-type :character-encoding :uri :server-name :query-string :body :scheme :modular.bidi/handlers :request-method)
-   :post! (fn [ctx] (contact-form-email form-data))
+   :post! (fn [ctx] {:request ctx})
+   ;;:post! (fn [ctx] (contact-form-email form-data))
    ;;:handle-created (fn [ctx] (slurp (get-in ctx [:request :body])))
    :handle-created (fn [ctx]
-                     (def form-data (slurp (get-in ctx [:request :body]))
-                           form-data))})
+                     (let [form-data (get-in ctx [:request :body])
+                           clj-data (->clj form-data)]
+                       :name clj-data))})
 
 
 ;;;;; ----- USERS ----
