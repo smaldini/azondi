@@ -99,7 +99,10 @@
                  ;; database migrations
                  [joplin.core          "0.1.12" :exclusions [ragtime/ragtime]]
                  ;; see weavejester/ragtime#44
-                 [clojurewerkz/ragtime "0.3.8"]
+                 ;;     weavejester/ragtime#34
+                 [clojurewerkz/ragtime.core      "0.3.9"]
+                 [clojurewerkz/ragtime.sql       "0.3.9"]
+                 [clojurewerkz/ragtime.sql.files "0.3.9"]
                  [joplin.jdbc          "0.1.12"]
                  [joplin.cassandra     "0.1.12"]
                 ]
