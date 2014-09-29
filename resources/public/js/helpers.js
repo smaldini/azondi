@@ -136,27 +136,22 @@ $('#contact-form-btn').click(function (e) {
     if(ValidateContactForm()){
       e.preventDefault();
       $.ajax({
-	      url: "/api/1.0/contact-form",
-	      type: "POST",
-	      data: JSON.stringify({ name: $ ("#beta-name").val (),
-             company:$ ("#beta-company").val(),
-			       email:$ ("#beta-email").val(),
-             phone:$ ("#beta-phone").val(),
-			       comments: $ ("#beta-comments").val ()}),
-	    contentType: "application/json; charset=utf-8",
-	    dataType: "json",
-	    success: function(data){
-        console.log(data);
-        window.location.href = "/";
-      },
-	    failure: function(errMsg) {
-        alert(errMsg);}});
-      $(this).removeAttr('disabled');
-      $(this).closest('form').find("input, textarea").val("");
-      if($('#contact-us-div').find('span').val() !== ""){
+	  url: "/api/1.0/contact-form",
+	  type: "POST",
+	  data: JSON.stringify({ name: $ ("#beta-name").val (),
+				 company:$ ("#beta-company").val(),
+				 email:$ ("#beta-email").val(),
+				 phone:$ ("#beta-phone").val(),
+				 comments: $ ("#beta-comments").val ()}),
+	  contentType: "application/json; charset=utf-8",
+	  dataType: "json",
+	  success: function(data){console.log("foooo");},
+	  failure: function(errMsg) {console.log ("failed");}});
+    }
+    if($('#contact-us-div').find('span').val() !== ""){
         $('#contact-us-div').prepend('<span>Thank you for getting in contact with us!</span>');
-      }
-       }
+    }
+     window.location.href = "/";
 });
 
 function populate_api_page () {

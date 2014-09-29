@@ -13,7 +13,7 @@
                  :body (str "Please give me access.  Name: " name " Email: " email)
                     }))
 
-(defn contact-form-email [name company email phone comments]
+(defn contact-form-email [{:keys [name email comments & company phone]}]
   (send-message settings
                 {:from "hello@opensensors.IO"
                  :to "eleonore.mayola@ymail.com"
