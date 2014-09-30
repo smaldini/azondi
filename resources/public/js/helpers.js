@@ -145,13 +145,14 @@ $('#contact-form-btn').click(function (e) {
 				 comments: $ ("#beta-comments").val ()}),
 	  contentType: "application/json; charset=utf-8",
 	  dataType: "json",
-	  success: function(data){console.log("foooo");},
-	  failure: function(errMsg) {console.log ("failed");}});
+	  }
     }
-    if($('#contact-us-div').find('span').val() !== ""){
-        $('#contact-us-div').prepend('<span>Thank you for getting in contact with us!</span>');
-    }
-     window.location.href = "/";
+    success: function(data){
+	console.log("foooo");
+	$('.form-inline').alert();
+        window.location.href = "/";
+    },
+    failure: function(errMsg) {alert(errMsg);}
 });
 
 function populate_api_page () {
