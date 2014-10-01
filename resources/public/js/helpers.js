@@ -145,14 +145,14 @@ $('#contact-form-btn').click(function (e) {
 				 comments: $ ("#beta-comments").val ()}),
 	  contentType: "application/json; charset=utf-8",
 	  dataType: "json",
-	  }
+          success: function(data){
+	  alert("foooo");
+	  $('.form-inline').prepend('<div class="alert alert-success" role="alert">Thanks for your interest in Opensensors.io! Will get back to you shortly!</div>').delay(1000);
+          window.location.href = "/";
+          },
+          failure: function(errMsg) {alert(errMsg);}
+      });
     }
-    success: function(data){
-	console.log("foooo");
-	$('.form-inline').alert();
-        window.location.href = "/";
-    },
-    failure: function(errMsg) {alert(errMsg);}
 });
 
 function populate_api_page () {

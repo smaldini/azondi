@@ -88,15 +88,16 @@
            (format "http://localhost:%d/api/1.0" PORT)))))
 
 ;; Contact form
-(deftest ^{:api true} contact-form
-  (testing "contact-form path"
-    (is (= (make-uri :azondi.api/contact-form)
-           (format "http://localhost:%d/api/1.0/contact-form/" PORT))))
-  (testing "contact email"
-    (let [response
-          (request :post uri
-                   :data {:name :company :email :phone :comments})]
-      (is (= (:status response) 201)))))
+;; (deftest ^{:api true} contact-form
+;;   (testing "contact-form path"
+;;     (is (= (make-uri :azondi.api/contact-form)
+;;            (format "http://localhost:%d/api/1.0/contact-form/" PORT))))
+;;   (testing "contact email"
+;;     (let [response
+;;           (request :post uri
+;;                    :data {:name :company :email :phone :comments})]
+;;                                         ;      (is (= (:status response) 201))
+;;       )))
 
 
 (deftest ^{:api true} test-users
