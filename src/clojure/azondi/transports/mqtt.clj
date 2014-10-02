@@ -21,7 +21,7 @@
             [metrics.histograms :as mh]
             [metrics.counters   :as mct]
 
-            [modular.async :refer (channel)]
+            [modular.async :refer (new-channel)]
             )
   (:import  [io.netty.channel ChannelHandlerAdapter ChannelHandlerContext Channel
              ChannelPipeline ChannelHandler]
@@ -511,7 +511,7 @@
           :reactor (get-in this [:reactor :reactor])
           :database (get this :database)
           :metrics (get this :metrics)
-          :debug-ch (when debug-channel-provider (channel debug-channel-provider))))))
+          :debug-ch (when debug-channel-provider (new-channel debug-channel-provider))))))
   (stop [this]
     (when-let [se (:scheduled-keepalive-executor this)]
       (.shutdownNow se))

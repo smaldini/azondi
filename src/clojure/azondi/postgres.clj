@@ -8,14 +8,13 @@
    [clojure.java.jdbc :as j]
    [clojure.string :as cs]
    [azondi.db.protocol :refer (DataStore)]
-   [azondi.db :refer (get-user)]
    [azondi.passwords :as sc]
    [azondi.helpers :refer (process-maps)]
    [azondi.passwords :as pwd]
    [camel-snake-kebab :as csk]
    [cylon.user.protocols :refer (UserStore)]
    [cylon.token-store.protocols :refer (TokenStore get-token-by-id renew-token! purge-token!)]
-   [cylon.totp :refer (OneTimePasswordStore)]
+   [cylon.totp :as t :refer (OneTimePasswordStore set-totp-secret get-totp-secret)]
    [plumbing.core :refer (<-)]
    ))
 
@@ -143,10 +142,10 @@
     (j/delete! (:connection this) :subscriptions ["user_id = ?" user]))
 
   (user-subscribed? [this user topic]
-    (not (empty? (j/query (conn this) ["Select * from subscriptions where user_id = ? and topic = ?;" user topic]))))
+    (not (empty? (j/query (:connection this) ["Select * from subscriptions where user_id = ? and topic = ?;" user topic]))))
 
   (all-topics [this]
-    (j/query (conn this) ["Select * FROM topics;"]))
+    (j/query (:connection this) ["Select * FROM topics;"]))
 
   (topic-of-owner [this user topic]
     (clj->psql (first
@@ -188,10 +187,10 @@
       (j/delete! (:connection this) :subscriptions ["user_id = ?" user])))
 
   (public-topics-by-owner [this user]
-    (clj->psql (j/query (conn this) ["SELECT * FROM topics WHERE owner = ? and public = 't';" user])))
+    (clj->psql (j/query (:connection this) ["SELECT * FROM topics WHERE owner = ? and public = 't';" user])))
 
   (get-public-topic [this topic]
-    (clj->psql (j/query (conn this) ["SELECT * FROM topics WHERE topic = ? and public = 't';" topic])))
+    (clj->psql (j/query (:connection this) ["SELECT * FROM topics WHERE topic = ? and public = 't';" topic])))
 
   (patch-topic! [this topic-id data]
     (j/update! (:connection this) :topics data ["topic = ?" topic-id]))
@@ -223,13 +222,12 @@
   (find-ws-session-by-token [this token]
     (first (j/query (:connection this) ["SELECT user_id from ws_session_tokens WHERE token = ?" token])))
 
-
-  TotpStore
-  (set-totp-encrypted-secret [this identity encrypted-secret]
+  OneTimePasswordStore
+  (set-totp-secret [this identity encrypted-secret]
     ;; TODO We'd have to use symmetric encryption to keep these safe
     (j/insert! (:connection this) :totp_secrets {:user_id identity :secret encrypted-secret}))
 
-  (get-totp-encrypted-secret [this identity]
+  (get-totp-secret [this identity]
     (:secret (first (j/query (:connection this) ["SELECT secret from totp_secrets WHERE user_id = ?" identity]))))
   )
 

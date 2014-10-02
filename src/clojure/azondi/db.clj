@@ -1,6 +1,7 @@
 (ns azondi.db
   (:require
    [azondi.db.protocol :as p]
+   [cylon.totp :as t :refer (OneTimePasswordStore set-totp-secret get-totp-secret)]
    [schema.core :as s]))
 
 ;; Convenience schema
@@ -184,10 +185,10 @@
   (p/find-ws-session-by-token component token))
 
 (s/defn set-totp-encrypted-secret
-  [component :- (s/protocol p/TotpStore)
+  [component :- (s/protocol t/OneTimePasswordStore)
    identity :- s/Str
    secret :- s/Str]
-  (p/set-totp-encrypted-secret component identity secret))
+  (t/set-totp-secret component identity secret))
 
 (s/defn get-totp-encrypted-secret [component identity]
-  (p/get-totp-encrypted-secret component identity))
+  (t/get-totp-secret component identity))

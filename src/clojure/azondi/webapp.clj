@@ -20,6 +20,10 @@
   "Reads a markdown file/resource and returns an HTML string"
   [r]
   (md/md-to-html-string (slurp r)))
+(defn unrestricted-pages [oauth-client page]
+   (fn [req]
+    (let [user (authenticate oauth-client req)]
+      {:status 200 :body (page user)})))
 
 (defn handlers [oauth-client]
   {
@@ -91,10 +95,17 @@
 
    #_:api-docs-page #_(restrict-to-valid-user authorizer api-page)
 
-   :topic-browser (restrict-to-valid-user authorizer topic-browser)
-   :topics-list (unrestricted-pages authorizer public-topics-list)
+   :topic-browser (->
+             (fn [req]
+               (response (topic-browser req
+                                       (:cylon/subject-identifier req)
+                                       (:cylon/access-token req))))
+             (wrap-require-authorization oauth-client :user))
 
-   :topic-show (unrestricted-pages authorizer public-topic-page)
+;   (restrict-to-valid-user oauth-client topic-browser)
+   :topics-list (unrestricted-pages oauth-client public-topics-list)
+
+   :topic-show (unrestricted-pages oauth-client public-topic-page)
    })
 
 
