@@ -1,0 +1,331 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="utf-8">
+	<meta http-equiv="X-UA-Compatible" content="IE=edge">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<title>OpenSensors.io &ndash; The Operating System for the Internet of Things</title>
+
+	<!-- Bootstrap -->
+	<link href="css/bootstrap.min.css" rel="stylesheet">
+
+	<link href="css/application.css" rel="stylesheet">
+
+	<link href='http://fonts.googleapis.com/css?family=Oswald:300,400' rel='stylesheet' type='text/css'>
+	<!-- <link href='http://fonts.googleapis.com/css?family=Exo+2:600,400' rel='stylesheet' type='text/css'> -->
+	<link href='http://fonts.googleapis.com/css?family=Oxygen:400,300,700' rel='stylesheet' type='text/css'>
+
+	<link rel="icon" type="image/png" href="imgs/OS-favicon-16.png">
+
+	<!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
+	<!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+    <!--[if lt IE 9]>
+      <script src="https://oss.maxcdn.com/html5shiv/3.7.2/html5shiv.min.js"></script>
+      <script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>
+      <![endif]-->
+    </head>
+
+    <body>
+
+    	<nav class="navbar" role="navigation">
+    		<div class="container">
+    			<a href="#examples">Examples</a>
+    			<a href="#features">Features</a>
+    			<a href="#getting-started">Getting Started</a>
+    			<a href="#get-in-touch">Get in Touch</a>
+    			<a class="btn btn-default" href="login.html">Login</a>
+    		</div>
+    	</nav>
+
+    	<div class="wrapper wrapper-hero">
+
+    		<canvas id="demo-canvas"></canvas>
+
+    		<div class="container">
+    			<div class="row">
+    				<div class="col-md-9">
+    					<h1 class="logo-text">OpenSensors.io</h1>
+    					<img class="logo-hero" src="images/logo-hero.png">
+    					<p class="lead">The Operating System for the Internet of Things</p>
+    				</div>
+    				<div class="col-md-3">
+    					<form role="form">
+    						<div class="form-group">
+    							<!-- <label for="userID">User ID</label> -->
+    							<input type="text" class="form-control" id="userID" placeholder="Pick a User ID">
+
+
+    							<!-- <label for="userEmail">User ID</label> -->
+    							<input type="email" class="form-control" id="userEmail" placeholder="Your Email">
+
+
+    							<!-- <label for="userName">User ID</label> -->
+    							<input type="password" class="form-control" id="userPassword" placeholder="Choose Password">
+    						</div>
+    						<button type="button" class="btn btn-primary center-block">Get Free Access</button>
+    					</form>
+    				</div>
+    			</div>
+    		</div>
+    	</div>
+
+    	<div class="wrapper wrapper-intro">
+    		<div class="container">
+    			<div class="row">
+    				<div class="col-md-6">
+    					<div class="intro-text-block">
+    						<h2>What is IoT?</h2>
+    						<p><strong>The Internet of Things (IoT) refers to the interconnection of uniquely identifiable embedded computing-like devices within the existing Internet infrastructure.</strong></p>
+
+    						<p>Typically, IoT is expected to offer advanced connectivity of devices, systems, and services that goes beyond machine-to-machine communications (M2M) and covers a variety of protocols, domains, and applications.</p>
+    					</div>
+    				</div>
+    				<div class="col-md-6">
+    					<div class="intro-text-block">
+    						<h2>What is OpenSensors?</h2>
+    						<p><strong>We ingest and process the real time and historical Internet of Things data to enable to able cities, businesses and individuals to create smart and responsible environments.</strong></p>
+
+    						<p>Where possible we encourage real-time and historic communal data be made available with an open data license. These enable reuse of communal content and we hope this will accelerate growth.</p>
+    					</div>
+    				</div>
+    			</div>
+    		</div>
+    	</div>
+
+    	<div id="examples" class="wrapper wrapper-examples">
+    		<div class="container">
+    			<div class="row">
+    				<div class="col-sm-12">
+    					<h2 class="section-title">Examples</h2>
+    				</div>
+
+    				<div class="col-md-4">
+    					<div class="example-block-header-3">
+    						<h2 class="example-title">Environmental<br> sensing</h2>
+    					</div>
+    					<div class="example-block-text">
+    						<p>Environmental sensing projects in cities, community groups and for individuals can measure factors in the local environment such as water quality monitoring, weather conditions, and pollution data.</p>
+    						<p>Opensensors.io enables access to real time and historical data generated from thousands of open community projects. Projects such as these enable as many people as possible to reuse the data.</p>
+    						<p>Those interested in this data range from people concerned about the environment to those worried about the health implications. Data from this real time firehose can be directly plugged into any application or front end visualisation.</p>
+    					</div>
+    				</div>
+
+
+    				<div class="col-md-4">
+    					<div class="example-block-header-1">
+    						<h2 class="example-title">Automated Car Park</h2>
+    					</div>
+    					<div class="example-block-text">
+    						<p>Car parks have cameras, motion sensors and gates. Often these cameras have a built in licence plate recognition system.</p>
+    						<p>When connected to OpenSensors.io, a camera can send incoming licence plate details – via the use of our Topics feature – to the gate (which is also subscribed to OpenSensor.io Topics). If the vehicle’s number plate is held in the car park’s database, the gate can automatically open and allow the car to pass through.</p>
+    					</div>
+    				</div>
+
+
+    				<div class="col-md-4">
+    					<div class="example-block-header-2">
+    						<h2 class="example-title">Smart<br> Buildings</h2>
+    					</div>
+    					<div class="example-block-text">
+    						<p>Connected buildings promise us a future where the environment not only responds to our needs but also saves energy by turning off lights and other resources when the building is unoccupied.</p>
+    						<p>Since phones are themselves sophisticated sensors OpenSensors.io can use them to signal to our house or workplace when we are nearby and  turn the lights on or unlock the front door. Home devices such as thermostats, lights, locks and many others can be configured to respond to individuals preferences.</p>
+    					</div>
+    				</div>
+    			</div>
+    		</div>
+    	</div>
+
+    	<div id="features" class="wrapper wrapper-features">
+    		<div class="container">
+    			<div class="row">
+    				<div class="col-sm-12">
+    					<h2 class="section-title">Features</h2>
+    				</div>
+    				<div class="col-md-6">
+    					<div class="feature-block clearfix">
+    						<div class="col-sm-3">
+    							<img src="imgs/icon-broadcast.png">
+    						</div>
+    						<div class="col-sm-9">
+    							<h2>Data Broadcast</h2>
+    							<p>Share communal data with the world or publish privately on your own network or devices.</p>
+    						</div>
+    					</div>
+    				</div>
+    				<div class="col-md-6">
+    					<div class="feature-block clearfix">
+    						<div class="col-sm-3">
+    							<img src="imgs/icon-hardware.png">
+    						</div>
+    						<div class="col-sm-9">
+    							<h2>Hardware Agnostic</h2>
+    							<p>Easily connect any device (yes, literally any) to our messaging broker.</p>
+    						</div>
+    					</div>
+    				</div>
+    			</div>
+    			<div class="row">
+    				<div class="col-md-6">
+    					<div class="feature-block clearfix">
+    						<div class="col-sm-3">
+    							<img src="imgs/icon-management.png">
+    						</div>
+    						<div class="col-sm-9">
+    							<h2>Device Management</h2>
+    							<p>Built-in device security authentication and easy-to-use device management.</p>
+    						</div>
+    					</div>
+    				</div>
+    				<div class="col-md-6">
+    					<div class="feature-block clearfix">
+    						<div class="col-sm-3">
+    							<img src="imgs/icon-firehose.png">
+    						</div>
+    						<div class="col-sm-9">
+    							<h2>Real Time Firehose</h2>
+    							<p>Your own personal data stream for M2M (machine to machine) or web applications.</p>
+    						</div>
+    					</div>
+    				</div>
+    			</div>
+    			<div class="row">
+    				<div class="col-md-6">
+    					<div class="feature-block clearfix">
+    						<div class="col-sm-3">
+    							<img src="imgs/icon-storage.png">
+    						</div>
+    						<div class="col-sm-9">
+    							<h2>Storage</h2>
+    							<p>Persistent storage and easy access to your secure historical data.</p>
+    						</div>
+    					</div>
+    				</div>
+    				<div class="col-md-6">
+    					<div class="feature-block clearfix">
+    						<div class="col-sm-3">
+    							<img src="imgs/icon-enterprise.png">
+    						</div>
+    						<div class="col-sm-9">
+    							<h2>Enterprise grade</h2>
+    							<p>Run the OpenSensors.io IoT network inside your firewall. Chat to us about your bespoke requirements.</p>
+    						</div>
+    					</div>
+    				</div>
+    			</div>
+    		</div>
+    	</div>
+
+    	<div id="getting-started" class="wrapper wrapper-getting-started">
+    		<div class="container">
+    			<div class="row">
+    				<div class="col-sm-12">
+    					<h2 class="section-title">Getting Started</h2>
+    				</div>
+    				<div class="col-md-10 col-md-offset-1">
+    					<div class="getting-started-text-block">
+    						<h2>Technical Details</h2>
+    						<p class="lead">OpenSensors.io uses <a href="http://mqtt.org/">MQTT</a> and assumes that devices have been configured to send MQTT messages. We support <strong>qos0</strong> quality of service.</p>
+    						<h3>Open Data</h3>
+    						<p>Please remember that public topics are viewable by anyone. Public topics are published with an <a href="http://theodi.org/">open data licence.</a></p>
+    						<h3>Topics</h3>
+    						<p>Topics are the way that your messages are routed and grouped. Think of it as the twitter hashtag equivalent but for things. Those interested can 'listen' to messages sent to your topics. The way you group your topics is entirely up to you but we recommend you group devices publishing similar messages together for the sake of clarity, i.e. a group of temperature sensors would all publish to the <code>/users/foo/temperature</code> topic.</p>
+    						<p>OpenSensors allows you free reign in managing your topics, you can create and publish to any number of public topics under the <code>/users/<your-id>/*</code> hierarchy.</p>
+    						<h3>Register Devices</h3>
+    						<p>To register new devices go to <a href="https://opensensors.io/devices">devices</a> and register a new device.</p>
+    						<p>Each device will be given a unique 'client' id. Once the device has been registered you will get a password flash, please note this down and keep it in a safe place.</p>
+    						<p>Each device will be given a unique client id and this field is required for each connection. At any given time, there can only be one instance of a connection per client id.</p>
+    						<h3>Send messages</h3>
+    						<p>To connect and send a message to OpenSensors you will require your username, device password and client id. OpenSensors assumes and assigns a topic using a pattern <code>/users/&lt;user-id&gt;/&lt;topic&gt;</code> for each user.</p>
+    					</div>
+    				</div>
+<!--     				<div class="col-sm-6">
+    					<div class="getting-started-text-block">
+						<h2>Non-Techy</h2>
+						<p>Sometimes it is hard to know where to start in creating IoT products. The team at OpenSensors.io have years of experience create scalable intelligent products on streaming and large data sets.</p>
+						<p>We offer an IoT platform and the skills to create bespoke products.</p>
+						<p>If you would like to learn more get in touch on <a href="#">hello@OpenSensors.io</a></p>
+					</div>
+				</div> -->
+			</div>
+		</div>
+	</div>
+
+	<div id="get-in-touch" class="wrapper wrapper-get-in-touch">
+		<div class="container">
+			<div class="row">
+				<div class="col-sm-12">
+					<h2 class="section-title">Get in Touch</h2>
+				</div>
+				<div class="col-md-8 col-md-offset-2">
+					<div class="get-in-touch-text-block">
+						<h2>If that made no sense at all&hellip;</h2>
+						<p>Don't worry &ndash; we're here to help, the team at OpenSensors.io have years of experience creating scalable intelligent products on streaming and large data sets. We offer an IoT platform and the skills to create bespoke products.</p>
+						<p>If you would like to learn more, please get in touch: <a href="contact.html" class="btn btn-primary">Contact Us</a></p>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+
+	<div class="wrapper wrapper-footer">
+		<div class="container">
+			<div class="row">
+				<div class="col-sm-3">
+					<ul>
+						<li><a href="http://blog.opensensors.io/">Blog</a></li>
+					</ul>
+				</div>
+				<div class="col-sm-3">
+					<ul>
+						<li><a href="https://twitter.com/opensensorsio">Twitter</a></li>
+					</ul>
+				</div>
+				<div class="col-sm-3">
+					<ul>
+						<li><a href="mailto:hello@opensensors.io?subject=website%20enquiry">Email</a></li>
+					</ul>
+				</div>
+				<div class="col-sm-3">
+					<img src="imgs/logo-hero.png">
+					<p><strong>&copy; 2014 Open Sensors Ltd.</strong></p>
+				</div>
+			</div>
+		</div>
+	</div>
+
+	<!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
+	<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
+	<!-- Include all compiled plugins (below), or include individual files as needed -->
+	<script src="js/bootstrap.min.js"></script>
+	<script src="js/placeholders.min.js"></script>
+
+	<script type="text/javascript">
+	$(document).ready(function(){
+		$('a[href^="#"]').on('click',function (e) {
+			e.preventDefault();
+
+			var target = this.hash,
+			$target = $(target);
+
+			var distanceBetween = $target.offset().top - $(document).scrollTop();
+			var animationLength = distanceBetween * 0.25;
+			// console.log(distanceBetween);
+
+			$('html, body').stop().animate({
+				'scrollTop': $target.offset().top
+			}, animationLength, 'swing', function () {
+				window.location.hash = target;
+			});
+		});
+	});
+	</script>
+
+	<script src="js/TweenLite.min.js"></script>
+	<script src="js/EasePack.min.js"></script>
+	<script src="js/rAF.js"></script>
+	<script src="js/open-sensors-one.js"></script>
+
+	<script type="text/javascript" src="js/retina.min.js"></script>
+
+</body>
+</html>

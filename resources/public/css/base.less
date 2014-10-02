@@ -1,0 +1,121 @@
+body {
+	//text-rendering: optimizeLegibility;
+	// font-feature-settings: "kern";
+	// -webkit-font-feature-settings: "kern";
+	// -moz-font-feature-settings: "kern";
+	// -moz-font-feature-settings: "kern=1";
+
+	.font-oxygen-light;
+}
+
+p {
+	color: @text;
+	font-size: 18px;
+	line-height: 1.6;
+	margin-bottom: .75em;
+}
+
+strong {
+	font-weight: 700;
+}
+
+code {
+	background-color: @brand-dark-blue;
+	color: @brand-yellow;
+	padding: 3px 6px;
+	.rounded(3px);
+}
+
+a {
+	color: @brand-blue;
+}
+a:hover {
+	color: @brand-dark-blue;
+}
+
+img {
+	max-width: 100%;
+}
+
+.btn.btn-default {
+	background-color: darken(white, 10%);
+	color: @brand-dark-blue;
+	border: 0;
+	padding: 6px 14px;
+	letter-spacing: .2px;
+	.font-oxygen-bold;
+	font-size: 16px;
+}
+.btn.btn-default:hover,
+.btn.btn-default:active {
+	background-color: white;
+	color: @brand-blue;
+}
+
+.btn.btn-primary {
+	background-color: @brand-blue;
+	color: white;
+	border: 0;
+	padding: 10px 18px;
+	//letter-spacing: .2px;
+	.font-oxygen;
+	font-size: 16px;
+}
+
+.get-in-touch-text-block .btn.btn-primary {
+	background-color: white;
+	color: @brand-blue;
+	margin-left: .3em;
+	padding: 6px 14px;
+}
+
+.wrapper-hero .form-group {
+	margin: 0;
+}
+
+.wrapper-hero .form-group .form-control {
+	border: 0;
+	// border-top: 1px solid lighten(@brand-gray, 20%);
+	// border-right: 0;
+	// border-left: 0;
+	// border-bottom: 0;
+	margin-bottom: 8px;
+
+	background-color: darken(white, 10%);
+	color:@text;
+	.font-oxygen;
+	font-size: 16px;
+	height: auto;
+	padding: 10px 18px;
+	-webkit-box-shadow: none;
+	box-shadow: none;
+	.rounded(3px);
+}
+.wrapper-hero .form-group .form-control:focus,
+.wrapper-hero .form-group .form-control:active {
+	background-color: white;
+}
+
+.wrapper-hero form .btn-primary {
+	.rounded(3px 20px 20px 3px);
+	width: 100%;
+	background-color: darken(@brand-yellow, 10%);
+	color: darken(@brand-red, 10%);
+	.font-oxygen-bold;
+	text-align: left;
+	position: relative;
+}
+.wrapper-hero form .btn-primary:hover,
+.wrapper-hero form .btn-primary:active {
+	background-color: @brand-yellow;
+}
+.wrapper-hero form .btn-primary:after {
+	content: "";
+	height: 26px;
+	width: 26px;
+	.rounded(20px);
+	background-color: @brand-red;
+	position: absolute;
+	right: 7px;
+	bottom: 8px;
+}
