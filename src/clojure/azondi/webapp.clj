@@ -28,6 +28,11 @@
     (let [user (authenticate oauth-client req)]
       {:status 200 :body (page user)})))
 
+(defn render-page [page]
+  (render-resource (str "templates/" page)
+                   {}
+                   {:header (slurp (resource "templates/header.html.mustache"))
+                    :footer (slurp (resource "templates/footer.html.mustache"))}))
 
 (defn handlers [oauth-client]
   {
@@ -43,7 +48,7 @@
    :index
    (fn [req]
      {:status 200
-      :body (render-resource "templates/index.html.mustache" {})})
+      :body (render-page "index.html.mustache")})
 
    :help
    (fn [req]
