@@ -5,7 +5,9 @@
 CREATE TABLE IF NOT EXISTS users (id text PRIMARY KEY,
                     name text NOT NULL,
                     email text NOT NULL,
+                    email_verified boolean,
                     password_hash text NOT NULL,
+                    password_salt text NOT NULL,
                     role text,
                     created_on timestamp default current_timestamp);
 
@@ -55,7 +57,7 @@ CREATE TABLE IF NOT EXISTS topics (unit text,
                            public boolean,
 			   owner text,
                            created_on timestamp default current_timestamp);
-			   
+
 CREATE UNIQUE INDEX topics_id_idx ON topics(topic);
 CREATE INDEX topics_owner_idx ON topics(owner);
 CREATE UNIQUE INDEX topics_id_owner_idx ON topics(topic, owner);
@@ -84,3 +86,22 @@ CREATE TABLE IF NOT EXISTS ws_session_tokens (
 );
 
 ALTER TABLE ws_session_tokens ADD CONSTRAINT ws_session_tokens_user_id_fk FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE;
+
+--
+-- TOTP secrets
+--
+CREATE TABLE IF NOT EXISTS totp_secrets (user_id text PRIMARY KEY,
+                                         secret varchar(30),
+                                         created_on timestamp default current_timestamp);
+
+ALTER TABLE totp_secrets ADD CONSTRAINT totp_secrets_user_id_fk FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE;
+
+--
+-- Tokens
+--
+CREATE TABLE IF NOT EXISTS tokens (id text PRIMARY KEY,
+                                   expiry timestamp,
+                                   content text,
+                                   type char(20),
+                                   created_on timestamp default current_timestamp
+                                   );

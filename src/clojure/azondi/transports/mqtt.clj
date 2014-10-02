@@ -19,7 +19,10 @@
             [metrics.meters     :as mm]
             [metrics.timers     :as mt]
             [metrics.histograms :as mh]
-            [metrics.counters   :as mct])
+            [metrics.counters   :as mct]
+
+            [modular.async :refer (channel)]
+            )
   (:import  [io.netty.channel ChannelHandlerAdapter ChannelHandlerContext Channel
              ChannelPipeline ChannelHandler]
             [io.netty.handler.timeout IdleStateHandler IdleStateEvent]
@@ -170,7 +173,8 @@
   ;;  :dup false
   ;;  }
 
-  (go (>!! (:debug-ch handler-state) {:message (format "Connection attempt from %s, client id: %s" (peer-of ctx) client-id) :client-id client-id}))
+  (when-let [c (:debug-ch handler-state)]
+    (go (>!! c {:message (format "Connection attempt from %s, client id: %s" (peer-of ctx) client-id) :client-id client-id})))
 
   (cond
    (not (supported-protocol? protocol-name protocol-version))
@@ -184,15 +188,17 @@
    (not (and has-username has-password))
    (do
      (warnf "Client has no username or password, rejecting connection")
-     (go (>!! (:debug-ch handler-state) {:message "rejecting connection" :client-id client-id}))
+     (when-let [c (:debug-ch handler-state)]
+       (go (>!! c {:message "rejecting connection" :client-id client-id})))
      (mm/mark! (:mqtt-connections-authentication-failures metrics))
      (reject-connection ctx :bad-username-or-password))
 
    (not (allowed-device? (:database handler-state) client-id username password))
    (do
      (warnf "Device authentication failed for username: %s, client id: %s, rejecting connection" username client-id)
-     (go (>!! (:debug-ch handler-state) {:client-id client-id
-                                         :message "Rejecting connection, check username/password"}))
+     (when-let [c (:debug-ch handler-state)]
+       (go (>!! c {:client-id client-id
+                   :message "Rejecting connection, check username/password"})))
      (mm/mark! (:mqtt-connections-authentication-failures metrics))
      (reject-connection ctx :bad-username-or-password))
 
@@ -204,7 +210,8 @@
 
    :otherwise
    (do
-     (go (>!! (:debug-ch handler-state) {:message "Accepting connection" :client-id client-id}))
+     (when-let [c (:debug-ch handler-state)]
+       (go (>!! c {:message "Accepting connection" :client-id client-id})))
      (mct/inc! (:mqtt-connections-active metrics))
      (accept-connection ctx msg handler-state))))
 
@@ -260,9 +267,10 @@
             peer  (peer-of ctx)]
         (warnf "Dropping connection %s (client id: %s), unauthorized to subscribe to one of the topics: %s"
                peer (:client-id state) topics)
-        (go (>!! (:debug-ch handler-state)
-                 {:client-id client-id
-                  :message (str "Client is not allowed to subscribe to one of the topics: " topics)}))
+        (when-let [c (:debug-ch handler-state)]
+          (go (>!! c
+                   {:client-id client-id
+                    :message (str "Client is not allowed to subscribe to one of the topics: " topics)})))
         (disconnect-client ctx)))))
 
 (defn unrecord-subscribers
@@ -357,9 +365,10 @@
       (if (tp/authorized-to-publish? topic username)
         (if (valid-payload? payload)
           (do
-            (go (>!! (:debug-ch handler-state)
-                     {:client-id client-id
-                      :message (str "Publishing message on topic: " topic)}))
+            (when-let [c (:debug-ch handler-state)]
+              (go (>!! c
+                       {:client-id client-id
+                        :message (str "Publishing message on topic: " topic)})))
             (mt/time! (:mqtt-messages-publish-latency metrics)
                       (f ctx msg handler-state)
                       (mr/notify reactor rk/message-published {:device_id client-id
@@ -386,9 +395,10 @@
         (let [state (get @connections-by-ctx ctx)
               peer  (peer-of ctx)]
           (warnf "Dropping connection %s (client id: %s), unauthorized to publish to %s" peer (:client-id state) topic)
-          (go (>!! (:debug-ch handler-state)
-                   {:client-id client-id
-                    :message (str "Client is not allowed to publish a message on topic: " topic)}))
+          (when-let [c (:debug-ch handler-state)]
+            (go (>!! c
+                     {:client-id client-id
+                      :message (str "Client is not allowed to publish a message on topic: " topic)})))
           (disconnect-client ctx))))))
 
 ;;
@@ -489,7 +499,8 @@
 
 (defrecord NettyMqttHandler [connections-by-ctx connections-by-client-id topics-by-ctx
                              scheduled-keepalive-executor
-                             debug-ch]
+                             debug-channel-provider ; optional dependency
+                             ]
   component/Lifecycle
   (start [this]
     (info "MQTT transport starting...")
@@ -500,7 +511,7 @@
           :reactor (get-in this [:reactor :reactor])
           :database (get this :database)
           :metrics (get this :metrics)
-          :debug-ch debug-ch))))
+          :debug-ch (when debug-channel-provider (channel debug-channel-provider))))))
   (stop [this]
     (when-let [se (:scheduled-keepalive-executor this)]
       (.shutdownNow se))
@@ -511,10 +522,10 @@
   (priority [this] 20))
 
 (defn new-netty-mqtt-handler
-  [debug-ch]
-  (-> (map->NettyMqttHandler {:connections-by-ctx (ref {})
-                              :connections-by-client-id (ref {})
-                              :topics-by-ctx (ref {})
-                              :scheduled-keepalive-executor (Executors/newScheduledThreadPool 32)
-                              :debug-ch debug-ch})
+  []
+  (-> (map->NettyMqttHandler
+       {:connections-by-ctx (ref {})
+        :connections-by-client-id (ref {})
+        :topics-by-ctx (ref {})
+        :scheduled-keepalive-executor (Executors/newScheduledThreadPool 32)})
       (component/using [:database :reactor :metrics])))

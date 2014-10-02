@@ -4,7 +4,7 @@
    [clojure.test :refer :all]
    [cheshire.core :refer (decode)]
    [bidi.bidi :refer (path-for)]
-   [azondi.db :refer (get-user)]
+   [cylon.user :refer (get-user)]
    [azondi.system :refer (config)]
    [azondi.helpers.http :refer (request)]))
 

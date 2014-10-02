@@ -3,7 +3,7 @@
    [org.httpkit.client :refer (request) :rename {request http-request}]
    [cheshire.core :refer (encode decode)]
    [clojure.pprint :refer (pprint)]
-   [azondi.api :refer (->js ->clj)]))
+   [azondi.api-utils :refer (->js ->clj)]))
 
 (defn request
   [method uri & {:keys [data api-key expected auth]}]

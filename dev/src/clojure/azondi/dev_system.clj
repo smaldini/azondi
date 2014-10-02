@@ -3,59 +3,46 @@
    [clojure.java.io :as io]
    [clojure.tools.logging :refer :all]
    [com.stuartsierra.component :as component]
-   [azondi.system :refer (config configurable-system-map new-dependency-map new-prod-system)]
-   [azondi.db :refer (get-user create-user!)]
-   [azondi.db.protocol :refer (DataStore)]
-   [azondi.postgres :refer (new-database new-postgres-user-domain)]
-   [azondi.passwords :as pwd]
-   [azondi.messages :refer (new-message-archiver)]
-   [azondi.postgres :refer (new-database new-postgres-user-domain)]
    [azondi.cassandra :as cass]
+   [azondi.db :as db]
+   [azondi.db.protocol :refer (DataStore)]
+   [azondi.messages :refer (new-message-archiver)]
+   [azondi.passwords :as pwd]
+   [azondi.postgres :refer (new-database)]
    [azondi.simulator :refer (new-simulator)]
-   [cylon.user :refer (UserDomain)]))
-
-(defrecord DevUserDomain []
-  UserDomain
-  (verify-user [this uid password]
-    (= password (:password (get-user (:database this) uid)))))
-
-(defn new-dev-user-domain []
-  (component/using (->DevUserDomain) [:database]))
+   [azondi.system :refer (config configurable-system-map new-prod-system)]
+   [azondi.stub-emailer :refer (new-stub-emailer)]
+   [cylon.totp :refer (OneTimePasswordStore)]
+   ))
 
 (def mod-defs
   {:system-mods
-   {:ui
+   {:-em ; no email, just display the info in the log
     (fn [config]
       (fn [system-map]
         (-> system-map
-            (assoc
-                :database (new-database (get system-map :postgres))
-                :user-domain (new-dev-user-domain)
-                :cassandra (cass/new-database {:hosts ["127.0.0.1"]}))
-            (dissoc :message-archiver))))
+            (assoc :emailer (new-stub-emailer)))))
 
-    :sim
+    :+s
     (fn [config]
       (fn [system-map]
         (assoc system-map
           :simulator (-> (apply new-simulator (apply concat (:simulator config)))
                          (component/using [:mqtt-server])))))
 
-    :pg
+    :-c*
     (fn [config]
       (fn [system-map]
-        (-> system-map
-            (assoc
-                :database (new-database (get system-map :postgres))
-                :user-domain (new-postgres-user-domain))
-            (dissoc :cassandra :message-archiver :topic-injector))))
+        (assoc system-map
+          :cassandra (reify component/Lifecycle
+                       (start [c] c)
+                       (stop [c] c)))))
 
     :messaging
     (fn [config]
       (fn [system-map]
         (-> system-map
-            (assoc :database (new-database (get system-map :postgres))
-                   :user-domain (new-postgres-user-domain))
+            (assoc :database (new-database (get system-map :postgres)))
             (dissoc :webapp :webrouter :webserver
                     :api :sse :login-form :cljs-core
                     :cljs-main :main-cljs-builder
@@ -78,5 +65,5 @@
       (configurable-system-map config))
      ((apply comp
              (map #(% config) (remove nil? (for [mod env] (get-in mod-defs [:dependency-mods mod])))))
-      (new-dependency-map))
-     )))
+      {} ; explicit dependency map
+      ))))

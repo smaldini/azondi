@@ -1,12 +1,9 @@
 (ns azondi.db.protocol)
 
 (defprotocol DataStore
-  (create-user! [_ name user email pw])
   (get-users [_])
-  (get-user [_ user])
-  (get-user-by-email [_ email])
   (delete-user! [_ user])
-  (reset-user-password [_ user password])
+
   (devices-by-owner [_ user])
   (create-device! [_ user pw])
   (get-device [_ client-id])
@@ -25,7 +22,7 @@
   (patch-topic! [_ topic-id data])
   (public-topics-by-owner [_ user])
   (get-public-topic [_ topic])
-  
+
   ;;subscriptions
   (subscriptions-by-owner [_ user])
   (create-subscription [_ user topic])
@@ -33,16 +30,14 @@
   (user-subscribed? [_ user topic])
   ;;api
   (get-api-key [_ user])
-  (delete-api-key [_ user])
-  (create-api-key [_ user])
+  (delete-api-key! [_ user])
+  (create-api-key! [_ user])
   (find-user-by-api-key [_ api-key])
   ;;ws
   (get-ws-session-token [_ user])
   (delete-ws-session-token [_ user])
   (create-ws-session-token [_ user])
   (find-ws-session-by-token [_ token]))
-
-
 
 (defprotocol MessageStore
   ;; star-date and end-date are vector with date fields

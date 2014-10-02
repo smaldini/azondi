@@ -11,12 +11,15 @@
 
   <logger name="modular" level="INFO"/>
   <logger name="azondi" level="INFO"/>
-  <!-- For debugging SSE traffic -->
-  <logger name="azondi.bridges.sse" level="DEBUG"/>
-  <logger name="cylon" level="INFO"/>
+  <logger name="azondi.webapp" level="DEBUG"/>
+  <logger name="cylon.oauth.impl" level="DEBUG"/>
+  <logger name="cylon" level="DEBUG"/>
+  <logger name="cylon.impl.authentication" level="DEBUG"/>
+  <logger name="modular.bootstrap" level="DEBUG"/>
   <logger name="azondi.cassandra" level="INFO"/>
   <logger name="azondi.cassandra" level="DEBUG"/>
   <logger name="azondi.stream-summary" level="DEBUG"/>
+
   <root level="INFO">
     <appender-ref ref="CONSOLE"/>
   </root>

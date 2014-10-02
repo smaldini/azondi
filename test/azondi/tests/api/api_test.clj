@@ -14,6 +14,7 @@
    [azondi.helpers.http :refer [request]]
    [azondi.db :refer (get-user create-api-key get-api-key)]
    [azondi.cassandra :as cass]
+   [azondi.postgres :refer (new-database)]
    [schema.core :as s]
    [azondi.system :refer (config)]
    [azondi.postgres :refer (new-postgres-user-domain)]
@@ -36,10 +37,10 @@
     :cassandra (cass/new-database
                  (get (config) :cassandra {:keyspace "opensensors" :hosts ["127.0.0.1"]}))
     :api (new-api :uri-context "/api/1.0")
-    :authorizer (new-user-authorizer)
-    :http-authenticator (new-http-basic-authenticator)
-    :api-key-authenticator (new-api-key-authenticator)
-    :authenticator (new-composite-disjunctive-authenticator
+    ;;:authorizer (new-user-request-authorizer)
+    ;;    :http-authenticator (new-http-basic-authenticator)
+    ;;:api-key-authenticator (new-api-key-authenticator)
+    #_:authenticator #_(new-composite-disjunctive-authenticator
                     :http-authenticator
                     :api-key-authenticator)
     :user-domain (new-postgres-user-domain))
@@ -91,7 +92,7 @@
 
   (testing "create user"
     (let [db (-> *system* :database)
-          _ (create-api-key db "alice")
+          _ (create-api-key! db "alice")
           api-key (:api (get-api-key db "alice"))
 
           response
@@ -241,7 +242,7 @@
 
   (testing "create user with api key"
     (let [db (-> *system* :database)
-          _ (create-api-key db "alice")
+          _ (create-api-key! db "alice")
           response
           (request :put (make-uri :azondi.api/user :user "alice")
                    :data {:password "lewis"
@@ -254,7 +255,7 @@
       (is (get-user db "alice"))
 
       ;; Create an API key for alice
-      (create-api-key db "alice")
+      (create-api-key! db "alice")
 
       (let [api-key (:api (get-api-key db "alice"))]
         (is (not (nil? api-key)))

@@ -48,6 +48,7 @@
               headers (clj->js (into {} (remove (comp nil? second)
                                                 [["Accept" (:accept m)]
                                                  ["Content-Type" (:content-type m)]
+                                                 ["Authorization" (:authorization m)]
                                                  ["Access-Control-Allow-Origin" '*']
                                                  []])))
               _ (assert (contains? m :method) "Missing method")

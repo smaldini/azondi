@@ -1,102 +1,95 @@
 (ns azondi.webapp
   (:require
-   [com.stuartsierra.component :as component]
+   [com.stuartsierra.component :as component :refer (using)]
    [clojure.java.io :as io]
+   [clojure.tools.logging :refer :all]
    [bidi.bidi :refer (make-handler ->ResourcesMaybe ->Files path-for)]
    [modular.bidi :refer (WebService)]
    [markdown.core :as md]
    [hiccup.core :refer (html h)]
    [azondi.basepage :refer :all]
    [org.httpkit.server :refer (run-server)]
-   [cylon.authentication :refer (authenticate)]
-   [cylon.authorization :refer (authorized?)]
-   ))
+   [cylon.authentication :refer (authenticate get-subject-identifier)]
+   [cylon.oauth.client :refer (solicit-access-token
+                               refresh-access-token
+                               wrap-require-authorization)]
+   [ring.util.response :refer (response)]
+   [plumbing.core :refer (<-)]))
 
 (defn md->html
   "Reads a markdown file/resource and returns an HTML string"
   [r]
   (md/md-to-html-string (slurp r)))
 
-(defn restrict-to-valid-user [authorizer page]
-  (fn [req]
-    (if-let [user (authorized? authorizer req nil)]
-      {:status 200 :body (page user)}
-      {:status 403
-       :body (base-page
-              nil
-              [:div
-               [:h1 "Unauthorized"]
-               [:p "Please "
-                [:a {:href (path-for (:modular.bidi/routes req) :login)} "Login "] " or "
-                [:a {:href (path-for (:modular.bidi/routes req) :sign-up)} "Sign up"]
-                " to continue"]])})))
-
-(defn unrestricted-pages [authorizer page]
-   (fn [req]
-    (let [user (authorized? authorizer req nil)]
-      {:status 200 :body (page user)})))
-
-(defn handlers [authenticator authorizer]
-  {:index
-   (fn [req]
-     {:status 200
-      :body (base-page
-             (authenticate authenticator req)
-             index-page
-             [:script {:src "cljs/logo.js"}])})
-
-   :sign-up
+(defn handlers [oauth-client]
+  {
+   :users
+   (->
     (fn [req]
+      (response
+       (users-page req
+                   (:cylon/subject-identifier req)
+                   (:cylon/access-token req))))
+    (wrap-require-authorization oauth-client :superuser/read-users))
+
+   :index
+   (fn [req]
      {:status 200
-      :body (base-page
-             (authenticate authenticator req)
-             [:div#sign-up-div sign-up-form])})
+      :body (base-page req
+                       (get-subject-identifier oauth-client req)
+                       index-page
+                       [:script {:src "cljs/logo.js"}])})
 
    :help
    (fn [req]
      {:status 200
-      :body (base-page
-             (authenticate authenticator req)
-             [:div.markdown-page (md->html (io/resource "markdown/getting-started.md"))])})
+      :body (base-page req
+                       (get-subject-identifier oauth-client req)
+                       (md->html (io/resource "markdown/getting-started.md")))})
+
    :about
    (fn [req]
      {:status 200
-      :body (base-page
-             (authenticate authenticator req)
-             [:div.markdown-page (md->html (io/resource "markdown/about-us.md"))])})
+      :body (base-page req
+                       (get-subject-identifier oauth-client req)
+                       (md->html (io/resource "markdown/about-us.md")))})
    :terms
    (fn [req]
      {:status 200
-      :body (base-page
-             (authenticate authenticator req)
-             [:div.markdown-page (md->html (io/resource "markdown/terms.md"))])})
+      :body (base-page req
+                       (get-subject-identifier oauth-client req)
+                       (md->html (io/resource "markdown/terms.md")))})
 
    :services
    (fn [req]
      {:status 200
-      :body (base-page
-             (authenticate authenticator req)
-             [:div.markdown-page (md->html (io/resource "markdown/services.md"))])})
+      :body (base-page req
+                       (get-subject-identifier oauth-client req)
+             (md->html (io/resource "markdown/services.md")))})
    :careers
    (fn [req]
      {:status 200
-      :body (base-page
-             (authenticate authenticator req)
-             [:div.markdown-page (md->html (io/resource "markdown/careers.md"))])})
+      :body (base-page req
+                       (get-subject-identifier oauth-client req)
+                       (md->html (io/resource "markdown/careers.md")))})
+
    :clojure-cup
     (fn [req]
      {:status 200
-      :body (base-page
-             (authenticate authenticator req)
-             [:div.markdown-page (md->html (io/resource "markdown/clojure-cup.md"))])})
-   
-   :devices (restrict-to-valid-user authorizer devices-page)
+      :body (base-page req
+                       (get-subject-identifier oauth-client req)
+                       (md->html (io/resource "markdown/clojure-cup.md")))})
 
-   :topics (restrict-to-valid-user authorizer topics-page)
+   :devices (->
+             (fn [req]
+               (response (devices-page req
+                                       (:cylon/subject-identifier req)
+                                       (:cylon/access-token req))))
+             (wrap-require-authorization oauth-client :user))
 
-   :reset-password (restrict-to-valid-user authorizer reset-password-page)
+   #_:topics #_(restrict-to-valid-user authorizer topics-page)
 
-   :api-docs-page (restrict-to-valid-user authorizer api-page)
+   #_:api-docs-page #_(restrict-to-valid-user authorizer api-page)
 
    :topic-browser (restrict-to-valid-user authorizer topic-browser)
    :topics-list (unrestricted-pages authorizer public-topics-list)
@@ -108,40 +101,31 @@
 (def routes
   ["/" [["" :index]
         ["" (->ResourcesMaybe {:prefix "public/"})]
-        ;; React
         ["js/" (->ResourcesMaybe {:prefix "react/"})]
-
-        ;;["cljs/" {:get (->Files {:dir "target/cljs"})}]
         ["help" :help]
         ["about" :about]
         ["terms" :terms]
         ["services" :services]
-        ["careers" :careers]
+        ["users" :users]
+        ["login" :login]
+        ["signup" :signup]
         ["devices" :devices]
         ["topics" :topics]
         ["reset-password" :reset-password]
         ["api-docs" :api-docs-page]
         ["web-sockets" :web-sockets-page]
         ["topic-browser" :topic-browser]
-        ["signup" :sign-up]
         ["clojure-cup" :clojure-cup]
-        [["users/" :user]
-         [["" :topics-list]
-          [["/" [#".*" :topic-name]] :topic-show]
-          ]]
-        ]])
+        ["topic-browser" :topic-browser]]])
 
+(defrecord WebApp [oauth-client]
+  WebService
+  (request-handlers [this] (handlers oauth-client))
+  (routes [_] routes)
+  (uri-context [_] ""))
 
-(defrecord WebApp []
-           WebService
-           (request-handlers [this] (handlers (:authenticator this) (:authorizer this)))
-           (routes [_] routes)
-           (uri-context [_] ""))
-
-(defn new-webapp []
-  (component/using (->WebApp) [:authenticator :authorizer]))
-
-;; TODO Need a webservice to call
-;; require : [metrics.ring.expose :refer [serve-metrics]]
-;;["ops/1.0/metrics" (fn [req]
-;;                             (serve-metrics req metric-registry {:pretty-print? true}))]
+(defn new-webapp [& {:as opts}]
+  (->> opts
+       (merge {})
+       map->WebApp
+       (<- (using [:oauth-client]))))

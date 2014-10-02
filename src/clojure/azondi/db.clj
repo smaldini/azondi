@@ -9,41 +9,12 @@
 ;; We dispatch on the protocol via these wrappers which allow us to add
 ;; schema validation
 
-(s/defn create-user!
-  [component :- (s/protocol p/DataStore)
-   name user email pw]
-  (p/create-user! component name user email pw))
-
-(s/defn get-users :- [{:user s/Str}]
+(s/defn get-users :- [{:user s/Str
+                       :name s/Str
+                       :email s/Str
+                       }]
   [component :- (s/protocol p/DataStore)]
   (p/get-users component))
-
-(s/defn get-user :- (s/maybe {:user s/Str
-                              :name s/Str
-                              :email s/Str
-                              :password s/Str})
-  [component :- (s/protocol p/DataStore)
-   user]
-  (p/get-user component user))
-
-(s/defn get-user-by-email :- (s/maybe {:user s/Str
-                              :name s/Str
-                              :email s/Str
-                                       :password s/Str})
-  [component :- (s/protocol p/DataStore)
-   user]
-  (p/get-user-by-email component user))
-
-(s/defn delete-user!
-  [component :- (s/protocol p/DataStore)
-   user]
-  (p/delete-user! component user))
-
-(s/defn reset-user-password
-  [component :- (s/protocol p/DataStore)
-   user
-   password]
-  (p/reset-user-password component user password))
 
 (s/defn devices-by-owner
   [component :- (s/protocol p/DataStore)
@@ -177,15 +148,15 @@
    user :- s/Str]
   (p/get-api-key component user))
 
-(s/defn delete-api-key
+(s/defn delete-api-key!
   [component :- (s/protocol p/DataStore)
    user]
-  (p/delete-api-key component user))
+  (p/delete-api-key! component user))
 
-(s/defn create-api-key
+(s/defn create-api-key!
   [component :- (s/protocol p/DataStore)
    user]
-  (p/create-api-key component user))
+  (p/create-api-key! component user))
 
 (s/defn find-user-by-api-key
   [component :- (s/protocol p/DataStore)
@@ -211,3 +182,12 @@
   [component :- (s/protocol p/DataStore)
    token :- s/Str]
   (p/find-ws-session-by-token component token))
+
+(s/defn set-totp-encrypted-secret
+  [component :- (s/protocol p/TotpStore)
+   identity :- s/Str
+   secret :- s/Str]
+  (p/set-totp-encrypted-secret component identity secret))
+
+(s/defn get-totp-encrypted-secret [component identity]
+  (p/get-totp-encrypted-secret component identity))

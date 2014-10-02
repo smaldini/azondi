@@ -1,51 +1,39 @@
 (ns azondi.api
   (:require
+   [azondi.api-utils :refer (process-maps ->js ->clj)]
+   [azondi.db :refer :all]
+   [azondi.messages-db :refer (messages-by-owner messages-by-topic messages-by-topic-and-date messages-by-owner-and-date messages-by-device messages-by-device-and-date)]
+
    ;; The reason to use bidi here is to create a proper RESTful API
    ;; where resources are linked together using hyperlinks. Without
    ;; bidi, construction of these hyperlinks becomes increasingly
    ;; cumbersome and brittle.
-   [clojure.tools.logging :refer :all]
    [bidi.bidi :as bidi :refer (path-for ->Redirect)]
-   [liberator.core :refer (resource)]
-   [com.stuartsierra.component :as component]
-   [clojure.java.io :as io]
-   [clojure.edn :as edn]
-   [cheshire.core :refer (decode decode-stream encode)]
-   [schema.core :as s]
+
    [camel-snake-kebab :refer (->kebab-case-keyword ->camelCaseString)]
-   [azondi.db :refer :all]
-   [azondi.messages-db :refer (messages-by-owner messages-by-topic messages-by-topic-and-date messages-by-owner-and-date messages-by-device messages-by-device-and-date)]
-   [azondi.emails :refer (beta-signup-email)]
-   [hiccup.core :refer (html)]
-   [clojure.walk :refer (postwalk)]
-   liberator.representation
-   [modular.bidi :refer (WebService)]
-   [cylon.authentication :refer (Authenticator authenticate)]
-   [cylon.authorization :refer (Authorizer authorized?)]
+   [cheshire.core :refer (decode decode-stream encode)]
    [clj-time.core :as t :refer (now date-time) ]
    [clj-time.format :as tf]
+   [clojure.edn :as edn]
+   [clojure.java.io :as io]
+   [clojure.tools.logging :refer :all]
+   [clojure.walk :refer (postwalk)]
+   [com.stuartsierra.component :as component :refer (Lifecycle)]
+   [cylon.password :refer (make-password-hash)]
+   [cylon.user :refer (create-user! get-user get-user-by-email set-user-password-hash!)]
+   [cylon.authorization :refer (behalf-of?)]
+   [cylon.authentication :refer (get-subject-identifier)]
+   cylon.oauth.authorization
+
+   [hiccup.core :refer (html)]
+   [liberator.core :refer (resource)]
+   [modular.bidi :refer (WebService)]
+   [schema.core :as s]
+   [plumbing.core :refer (<-)]
+   liberator.representation
    ))
 
 ;; Coercians
-
-(defn process-maps [fm t]
-  (postwalk (fn [fm]
-              (cond
-               (map? fm) (reduce-kv (fn [acc k v] (assoc acc (t k) v)) {} fm)
-               :otherwise fm)) fm))
-
-(defn ->clj
-  "Convert JSON keys into Clojure keywords. This is because we receive
-  JSON but want to process it as Clojure."
-  [fm]
-  (process-maps fm ->kebab-case-keyword))
-
-(defn ->js
-  "Convert Clojure keywords into JSON keys. This is because we respond
-  with JSON."
-  [fm]
-  (process-maps fm ->camelCaseString))
-
 (defprotocol Body
   (read-edn-body [body])
   (read-json-body [body]))
@@ -174,14 +162,26 @@
                ::error (format "You need to provide a %s" (name k)) }]
         (check-dates {:request req})))))
 
-(defn messages-by-owner-resource [messages-db authorizer]
+;; Authorization utilities
+
+(defn scope-authorized? [authenticator scope]
+  (fn [{request :request}]
+    (cylon.oauth.authorization/scope-authorized? authenticator request scope)))
+
+(defn same-user-as-route? [authenticator]
+  (fn [{{{user :user} :route-params :as request} :request}]
+    ;; Is the user you're accessing the user you're identified as?
+    (behalf-of? authenticator request user)))
+
+;; MESSAGES
+
+(defn messages-by-owner-resource [messages-db authenticator]
   {:allowed-methods #{:get}
    :available-media-types #{"application/json"}
-   :authorized? (fn [{{{user :user :as rp} :route-params :as request} :request}]
-                  (authorized? authorizer request rp))
    :malformed? check-dates
    :handle-malformed (fn [ctx] {:status 400 :error (::error ctx)})
-   :handle-ok (fn [{{{user :user} :route-params :as req} :request :as ctx} ]
+   :authorized? (same-user-as-route? authenticator)
+   :handle-ok (fn [{{{user :user} :route-params :as req} :request :as ctx}]
                 (let [query-string-map (query-string>map-kv (:query-string req))
                       res (if (and (:start-date query-string-map)  (:end-date query-string-map))
                             (messages-by-owner-and-date messages-db user
@@ -190,13 +190,11 @@
                             (messages-by-owner messages-db user))]
                   (encode {:messages res})))})
 
-
-
-(defn messages-by-topic-resource [db messages-db authorizer]
+(defn messages-by-topic-resource [db messages-db authenticator]
   {:allowed-methods #{:get}
    :authorized?
    (fn [{{query-string :query-string {user :user :as rp} :route-params :as req} :request}]
-     (when (authorized? authorizer req  rp)
+     (when (= user (get-subject-identifier authenticator req))
        (let [topic-req (:topic (query-string>map-kv query-string))
              topic (get-topic db topic-req)
              pass? (or (nil? topic)
@@ -227,18 +225,16 @@
                                        (messages-by-topic messages-db topic-req))})))})
 
 
-(defn messages-by-device-resource [db messages-db authorizer]
+(defn messages-by-device-resource [db messages-db authenticator]
   {:allowed-methods #{:get}
    :authorized? (fn [{{query-string :query-string {user :user :as rp} :route-params :as req} :request}]
-                  (when  (authorized? authorizer req  rp)
+                  (when (= user (get-subject-identifier authenticator req))
                     (when-let [device-id (:client (query-string>map-kv query-string))]
                       (let [device (get-device db device-id)
                             pass? (or (nil? device) (= (:user device) user))]
                         (if pass?
-                          [true { ::device device ::device-req device-id}]
+                          [true {::device device ::device-req device-id}]
                           [false])
-
-
                         ))))
    :malformed? (malformed-messages-by-call? :client)
    :handle-malformed (fn [ctx] {:status 400 :error (::error ctx)} )
@@ -280,24 +276,23 @@
     (if (= (count acc) length) (apply str acc)
         (recur (conj acc (rand-nth alphanumeric))))))
 
-(defn users-resource [db]
+(defn users-resource [db authenticator]
   {:allowed-methods #{:get}
    :available-media-types #{"text/html" "application/json"}
 
-   ;; Only allow local access
-   :allowed?
-   (fn [{{:keys [remote-addr request-method]} :request}]
-     (= remote-addr "127.0.0.1"))
+   :authorized? (scope-authorized? authenticator :superuser/read-users)
 
    :handle-ok
    (fn [{{mt :media-type} :representation {routes :modular.bidi/routes :as req} :request}]
      (case mt
        "text/html"
        (do
-         (html [:ul (for [[k user] (get-users db)]
-                      [:li [:a {:href (bidi/path-for routes :user :user (:user user))} (:user user)]])]))
+         (html [:ul (for [user (get-users db)]
+                      [:li [:a {:href (bidi/path-for routes ::user :user (:user user))} (:user user)]])]))
        "application/json"
-       (for [user (get-users db)] {:user user :href (bidi/path-for routes :user :user (:user user))})))})
+       (for [user (get-users db)]
+         (assoc user :href (bidi/path-for routes ::user :user (:user user)))
+         )))})
 
 (def new-user-schema
   {(s/optional-key :name) s/Str
@@ -305,13 +300,12 @@
    :email s/Str
    })
 
-(defn user-resource [db authorizer]
+(defn user-resource [db password-verifier authorizer]
   {:available-media-types #{"application/json" "text/html"}
    :allowed-methods #{:put :get}
 
    #_:authorized? #_(fn [{{{user :user :as rp} :route-params :as request} :request}]
-
-                  (authorized? authorizer request rp))
+                      (authorized-request? authorizer request rp))
 
    #_:handle-unauthorized #_(fn [_] (encode {:error "Unauthorized"}))
 
@@ -335,11 +329,12 @@
                                         [:dd v]))])))
 
    :put! (fn [{{:keys [name email password]} :body {{user :user} :route-params} :request}]
-           (let [u (create-user! db name user email password)
-                 _ (create-api-key db user)
-                 ;;_ (set-api-key uesrs user)
-                 ;;api-key (get-api-key user)
+           (let [u (create-user!
+                    db user
+                    (make-password-hash password-verifier password)
+                    email {:name name})
                  ]
+             (create-api-key! db user)
              ;; We create the api-key, in order to return. This is
              ;; really just to help with the tests. Is this appropriate?
              {:response-body {:api-key (:api (get-api-key db user))
@@ -372,18 +367,19 @@
    :handle-ok (fn [{email ::email}]
                 {::email email} ))
 
-(defn reset-user-password-resource [db authorizer]
+(defn reset-user-password-resource [db password-verifier authenticator]
   {:available-media-types #{"application/json"}
    :allowed-methods #{:post}
 
-   :authorized? (fn [{{{user :user :as rp} :route-params :as request} :request}]
-                  (authorized? authorizer request rp))
+   :authorized? (same-user-as-route? authenticator)
 
    :handle-unauthorized (fn [_] (encode {:error "Unauthorized"}))
 
    :post! (fn [{{body :body {user :user} :route-params} :request}]
             (let [password (get-in (->clj (read-json-body body)) [:password])]
-              (reset-user-password db user password)
+              (set-user-password-hash!
+               db user
+               (make-password-hash password-verifier password))
               {:password password}))
    :handle-created (fn [{password :password}] {} )})
 
@@ -403,14 +399,10 @@
         random-char (fn [] (nth valid-chars (rand (count valid-chars))))]
     (apply str (take 8 (repeatedly random-char)))))
 
-
-(defn devices-resource [db authorizer]
+(defn devices-resource [db authenticator]
   {:available-media-types #{"application/json"}
    :allowed-methods #{:get :post}
-
-   :authorized? (fn [{{{user :user :as rp} :route-params :as request} :request}]
-                  (authorized? authorizer request rp))
-
+   :authorized? (same-user-as-route? authenticator)
    :handle-ok (fn [{{{user :user} :route-params :as req} :request}]
                 (encode {:user user
                          :devices (->>
@@ -431,17 +423,13 @@
 
    :handle-created (fn [{device :device}] (->js device))})
 
-
-
-
-(defn device-resource [db authorizer]
+(defn device-resource [db authenticator]
   {:available-media-types #{"application/json"}
    :allowed-methods #{:get :put :delete}
    ;;:allowed? same-user
    :known-content-type? #{"application/json"}
 
-   :authorized? (fn [{{{user :user :as rp} :route-params :as request} :request}]
-                  (authorized? authorizer request rp))
+   :authorized? (same-user-as-route? authenticator)
 
    :handle-unauthorized (fn [_] (encode {:error "Unauthorized"}))
 
@@ -466,12 +454,11 @@
    :handle-created (fn [_] {:message "Patched"})})
 
 
-(defn reset-device-password-resource [db authorizer]
+(defn reset-device-password-resource [db authenticator]
   {:available-media-types #{"application/json"}
    :allowed-methods #{:post}
 
-   :authorized? (fn [{{{user :user :as rp} :route-params :as request} :request}]
-                  (authorized? authorizer request rp))
+   :authorized? (same-user-as-route? authenticator)
 
    :handle-unauthorized (fn [_] (encode {:error "Unauthorized"}))
 
@@ -486,12 +473,11 @@
    (s/optional-key :unit) s/Str
    (s/optional-key :description) s/Str})
 
-(defn topics-resource [db authorizer]
+(defn topics-resource [db authenticator]
   {:available-media-types #{"application/json"}
    :allowed-methods #{:get}
 
-   :authorized? (fn [{{{user :user :as rp} :route-params :as request} :request}]
-                  (authorized? authorizer request rp))
+   :authorized? (same-user-as-route? authenticator)
 
    :handle-unauthorized (fn [_] (encode {:error "Unauthorized"}))
 
@@ -505,12 +491,11 @@
                    (encode body)))
    })
 
-(defn topic-resource [db authorizer]
+(defn topic-resource [db authenticator]
   {:available-media-types #{"application/json"}
    :allowed-methods #{:get :put :delete}
 
-   :authorized? (fn [{{{user :user :as rp} :route-params :as request} :request}]
-                  (authorized? authorizer request rp))
+   :authorized? (same-user-as-route? authenticator)
 
    :handle-unauthorized (fn [_] (encode {:error "Unauthorized"}))
 
@@ -584,12 +569,12 @@
 (def subscriptions-attributes-schema
   {(s/required-key :topic) s/Str})
 
-(defn subscriptions-resource [db authorizer]
+(defn subscriptions-resource [db authenticator]
   {:available-media-types #{"application/json"}
    :allowed-methods #{:get :post :delete}
    :known-content-type? #{"application/json"}
-   :authorized? (fn [{{{user :user :as rp} :route-params :as request} :request}]
-                  (authorized? authorizer request rp))
+
+   :authorized? (same-user-as-route? authenticator)
 
    :handle-unauthorized (fn [_] (encode {:error "Unauthorized"}))
    :handle-ok (fn [{{{user :user} :route-params :as req} :request}]
@@ -613,13 +598,12 @@
 
    :handle-created (fn [{body :response-body}] body)})
 
-(defn api-resource [db authorizer]
+(defn api-resource [db authenticator]
   {:available-media-types #{"application/json"}
    :allowed-methods #{:get :post}
    :known-content-type? #{"application/json"}
 
-   :authorized? (fn [{{{user :user :as rp} :route-params :as request} :request}]
-                  (authorized? authorizer request rp))
+   :authorized? (same-user-as-route? authenticator)
 
    :handle-unauthorized (fn [_] (encode {:error "Unauthorized"}))
 
@@ -633,19 +617,18 @@
             {:api-key
              (if (get-api-key db user)
                (do
-                 (delete-api-key db user)
-                 (create-api-key db user))
-               (create-api-key db user))})
+                 (delete-api-key! db user)
+                 (create-api-key! db user))
+               (create-api-key! db user))})
 
    :handle-created (fn [{api-key :api-key}]
                      (->js api-key))})
 
-(defn ws-resource [db authorizer]
+(defn ws-resource [db authenticator]
   {:available-media-types #{"application/json"}
    :allowed-methods #{:get :post}
    :known-content-type? #{"application/json"}
-   :authorized? (fn [{{{user :user :as rp} :route-params :as request} :request}]
-                  (authorized? authorizer request rp))
+   :authorized? (same-user-as-route? authenticator)
 
    :handle-unauthorized (fn [_] (encode {:error "Unauthorized"}))
 
@@ -674,30 +657,26 @@
 (defn apply-middleware-to-handlers [m middleware]
   (reduce-kv (fn [a k v] (assoc a k (middleware v))) {} m))
 
-
-(defn handlers [db messages-db authorizer]
+(defn handlers [db password-verifier messages-db authenticator]
   (->
    {::welcome (resource (welcome-resource))
-    ::users (resource (users-resource db))
+    ::contact-form (resource (contact-resource))
+    ::users (resource (users-resource db authenticator))
     ::userid (resource (user-id-resource db))
     ::user-email (resource (user-email-resource db))
-    ::user (resource (user-resource db authorizer))
-    ::contact-form (resource (contact-resource))
-    ::devices (resource (devices-resource db authorizer))
-    ::device (resource (device-resource db authorizer))
-    ::reset-password (resource (reset-device-password-resource db authorizer))
-    ::topics (resource (topics-resource db authorizer))
-    ::topic (resource (topic-resource db authorizer))
-    ::public-topic (resource (public-topic-resource db))
-    ::public-topics (resource (public-topics-resource db))
-    ::subscriptions (resource (subscriptions-resource db authorizer))
-    ::api-key (resource (api-resource db authorizer))
-    ::reset-user-password (resource (reset-user-password-resource db authorizer))
-
-    ::ws-token (resource (ws-resource db authorizer))
-    ::messages-by-owner (resource (messages-by-owner-resource messages-db authorizer))
-    ::messages-by-topic (resource (messages-by-topic-resource db messages-db authorizer))
-    ::messages-by-device (resource (messages-by-device-resource db messages-db authorizer))}
+    ::user (resource (user-resource db password-verifier authenticator))
+    ::devices (resource (devices-resource db authenticator))
+    ::device (resource (device-resource db authenticator))
+    ::reset-password (resource (reset-device-password-resource db authenticator))
+    ::topics (resource (topics-resource db authenticator))
+    ::topic (resource (topic-resource db authenticator))
+    ::subscriptions (resource (subscriptions-resource db authenticator))
+    ::api-key (resource (api-resource db authenticator))
+    ::reset-user-password (resource (reset-user-password-resource db password-verifier authenticator))
+    ::ws-token (resource (ws-resource db authenticator))
+    ::messages-by-owner (resource (messages-by-owner-resource messages-db authenticator))
+    ::messages-by-topic (resource (messages-by-topic-resource db messages-db authenticator))
+    ::messages-by-device (resource (messages-by-device-resource db messages-db authenticator))}
    (apply-middleware-to-handlers wrap-with-fn-validation)))
 
 (def routes
@@ -730,44 +709,26 @@
                           "/reset-password" ::reset-user-password
                           "/messages-by-owner" ::messages-by-owner
                           "/messages-by-topic"  ::messages-by-topic
-                          "/messages-by-device"  ::messages-by-device}}]
-)
- 
-(defrecord Api []
+                          "/messages-by-device"  ::messages-by-device
+}}]
+  )
+
+
+(defrecord Api [database password-verifier messages-store authenticator uri-context]
   WebService
-  (request-handlers [this] (handlers (:database this) (:cassandra this) (:authorizer this)))
+  (request-handlers [this]
+    (handlers database
+              password-verifier
+              messages-store
+              authenticator))
   (routes [_] routes)
-  (uri-context [_] "/api/1.0"))
+  (uri-context [_] uri-context))
+
+(def new-api-schema {:uri-context s/Str})
 
 (defn new-api [& {:as opts}]
-  (component/using (->Api) [:database :authorizer :cassandra]))
-
-;; Authorization
-
-(defrecord UserAuthorizer []
-  Authorizer
-  (authorized? [this request requirement]
-    (infof "Authorizing %s against requirement %s"
-           (dissoc request :modular.bidi/routes :modular.bidi/handlers)
-           requirement
-           )
-    (infof "Authenticator is: %s" (:authenticator this))
-    (= (:cylon/user (authenticate (:authenticator this) request))
-       (:user requirement))))
-
-(defn new-user-authorizer []
-  (component/using (->UserAuthorizer) [:authenticator]))
-
-;; Authentication
-
-(defrecord ApiKeyAuthenticator []
-  Authenticator
-  (authenticate [this request]
-    (when-let [header (get-in request [:headers "authorization"])]
-      (when-let [api-key (second (re-matches #"\Qapi-key\E\s+(.*)" header))]
-        (when-let [user (find-user-by-api-key (:database this) api-key)]
-          {:cylon/user user
-           :cylon/authentication-method :api-key})))))
-
-(defn new-api-key-authenticator []
-  (component/using (->ApiKeyAuthenticator) [:database]))
+  (->> opts
+       (merge {:uri-context ""})
+       (s/validate new-api-schema)
+       map->Api
+       (<- (component/using [:database :password-verifier :messages-store :authenticator]))))

@@ -15,7 +15,7 @@
    [clojurewerkz.meltdown.reactor :as mr]
    [clojurewerkz.meltdown.consumers :as mc]
    [clojurewerkz.meltdown.selectors :refer (set-membership predicate match-all)]
-   [cylon.authentication :refer (authenticate)]
+   [cylon.authentication :refer (get-subject-identifier)]
    [org.httpkit.timer :refer (schedule-task)]
    [clojure.core.async :as async :refer (go <! Mult Pub tap untap chan close!)]
    [schema.core :as s]))
@@ -23,9 +23,9 @@
 (defn read-bytes [bs cs]
   (slurp (io/reader bs :encoding cs)))
 
-(defn server-event-source [reactor authorizer database]
+(defn server-event-source [reactor authenticator database]
   (fn [{{prefix :prefix} :route-params :as req}]
-    (let [user (:cylon/user (authenticate (:authenticator authorizer) req))]
+    (let [user (get-subject-identifier authenticator req)]
       (if user
         (with-channel req channel
           (send! channel
@@ -166,7 +166,7 @@
   ["/" [[["public-stream" [#".*" :prefix]] :topics]
         [["events" [#".*" :prefix]] :events]
         ["topic-summary" {"" :topic-summary
-			  [[#".*" :prefix]] :topic-device-summary}          
+			  [[#".*" :prefix]] :topic-device-summary}
           ]]])
 
 (defrecord ServerSentEventBridge [uri-context reactor authorizer database]
@@ -180,7 +180,7 @@
        (merge {:uri-context ""})
        (s/validate {:uri-context s/Str})
        map->ServerSentEventBridge
-       (<- (using [:reactor :authorizer :database]))))
+       (<- (using [:reactor :authenticator :database]))))
 
 (defrecord EventService [async-pub]
   WebService

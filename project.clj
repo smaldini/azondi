@@ -5,6 +5,7 @@
             :url "http://www.eclipse.org/legal/epl-v10.html"}
 
   :source-paths ["src/clojure" "ext/clojure" "joplin"]
+
   :resource-paths ["resources"]
 
   :exclusions [prismatic/schema
@@ -19,6 +20,10 @@
 
                  ;; Tracing - explictly required
                  [org.clojure/tools.trace "0.7.8" :exclusions [org.clojure/clojure]]
+
+                 ;; Front end
+                 #_[org.clojure/clojurescript "0.0-2138"
+                    :exclusions [org.apache.ant/ant]]
 
                  ;; Back-end
                  [clojurewerkz/triennium  "1.0.0-beta2"]
@@ -54,7 +59,10 @@
                  [juxt.modular/netty "0.1.0"]
                  [juxt.modular/http-kit "0.5.1"]
                  [juxt.modular/http-kit-events "0.5.1"]
-                 [juxt.modular/bidi "0.5.1"]
+                 [juxt.modular/bidi "0.5.2"]
+
+                 ;; Required by bootstrap - remove when they are resolve transitively
+                 [juxt.modular/bootstrap "0.2.0"]
 
                  [hiccup "1.0.5"]
                  [garden "1.1.5" :exclusions [org.clojure/clojure org.clojure/clojurescript]]
@@ -63,7 +71,7 @@
 
                  ;; Security
 
-                 [cylon "0.3.2"]
+                 [cylon "0.5.0-SNAPSHOT"]
 
                  ;; Logging
 
@@ -87,6 +95,10 @@
 
                  [org.clojars.ideal-knee/dommy "0.1.3-SNAPSHOT"]
                  [jarohen/chord "0.3.1"]
+
+                 ;; Temp cylon deps - remove these once depending on lib
+                 ;; version of cylon
+                 [clj-jwt "0.0.8"]
 
                  ;; Templating for MQTT message bodies
                  [de.ubercode.clostache/clostache "1.3.1"]
@@ -135,7 +147,7 @@
   :profiles {:dev {:dependencies [[org.clojure/tools.namespace "0.2.4"]
                                   [clojurewerkz/machine_head "1.0.0-beta9"]]
                    :source-paths ["dev/src/clojure" "src/cljs"]
-                   :resource-paths ["test/resources"]}
+                   :resource-paths ["test/resources" "dev/src/sql" "dev/src/cql"]}
 
              :uberjar {:main azondi.main
                        :aot [azondi.main]}}

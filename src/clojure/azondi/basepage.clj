@@ -1,11 +1,17 @@
 (ns azondi.basepage
   (:require
+   [com.stuartsierra.component :as component]
    [hiccup.page :refer (html5)]
    [hiccup.form :as hf]
    [clojure.java.io :as io]
+   [modular.bootstrap :refer (ContentBoilerplate)]
+   [modular.bidi :refer (path-for)]
+   [plumbing.core :refer (<-)]
+   [cylon.session :refer (session)]
+   [cylon.authentication :refer (get-subject-identifier)]
    ))
 
-(def menus
+(defn menus [req]
     [{:label "Devices"
       :security :user ; surely you need to have a username in order to create devices?
       :location :sidebar
@@ -52,7 +58,7 @@
      {:label "Login"
       :security :none
       :location :navbar
-      :target "/login"}
+      :target "/devices"}
      {:label "Logout"
       :security :user
       :location :navbar
@@ -96,7 +102,7 @@
     :none (nil? user)
     true))
 
-(defn side-menu [user]
+(defn side-menu [user req]
   [:div.navbar-default.navbar.sbar {:role "navigation"}
                      [:div.navbar-header.sbar
                       [:button {:type "button"
@@ -110,7 +116,7 @@
                        [:span.icon-bar]]
                       [:span {:class "visible-xs navbar-brand"} "Menu"]]
    [:ul
-    (for [menu menus
+    (for [menu (menus req)
           :when (displayed? menu user)]
       (when (= :sidebar (:location menu))
         (if (:children menu)
@@ -124,8 +130,7 @@
                      :when (displayed? child user)]
                  [:li [:a {:href (:target child)} (:label child)]])]]]]]
           [:li.side-menu-item [:a {:href (:target menu)} (:label menu)]])))]])
-
-(defn base-page [user body & scr]
+(defn auth-base-page [req user body & scr]
   (html5
    [:head
     [:meta {:charset "utf-8"}]
@@ -152,12 +157,10 @@
          [:span.icon-bar]
          [:span.icon-bar]
          [:span.icon-bar]]
-        [:a#home-logo.navbar-brand (if user
-                                     {:href "/devices"}
-                                     {:href "/"}) "opensensors.io"]]
+        [:a#home-logo.navbar-brand {:href "/"} "opensensors.io"]]
        [:div {:class "collapse navbar-collapse" :id "bs-example-navbar-collapse-1"}
         [:ul {:class "nav navbar-nav navbar-right"}
-         (for [menu menus
+         (for [menu (menus req)
                :when (displayed? menu user)]
            (if (= :navbar (:location menu))
              (if (:children menu)
@@ -175,7 +178,7 @@
        [:div#user-page.row
         [:div.col-sm-2
          [:div.sidebar-nav
-          (side-menu user)]]
+          (side-menu user req)]]
         [:div.col-xs-9
          body]]
        body)]
@@ -184,7 +187,94 @@
     [:script {:src "/js/react.js"}]
     [:script {:src "/cljs/cljs.js"}]
     [:script {:src "/cljs/azondi.js"}]
-    [:script {:src "/cljs/view.js"}]
+    [:script {:src "/cljs/logo.js"}]
+    [:script {:src "/cljs/topic-browser.js"}]
+
+    [:script {:src "/js/helpers.js"}]
+    [:div#footer {:class "navbar-default navbar-fixed-bottom"}
+     [:div.row
+      [:div.col-xs-3
+       [:h3 "opensensors.io"]
+       [:div#copyright
+        "&copy; 2014 open sensors ltd"]
+       [:a {:href "/terms"} "Terms"]]
+      [:div.col-xs-3
+       [:h3 "Company"]
+       [:a {:href "/about"} "About Us"] [:br]
+       [:a {:href "http://blog.opensensors.IO"} "Blog"] [:br]
+       [:a {:href "/careers"} "Careers"]]
+      [:div.col-xs-3
+       [:h3 "Help"]
+       [:a {:href "/help"} "Getting Started"]]
+      [:div.col-xs-3
+       [:h3 "Connect"]
+       [:a {:href "https://twitter.com/opensensorsio"} "Twitter"] [:br]
+       [:a {:href "mailto:hello@opensensors.io?subject=website%20enquiry"} "Mail"] [:br]
+       [:a {:href "http://blog.opensensors.IO"} "Blog"]]]]
+
+    ;; extenal libs
+    scr])
+
+  )
+(defn base-page [req user-id body & scr]
+  (html5
+   [:head
+    [:meta {:charset "utf-8"}]
+    [:meta {:name "viewport" :content "width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"}]
+    [:meta {:property "dc:language" :content "en"}]
+    [:meta {:property "dc:title" :content "opensensors.IO"}]
+    [:meta {:property "dc:description" :content "opensensors.IO processes sensor data using azondi"}]
+    [:title "opensensors.IO"]
+    ;; TODO Provide a local resource for offline dev...
+    #_[:link {:href "//netdna.bootstrapcdn.com/font-awesome/4.1.0/css/font-awesome.min.css" :rel "stylesheet"}]
+    [:link {:href "/css/bootstrap.min.css" :rel "stylesheet"}]
+    [:link {:href "/css/style.css" :rel "stylesheet"}]
+    [:script {:src "/js/jquery.min.js"}]
+    [:script {:src "/js/bootstrap.min.js"}]
+    [:script {:src "/js/jquery.session.js"}]]
+   [:body
+    [:div#wrap
+     [:nav {:class "navbar navbar-default" :role "navigation"}
+      [:div.container-fluid
+       [:div.navbar-header
+        [:button.navbar-toggle {:type "button" :data-toggle "collapse" :data-target "#bs-example-navbar-collapse-1"}
+         [:span.sr-only "Toggle navigation"]
+         [:span.icon-bar]
+         [:span.icon-bar]
+         [:span.icon-bar]]
+        [:a#home-logo.navbar-brand (if user-id
+                                     {:href "/devices"}
+                                     {:href "/"}) "opensensors.io"]]
+       [:div {:class "collapse navbar-collapse" :id "bs-example-navbar-collapse-1"}
+        [:ul {:class "nav navbar-nav navbar-right"}
+         (for [menu (menus req)
+               :when (displayed? menu user-id)]
+           (if (= :navbar (:location menu))
+             (if (:children menu)
+               [:li.dropdown [:a.dropdown-toggle {:href "#" :data-toggle "dropdown"} (:label menu) [:b.caret]]
+                [:ul.dropdown-menu
+                 (for [child (:children menu)
+                       :when (displayed? child user-id)]
+                   [:li [:a {:href (:target child)} (:label child)]])]]
+               [:li [:a {:href (:target menu)} (:label menu)]]
+               )))
+         (when user-id
+           [:li [:a user-id]]
+           [:script (format "$.session.set('user', '%s')" user-id)])]]]]
+     (if user-id
+       [:div#user-page.row
+        [:div.col-sm-2
+         [:div.sidebar-nav
+          (side-menu user-id req)]]
+        [:div.col-xs-9
+         body]]
+       body)]
+
+    ;;cljs
+    [:script {:src "/js/react.js"}]
+    [:script {:src "/cljs/cljs.js"}]
+    [:script {:src "/cljs/azondi.js"}]
+    [:script {:src "/cljs/logo.js"}]
     [:script {:src "/cljs/topic-browser.js"}]
 
     [:script {:src "/js/helpers.js"}]
@@ -242,8 +332,7 @@ a.async=true;a.type=\"text/javascript\";b.parentNode.insertBefore(a,b)}, 1);
        [:p "Share communal data with the world or publish privately"]]
       [:div.col-xs-6
        [:img {:src "imgs/icon_7138.svg" :height 100 :width 100} [:b#features-ind " Hardware Agnostic"]]
-       [:p "Connect any device to our messaging broker easily"]
-       ]]
+       [:p "Connect any device to our messaging broker easily"]]]
 
      [:div.row
       [:div#left.col-xs-6
@@ -259,27 +348,46 @@ a.async=true;a.type=\"text/javascript\";b.parentNode.insertBefore(a,b)}, 1);
       [:div.col-xs-6
        [:img {:src "imgs/icon_22612.svg" :height 100 :width 100} [:b#features-ind " Enterprise grade"]]
        [:p "Would you like to run the opensensors.IO IOT network inside your firewall?"]
-       [:a {:href "mailto:hello@opensensors.io?subject=Enterprise%20enquiry"} "Contact Us"]
-       ]]]
-   ]]
-  )
-;;; We need to pull out the user details from the session
-(defn devices-page [user]
-  (base-page user
+       [:a {:href "mailto:hello@opensensors.io?subject=Enterprise%20enquiry"} "Contact Us"]]]]]])
+
+(defn devices-page [req user-id access-token]
+  (base-page req
+   identity
    [:div
     [:h2 "Devices"]
     [:div#content [:p.loading "Loading..."]]]
-   [:script (format "azondi.main.devices_page('%s');" user)]))
+   [:script (format "azondi.main.devices_page('%s', '%s');" user-id access-token)]))
 
-(defn topics-page [user]
-  (base-page user
+(defn topics-page [req user-id]
+  (base-page req user-id
    [:div
     [:h2 "Topics"]
     [:div#content [:p.loading "Loading..."]]]
-   [:script (format "azondi.main.topics_page('%s');" user)]))
+   [:script (format "azondi.main.topics_page('%s');" user-id)]))
 
-(defn reset-password-page [user]
-  (base-page user
+(defn users-page [req user-id access-token]
+  (base-page req
+   identity
+   [:div
+    [:p "You are '" user-id "'"]
+    [:h2 "Users"]
+    [:div#content [:p.loading "Loading..."]]]
+   [:script (format "azondi.main.users_page(\"%s\", \"%s\");" user-id access-token)]))
+
+(defn login-success-page [req user-id access-token]
+  (base-page req
+   identity
+   [:div
+    [:p "You are '" user-id "'"]
+    [:h2 "Luckily loged now!"]
+    [:p "over here the devices button"]
+    ;[:div#content [:p.loading "Loading..."]]
+    ]
+   ;[:script (format "azondi.main.users_page(\"%s\", \"%s\");" identity access-token)]
+   ))
+
+(defn reset-password-page [req user-id]
+  (base-page req user-id
    [:div#pword-reset
     [:h2 "Password Reset"]
     [:p "Change your password"]
@@ -296,8 +404,8 @@ a.async=true;a.type=\"text/javascript\";b.parentNode.insertBefore(a,b)}, 1);
 ;; add api key
 ;; add user id
 ;; reset the api key
-(defn api-page [user]
-  (base-page user
+(defn api-page [req user-id]
+  (base-page req user-id
    [:div
     [:div.row
      [:div#api-info.col-xs-10
@@ -372,7 +480,7 @@ a.async=true;a.type=\"text/javascript\";b.parentNode.insertBefore(a,b)}, 1);
       [:hr]]]]
    [:script "populate_api_page ()"]))
 
-(defn topic-browser [user]
+(defn topic-browser [user-id req]
   (html5
    [:head
     [:meta {:charset "utf-8"}]
@@ -401,18 +509,16 @@ a.async=true;a.type=\"text/javascript\";b.parentNode.insertBefore(a,b)}, 1);
         [:a#home-logo.navbar-brand {:href "/"} "opensensors.io"]]
        [:div {:class "collapse navbar-collapse" :id "bs-example-navbar-collapse-1"}
         [:ul {:class "nav navbar-nav navbar-right"}
-         (for [menu menus
-               :when (displayed? menu user)]
+         (for [menu (menus req)
+               :when (displayed? menu user-id)]
            (if (= :navbar (:location menu))
              (if (:children menu)
                [:li.dropdown [:a.dropdown-toggle {:href "#" :data-toggle "dropdown"} (:label menu) [:b.caret]]
                 [:ul.dropdown-menu
                  (for [child (:children menu)
-                       :when (displayed? child user)]
+                       :when (displayed? child user-id)]
                    [:li [:a {:href (:target child)} (:label child)]])]]
-               [:li [:a {:href (:target menu)} (:label menu)]]
-               )))
-         ]]]]
+               [:li [:a {:href (:target menu)} (:label menu)]])))]]]]
 
      [:div.container
       [:h2 "Topic Browser"]
@@ -447,10 +553,11 @@ a.async=true;a.type=\"text/javascript\";b.parentNode.insertBefore(a,b)}, 1);
        [:a {:href "http://blog.opensensors.IO"} "Blog"]]]]
 
     ;; extenal libs
-    [:script (format "azondi.topic_browser.main('%s');" user)]
+    [:script (format "azondi.topic_browser.main('%s');" user-id)]
     ])
 
   )
+
 (defn public-topics-list [user]
   (base-page user [:div#public-topic
                    [:div#content [:p.loading "Loading..."]]]
@@ -461,3 +568,22 @@ a.async=true;a.type=\"text/javascript\";b.parentNode.insertBefore(a,b)}, 1);
   (base-page user [:div#public-topic
                    [:div#content [:p.loading "Loading..."]]]
              [:script (format "azondi.view.public_topic_page('%s');" user)]))
+
+(defrecord BasePageContentBoilerplate [authenticator]
+  ContentBoilerplate
+  (wrap-content-in-boilerplate [this req content]
+    (base-page req (get-subject-identifier authenticator req) content)))
+
+(defrecord AuthBasePageContentBoilerplate [authenticator]
+  ContentBoilerplate
+  (wrap-content-in-boilerplate [this req content]
+    (auth-base-page
+     req
+     (get-subject-identifier authenticator req)
+     content)))
+
+(defn new-basepage-content-boilerplate []
+  (component/using (map->BasePageContentBoilerplate {}) [:authenticator]))
+
+(defn new-auth-basepage-content-boilerplate []
+  (component/using (map->AuthBasePageContentBoilerplate {}) [:authenticator]))

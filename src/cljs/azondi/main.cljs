@@ -51,12 +51,11 @@
       ;; something, which can be looked up by keyword corresponding to
       ;; the resource.
       (let [ajax-send (chan)
-            uri (str uri-init "/users/" (:user app-state) "/devices/")
+            uri (str uri-init "/users/" (:identity app-state) "/devices/")
             ajax-recv (ajaj< ajax-send
                                   :method :get
-                                  :uri uri)
-            ]
-
+                                  :uri uri
+                                  :authorization (str "Bearer " (:access-token app-state)))]
         (go
           (>! ajax-send {})
           (let [r (<! ajax-recv)]
@@ -66,7 +65,7 @@
     (render [this]
       (html
        [:div
-        [:p "user: " (:user app-state)]
+        [:p "user: " (:identity app-state)]
         (let [devices (:devices app-state)]
           (when (not-empty devices)
             [:table.table.table-hover.table-condensed.tbl
@@ -84,13 +83,13 @@
                     :onClick ; if we click on one of the devices
                     (fn [ev]
                       (.preventDefault ev) ; don't follow the link
-                      (let [uri (str uri-init "/users/" (:user @app-state) "/devices/" client-id)
+                      (let [uri (str uri-init "/users/" (:identity @app-state) "/devices/" client-id)
                             ajax-send (chan)
                             ajax-recv (ajaj< ajax-send
                                              :method :get
                                              :uri uri
+                                             :authorization (str "Bearer " (:access-token app-state))
                                              :content {})]
-                        (println "uri is" uri)
                         (go
                           (>! ajax-send {}) ; Trigger a 'GET' of the latest device details
                           (let [{:keys [status body] :as response} (<! ajax-recv)]
@@ -99,8 +98,6 @@
                               ;; causes the device details component to
                               ;; refresh.
                               (do
-                                (println "Updating device content with body:" body)
-                                (println "app-state: " @app-state)
                                 (om/update! app-state [:device]
                                             ;; We must avoid setting controlled
                                             ;; component input values to nil,
@@ -108,17 +105,16 @@
                                             ;; defaults!
                                             (merge {:name "" :description ""}
                                                    (select-keys body [:client-id :name :description]))))
-                              (println "ERROR with GET on " uri ": " status body)
-                              )))))}
-                               client-id]]
+                              (println "ERROR with GET on " uri ": " status body))))))}
+                   client-id]]
                  [:td name]
                  [:td description]])]]))]))))
 
-(defn update-devices-list! [user app-state]
+(defn update-devices-list! [app-state]
   (let [ajax-send (chan)
         ajax-recv (ajaj< ajax-send
                          :method :get
-                         :uri (str uri-init "/users/" user "/devices/"))]
+                         :uri (str uri-init "/users/" (:identity @app-state) "/devices/"))]
     (go
       (>! ajax-send {})
       (let [r (<! ajax-recv)]
@@ -199,7 +195,7 @@
             new-client-id (get-in next-props [:device :client-id])]
         (when (not= old-client-id new-client-id)
           (connect-device-debugger owner new-client-id
-                            (om/get-state owner :debugger-events) ))))
+                            (om/get-state owner :debugger-events)))))
     om/IRender
     (render [this]
       (html
@@ -221,13 +217,14 @@
                           (if-let [id (get-in @app-state [:device :client-id])]
                             (go
                               (>! ajax-send
-                                  {:uri (str "/api/1.0/users/" (:user @app-state) "/devices/" id)
+                                  {:uri (str "/api/1.0/users/" (:identity @app-state) "/devices/" id)
+                                   :authorization (str "Bearer " (:access-token @app-state))
                                    :content {:name (or (get-in @app-state [:device :name]) "")
                                              :description (or (get-in @app-state [:device :description]) "")}})
                               (let [response (<! ajax-recv)]
                                 (println "Response to PUT is" response))
                               ;; Having PUT, let's update the devices list
-                              (update-devices-list! (:user @app-state) app-state)))))}
+                              (update-devices-list! app-state)))))}
 
            [:div.control-group
             [:div#device-clientid-label.controls
@@ -256,15 +253,14 @@
 
           [:form.form-horizontal
            {:onSubmit (fn [ev]
-                        (println "RESET PASSWORD")
                         (.preventDefault ev)
                         (let [ajax-send (chan)
                               ajax-recv (ajaj< ajax-send :method :post)]
                           (if-let [id (get-in @app-state [:device :client-id])]
                             (go
-                              (println "here - reset password")
                               (>! ajax-send
-                                  {:uri (str "/api/1.0/users/" (:user @app-state) "/devices/" id "/reset-password")
+                                  {:uri (str "/api/1.0/users/" (:identity @app-state) "/devices/" id "/reset-password")
+                                   :authorization (str "Bearer " (:access-token @app-state))
                                    :content {:name (or (get-in @app-state [:device :name]) "")
                                              :description (or (get-in @app-state [:device :description]) "")}})
                               (let [response (<! ajax-recv)]
@@ -323,7 +319,8 @@
                  (if-let [id (get-in @app-state [:device :client-id])]
                    (go
                      (>! ajax-send
-                         {:uri (str "/api/1.0/users/" (:user @app-state) "/devices/" id)})
+                         {:uri (str "/api/1.0/users/" (:user @app-state) "/devices/" id)
+                          :authorization (str "Bearer " (:access-token @app-state))})
                      (let [{:keys [status body]} (<! ajax-recv)]
                        (when (= status 204)
                          (om/update! app-state [:device] nil)
@@ -339,7 +336,8 @@
                 (if-let [id (get-in @app-state [:device :client-id])]
                   (go
                     (>! ajax-send
-                        {:uri (str "/api/1.0/users/" (:user @app-state) "/devices/" id)})
+                        {:uri (str "/api/1.0/users/" (:user @app-state) "/devices/" id)
+                         :authorization (str "Bearer " (:access-token @app-state))})
                     (let [{:keys [status body]} (<! ajax-recv)]
                       (when (= status 204)
                         (om/update! app-state [:device] nil)
@@ -361,8 +359,8 @@
         (om/build devices-list-component app-state)
         ]))))
 
-(defn ^:export devices-page [user]
-  (swap! app-model assoc :user user)
+(defn ^:export devices-page [identity access-token]
+  (swap! app-model assoc :access-token access-token :identity identity)
   (om/root devices-page-component app-model {:target (. js/document (getElementById "content"))})
   )
 
@@ -494,7 +492,8 @@
                            (om/update! app-state [:new-topic-name] "")
                            (go
                              (>! ajax-send
-                                 {:uri (str "/api/1.0/users/" (:user @app-state) "/topics/" topic-name)
+                                 {:uri (str "/api/1.0/users/" (:identity @app-state) "/topics/" topic-name)
+                                  :authorization (str "Bearer " (:access-token @app-state))
                                   :content {:description (or (get-in @app-state [:topic :description]) "")
                                             :unit (or (get-in @app-state [:topic :unit]) "")
                                             :public (case (om/get-state owner :visibility)
@@ -572,16 +571,15 @@
                         (let [ajax-send (chan)
                               ajax-recv (ajaj< ajax-send :method :put)]
                           (when-let [topic (get-in @app-state [:topic :topic])]
-                            (let [uri (str "/api/1.0/users/" (:user @app-state) "/topics/"  (subs topic (count (str "/users/" (:user @app-state) "/"))))]
+                            (let [uri (str "/api/1.0/users/" (:identity @app-state) "/topics/" (subs topic (count (str "/users/" (:identity @app-state) "/"))))]
                               (go
                                 (>! ajax-send
                                     {:uri uri
+                                     :authorization (str "Bearer " (:access-token @app-state))
                                      :content {:description (or (get-in @app-state [:topic :description]) "")
-                                               :unit (or (get-in @app-state [:topic :unit]) "")
-                                               }})
+                                               :unit (or (get-in @app-state [:topic :unit]) "")}})
                                 (let [response (<! ajax-recv)]
-                                  (println "Response to PUT is" response)
-                                  )
+                                  (println "Response to PUT is" response))
                                 ;; Having PUT, let's update the devices list
                                 (update-topics-list! (:user @app-state) app-state))))))}
 
@@ -616,10 +614,8 @@
                       :onChange
                       (fn [e]
                         (let [value (.-value (.-target e))]
-                         (om/update! app-state [:topic :unit] value)
-                          ))
+                         (om/update! app-state [:topic :unit] value)))
                       :placeholder "optional unit of measure e.g. PM25, celcius"}]]]
-
 
            [:div.control-group
             [:div.controls
@@ -634,7 +630,7 @@
                 (if-let [topic (get-in @app-state [:topic :topic])]
                   (go
                     (>! ajax-send
-                        {:uri (str "/api/1.0/users/" (:user @app-state) "/topics/"  (subs topic (count (str "/users/" (:user @app-state) "/"))))})
+                        {:uri (str "/api/1.0/users/" (:identity @app-state) "/topics/"  (subs topic (count (str "/users/" (:identity @app-state) "/"))))})
                     (let [{:keys [status body]} (<! ajax-recv)]
                       (when (= status 204)
                         (om/update! app-state [:topic] nil)
@@ -653,13 +649,50 @@
         (om/build new-topic-button-component app-state)
         (om/build topics-list-component app-state)
         (when (:topic app-state)
-          (om/build topic-details-component app-state))
-        ]))))
+          (om/build topic-details-component app-state))]))))
 
-(defn ^:export topics-page [user]
-  (swap! app-model assoc :user user)
-  (om/root topics-page-component app-model {:target (. js/document (getElementById "content"))})
-  )
+(defn ^:export topics-page [identity access-token]
+  (swap! app-model assoc :identity identity :access-token access-token)
+  (om/root topics-page-component app-model {:target (. js/document (getElementById "content"))}))
+
+;; USERS PAGE
+
+(defn update-users-list! [access-token owner]
+  (let [ajax-send (chan)
+        ajax-recv (ajaj< ajax-send
+                         :method :get
+                         :uri (str "/api/1.0/users/")
+                         :authorization (str "Bearer " access-token))]
+    (go
+      (>! ajax-send {})
+      (let [r (<! ajax-recv)]
+        (println "Receiving value " r)
+        (if (= (:status r) 200)
+          (om/set-state! owner :users (:body r))
+          (println "Failed to get users: " (:body r)))))))
+
+(defn users-page-component [app-state owner]
+  (reify
+    om/IWillMount
+    (will-mount [this]
+      (update-users-list! (:access-token app-state) owner))
+    om/IRender
+    (render [this]
+      (html
+       [:div
+        [:table.table.table-hover.table-condensed.tbl
+         [:tbody
+          (for [user (om/get-state owner :users)]
+            [:tr
+             [:td [:a {:href (:href user)} (:user user)]]
+             [:td [:a {:href (:href user)} (:name user)]]
+             [:td [:a {:href (:href user)} (:email user)]]])]]]))))
+
+(defn ^:export users-page [identity access-token]
+  (swap! app-model assoc :access-token access-token :identity identity)
+  (om/root users-page-component app-model {:target (. js/document (getElementById "content"))}))
+
+;; TEST CARD
 
 (defn test-card-page-component [app-state owner]
   (reify

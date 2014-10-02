@@ -4,7 +4,8 @@
    [clojurewerkz.machine-head.client :as mh]
    [com.stuartsierra.component :refer (Lifecycle using)]
    [schema.core :as s]
-   [azondi.db :refer (create-device! allowed-device? create-user!)]
+   [azondi.db :refer (create-device! allowed-device?)]
+   [cylon.user :refer (create-user!)]
    [plumbing.core :refer (<-)]
    [clojure.core.async :refer (go-loop timeout chan alts! close!)]
    [clostache.parser :as parser]))

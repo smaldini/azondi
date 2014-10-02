@@ -42,3 +42,5 @@
 
 (defn set-env! [& env]
   (alter-var-root #'env/env (constantly (set env))))
+
+(def opt #'set-env!)
