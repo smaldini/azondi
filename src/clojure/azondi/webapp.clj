@@ -14,16 +14,20 @@
                                refresh-access-token
                                wrap-require-authorization)]
    [ring.util.response :refer (response)]
+   [clostache.parser :refer (render-resource)]
+   [clojure.java.io :refer (resource)]
    [plumbing.core :refer (<-)]))
 
 (defn md->html
   "Reads a markdown file/resource and returns an HTML string"
   [r]
   (md/md-to-html-string (slurp r)))
+
 (defn unrestricted-pages [oauth-client page]
    (fn [req]
     (let [user (authenticate oauth-client req)]
       {:status 200 :body (page user)})))
+
 
 (defn handlers [oauth-client]
   {
@@ -39,10 +43,7 @@
    :index
    (fn [req]
      {:status 200
-      :body (base-page req
-                       (get-subject-identifier oauth-client req)
-                       index-page
-                       [:script {:src "cljs/logo.js"}])})
+      :body (render-resource "templates/index.html.mustache")})
 
    :help
    (fn [req]

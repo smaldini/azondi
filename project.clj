@@ -69,6 +69,7 @@
                  [garden "1.1.5" :exclusions [org.clojure/clojure org.clojure/clojurescript]]
                  [compojure "1.1.8"]
                  [markdown-clj "0.9.36"]
+                 [de.ubercode.clostache/clostache "1.4.0"]
 
                  ;; Security
 

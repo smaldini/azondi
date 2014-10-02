@@ -273,8 +273,7 @@
      :token-type "EMAIL")
 
     ;; Emails are sent via this component
-    :emailer (new-emailer ;;:settings (get config :sendgrid)
-              )
+    :emailer (new-emailer :settings (get config :sendgrid))
 
     ;; The sign-up form, like the login-form, takes a renderer and has
     ;; dependencies on many of the components already defined.
