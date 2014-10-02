@@ -107,6 +107,58 @@ $('#beta-access-btn').click(function (e) {
         alert(errMsg);}});
 });
 
+
+//Validate function for contact form
+function ValidateContactForm () {
+  //checks for madatory fields: name, email, comments
+    if ($("#contact-us-form #beta-name").val() !== ""
+	& $("#contact-us-form #beta-comments").val() !== ""
+	& IsEmail ($("#contact-us-form #beta-email").val()))
+    {return true;} else{return false;}
+}
+
+//Validate contact form function called each time a field is written to
+//for an input field
+$("#contact-us-form input").on("keyup", function () {
+    if(ValidateContactForm())
+      {$("#contact-us-form #contact-form-btn").removeAttr('disabled');}
+    else {$("#contact-us-form #contact-form-btn").attr('disabled','disabled');}
+});
+//for a textarea
+$("#contact-us-form #beta-comments").on("keyup", function () {
+    if(ValidateContactForm())
+      {$("#contact-us-form #contact-form-btn").removeAttr('disabled');}
+    else {$("#contact-us-form #contact-form-btn").attr('disabled','disabled');}
+});
+//Validate again and send POST
+//with a json object containing the data
+$('#contact-form-btn').click(function (e) {
+    if(ValidateContactForm()){
+      e.preventDefault();
+      $.ajax({
+	  url: "/api/1.0/contact-form",
+	  type: "POST",
+	  data: JSON.stringify({ name: $ ("#beta-name").val (),
+				 company:$ ("#beta-company").val(),
+				 email:$ ("#beta-email").val(),
+				 phone:$ ("#beta-phone").val(),
+				 comments: $ ("#beta-comments").val ()}),
+	  contentType: "application/json; charset=utf-8",
+	  dataType: "json",
+	  statusCode: {201: function () {
+	      $('#contact-us-form').find("input, textarea").val("");
+	      $('.form-inline').prepend('<div class="alert alert-success" role="alert">Thanks for your interest in Opensensors.io!<br> We\'ll get back to you shortly.</div>');
+              setTimeout(function(){window.location.href = "/"}, 5000);
+	  }}, 
+          success: function(data){
+	  //somehow this function is not called maybe only works for 200
+	  //I added the action above in 'statusCode' function for status 201
+          },
+          failure: function(errMsg) {alert(errMsg);}
+      });
+    }
+});
+
 function populate_api_page () {
     var user =  $.session.get ('user');
     $.ajax({

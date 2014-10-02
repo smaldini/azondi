@@ -18,3 +18,5 @@ resources/azondi.edn
 /src/logo.cljs.bak
 *.DS_Store
 /visualgo.png
+src/azondi_prime/
+*.swp

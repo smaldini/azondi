@@ -7,8 +7,6 @@
    [azondi.api-utils :refer (->js ->clj process-maps)]
    [schema.core :as s ]))
 
-
-
 (defn request-sendgrid [method uri data]
   (let [response
         @(http-request
@@ -45,3 +43,11 @@
                                 :api_user s/Str
                                 :api_key s/Str}})
         map->SendgridEmailer)[]))
+
+(defn contact-form-email [{:keys [name email comments & company phone]}]
+  (send-message settings
+                {:from "hello@opensensors.IO"
+                 :to "eleonore@opensensors.IO"
+                 :subject "Inquiry about opensensors.IO"
+                 :body (str "Name: " name "\n Company: " company "\n Email: " email "\n Telephone number: " phone "\n Comments: " comments)
+                 }))

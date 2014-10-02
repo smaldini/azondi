@@ -50,6 +50,13 @@
      {:status 200
       :body (render-page "index.html.mustache")})
 
+   :contact-us
+    (fn [req]
+     {:status 200
+      :body (base-page
+             (authenticate authenticator req)
+             [:div#contact-us-div contact-us-form])})
+
    :help
    (fn [req]
      {:status 200
@@ -132,6 +139,8 @@
         ["api-docs" :api-docs-page]
         ["web-sockets" :web-sockets-page]
         ["topic-browser" :topic-browser]
+        ["signup" :sign-up]
+        ["contact-us" :contact-us]
         ["clojure-cup" :clojure-cup]
         ["topic-browser" :topic-browser]]])
 
