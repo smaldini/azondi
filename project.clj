@@ -55,11 +55,12 @@
                  ;; Pre-built components supplied by modular
 
                  [juxt.modular/cljs "0.5.0"]
-                 [juxt.modular/mqtt "0.1.0"]
-                 [juxt.modular/netty "0.1.0"]
+                 [juxt.modular/mqtt "0.5.0"]
+                 [juxt.modular/netty "0.5.0"]
                  [juxt.modular/http-kit "0.5.1"]
                  [juxt.modular/http-kit-events "0.5.1"]
                  [juxt.modular/bidi "0.5.2"]
+                 [juxt.modular/async "0.5.1"]
 
                  ;; Required by bootstrap - remove when they are resolve transitively
                  [juxt.modular/bootstrap "0.2.0"]
