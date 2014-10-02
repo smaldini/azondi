@@ -190,4 +190,6 @@
   (p/set-totp-encrypted-secret component identity secret))
 
 (s/defn get-totp-encrypted-secret [component identity]
+  [component :- (s/protocol p/TotpStore)
+   identity :- s/Str]
   (p/get-totp-encrypted-secret component identity))

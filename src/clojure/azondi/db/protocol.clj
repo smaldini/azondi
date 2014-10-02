@@ -55,3 +55,7 @@
 
 (defprotocol TopicSummaryStore
   (archive-summary! [_ data]))
+
+(defprotocol TotpStore
+  (set-totp-encrypted-secret [_ id secret])
+  (get-totp-encrypted-secret [_ id]))
