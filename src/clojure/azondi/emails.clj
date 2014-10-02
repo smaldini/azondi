@@ -16,7 +16,7 @@
 (defn contact-form-email [{:keys [name email comments & company phone]}]
   (send-message settings
                 {:from "hello@opensensors.IO"
-                 :to "eleonore.mayola@ymail.com"
+                 :to "eleonore@opensensors.IO"
                  :subject "Inquiry about opensensors.IO"
                  :body (str "Name: " name "\n Company: " company "\n Email: " email "\n Telephone number: " phone "\n Comments: " comments)
                  }))

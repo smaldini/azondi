@@ -145,10 +145,16 @@ $('#contact-form-btn').click(function (e) {
 				 comments: $ ("#beta-comments").val ()}),
 	  contentType: "application/json; charset=utf-8",
 	  dataType: "json",
+	  statusCode: {201: function () {
+	      console.log("status 201!");
+	      $('.form-inline').prepend('<div class="alert alert-success" role="alert">Thanks for your interest in Opensensors.io! Will get back to you shortly!</div>');
+              //setTimeout(function(){alert("you did it!")}, 6000);
+	      setTimeout(function(){window.location.href = "/"}, 6000);
+	  }}, 
           success: function(data){
-	  alert("foooo");
-	  $('.form-inline').prepend('<div class="alert alert-success" role="alert">Thanks for your interest in Opensensors.io! Will get back to you shortly!</div>').delay(1000);
-          window.location.href = "/";
+	  //alert("foooo");
+	  //$('.form-inline').prepend('<div class="alert alert-success" role="alert">Thanks for your interest in Opensensors.io! Will get back to you shortly!</div>').delay(1000);
+          //window.location.href = "/";
           },
           failure: function(errMsg) {alert(errMsg);}
       });
