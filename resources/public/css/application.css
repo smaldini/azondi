@@ -336,7 +336,7 @@ h2 {
 }
 .wrapper-examples .example-block-header-1 {
   position: relative;
-  background-image: url('../images/example-image-1.png');
+  background-image: url('../imgs/example-image-1.png');
   background-position: bottom left;
   background-repeat: no-repeat;
   height: 184px;
@@ -346,7 +346,7 @@ h2 {
 }
 @media (-webkit-min-device-pixel-ratio: 1.5), (min--moz-device-pixel-ratio: 1.5), (-o-min-device-pixel-ratio: 3/2), (min-resolution: 1.5dppx) {
   .wrapper-examples .example-block-header-1 {
-    background-image: url("../images/example-image-1@2x.png");
+    background-image: url("../imgs/example-image-1@2x.png");
     background-size: 207px 159px;
   }
 }
@@ -355,7 +355,7 @@ h2 {
 }
 .wrapper-examples .example-block-header-2 {
   position: relative;
-  background-image: url('../images/example-image-2.png');
+  background-image: url('../imgs/example-image-2.png');
   background-position: bottom left;
   background-repeat: no-repeat;
   height: 184px;
@@ -364,7 +364,7 @@ h2 {
 }
 @media (-webkit-min-device-pixel-ratio: 1.5), (min--moz-device-pixel-ratio: 1.5), (-o-min-device-pixel-ratio: 3/2), (min-resolution: 1.5dppx) {
   .wrapper-examples .example-block-header-2 {
-    background-image: url("../images/example-image-2@2x.png");
+    background-image: url("../imgs/example-image-2@2x.png");
     background-size: 161px 184px;
   }
 }
@@ -373,7 +373,7 @@ h2 {
 }
 .wrapper-examples .example-block-header-3 {
   position: relative;
-  background-image: url('../images/example-image-3.png');
+  background-image: url('../imgs/example-image-3.png');
   background-position: bottom left;
   background-repeat: no-repeat;
   height: 184px;
