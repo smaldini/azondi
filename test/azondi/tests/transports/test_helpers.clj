@@ -13,7 +13,7 @@
             [azondi.topics :refer (new-topic-injector)]
             [azondi.metrics :refer (new-metrics)]
             [azondi.messages :refer (new-message-archiver)]
-            [azondi.postgres :refer (new-database new-postgres-user-domain)]
+            [azondi.postgres :refer (new-database)]
             [azondi.cassandra :as cass]
             [azondi.tests.joplin-helpers :as jh]))
 
@@ -44,7 +44,7 @@
                   {:keyspace "opensensors_test"
                    :hosts ["127.0.0.1"]})
       :message-archiver (new-message-archiver)
-      :user-domain (new-postgres-user-domain))
+      )
      {:mqtt-handler {:db :database}
       :mqtt-server [:mqtt-handler :mqtt-decoder :mqtt-encoder]})))
 

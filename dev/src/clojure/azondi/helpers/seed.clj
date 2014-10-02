@@ -1,7 +1,8 @@
 (ns azondi.helpers.seed
   (:require
    [com.stuartsierra.component :as component]
-   [azondi.db :refer (create-user! create-api-key)]
+   [azondi.db :refer (create-api-key!)]
+   [cylon.user :refer (create-user!)]
    [byte-streams :refer (convert)]
    [azondi.messages-db :refer (archive-message!)]
    [clojure.tools.logging :refer :all]
