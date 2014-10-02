@@ -1,7 +1,7 @@
 (ns azondi.seed
   (:require
    [com.stuartsierra.component :as component]
-   [azondi.http :refer (request)]
+   [azondi.helpers.http :refer (request)]
    [cylon.user :refer (create-user!)]
    [cylon.password :refer (make-password-hash)]
    [byte-streams :refer (convert)]

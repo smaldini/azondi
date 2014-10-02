@@ -7,17 +7,14 @@
    [modular.bidi :refer (new-router routes uri-context)]
    [bidi.bidi :refer (path-for)]
    [azondi.webapp :refer (new-webapp)]
-   [azondi.api :refer (new-api new-user-authorizer new-api-key-authenticator)]
-   [cylon.impl.login-form :refer (new-login-form)]
-   [cylon.impl.authentication :refer (new-composite-disjunctive-authenticator
-                                      new-http-basic-authenticator)]
+   [azondi.api :refer (new-api)]
    [azondi.helpers.http :refer [request]]
-   [azondi.db :refer (get-user create-api-key get-api-key)]
+   [azondi.db :refer (create-api-key! get-api-key)]
+   [cylon.user :refer (get-user)]
    [azondi.cassandra :as cass]
    [azondi.postgres :refer (new-database)]
    [schema.core :as s]
    [azondi.system :refer (config)]
-   [azondi.postgres :refer (new-postgres-user-domain)]
    [azondi.tests.joplin-helpers :as jh]))
 
 (def PORT 8099)
@@ -42,8 +39,7 @@
     ;;:api-key-authenticator (new-api-key-authenticator)
     #_:authenticator #_(new-composite-disjunctive-authenticator
                     :http-authenticator
-                    :api-key-authenticator)
-    :user-domain (new-postgres-user-domain))
+                    :api-key-authenticator))
 
    {:webserver {:request-handler :webrouter}
     :webrouter [:api]

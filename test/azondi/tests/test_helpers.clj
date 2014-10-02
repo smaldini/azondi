@@ -11,9 +11,6 @@
             [clojurewerkz.cassaforte.client :as cc]
             [clojurewerkz.cassaforte.cql    :as cql]
             [clojurewerkz.cassaforte.query :refer :all]
-            [cylon.impl.login-form :refer (new-login-form)]
-            [cylon.impl.authentication :refer (new-composite-disjunctive-authenticator
-                                               new-http-basic-authenticator)]
             [bidi.bidi :refer (path-for)]
             [modular.netty :refer (new-netty-server)]
             [modular.netty.mqtt :refer (new-mqtt-decoder new-mqtt-encoder)]
@@ -25,9 +22,9 @@
             [azondi.topics :refer (new-topic-injector)]
             [azondi.metrics :refer (new-metrics)]
             [azondi.messages :refer (new-message-archiver)]
-            [azondi.postgres :refer (new-database new-postgres-user-domain)]
+            [azondi.postgres :refer (new-database)]
             [azondi.webapp :refer (new-webapp)]
-            [azondi.api :refer (new-api new-user-authorizer new-api-key-authenticator)]
+            [azondi.api :refer (new-api)]
             [azondi.cassandra :as cass]
             [azondi.tests.joplin-helpers :as jh]))
 
@@ -50,13 +47,7 @@
                 {:keyspace "opensensors_test"
                  :hosts ["127.0.0.1"]})
     :api (new-api :uri-context "/api/1.0")
-    :authorizer (new-user-authorizer)
-    :http-authenticator (new-http-basic-authenticator)
-    :api-key-authenticator (new-api-key-authenticator)
-    :authenticator (new-composite-disjunctive-authenticator
-                    :http-authenticator
-                    :api-key-authenticator)
-    :user-domain (new-postgres-user-domain))
+)
 
    {:webserver {:request-handler :webrouter}
     :webrouter [:api]}))
