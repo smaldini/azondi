@@ -146,15 +146,13 @@ $('#contact-form-btn').click(function (e) {
 	  contentType: "application/json; charset=utf-8",
 	  dataType: "json",
 	  statusCode: {201: function () {
-	      console.log("status 201!");
-	      $('.form-inline').prepend('<div class="alert alert-success" role="alert">Thanks for your interest in Opensensors.io! Will get back to you shortly!</div>');
-              //setTimeout(function(){alert("you did it!")}, 6000);
-	      setTimeout(function(){window.location.href = "/"}, 6000);
+	      $('#contact-us-form').find("input, textarea").val("");
+	      $('.form-inline').prepend('<div class="alert alert-success" role="alert">Thanks for your interest in Opensensors.io!<br> We\'ll get back to you shortly.</div>');
+              setTimeout(function(){window.location.href = "/"}, 5000);
 	  }}, 
           success: function(data){
-	  //alert("foooo");
-	  //$('.form-inline').prepend('<div class="alert alert-success" role="alert">Thanks for your interest in Opensensors.io! Will get back to you shortly!</div>').delay(1000);
-          //window.location.href = "/";
+	  //somehow this function is not called maybe only works for 200
+	  //I added the action above in 'statusCode' function for status 201
           },
           failure: function(errMsg) {alert(errMsg);}
       });
