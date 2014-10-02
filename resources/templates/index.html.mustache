@@ -22,20 +22,21 @@
     					<p class="lead">The Operating System for the Internet of Things</p>
     				</div>
     				<div class="col-md-3">
-    					<form role="form">
+    					<form role="form" method="post" action="http://localhost:8020/signup">
     						<div class="form-group">
     							<!-- <label for="userID">User ID</label> -->
-    							<input type="text" class="form-control" id="userID" placeholder="Pick a User ID">
+    							<input type="text" name="name" class="form-control" id="name" placeholder="Your name">
+    							<input type="text" name="user-id" class="form-control" id="userID" placeholder="Pick a User ID">
 
 
     							<!-- <label for="userEmail">User ID</label> -->
-    							<input type="email" class="form-control" id="userEmail" placeholder="Your Email">
+    							<input type="email" name="email" class="form-control" id="userEmail" placeholder="Your Email">
 
 
     							<!-- <label for="userName">User ID</label> -->
-    							<input type="password" class="form-control" id="userPassword" placeholder="Choose Password">
+    							<input type="password" name="password" class="form-control" id="userPassword" placeholder="Choose Password">
     						</div>
-    						<button type="button" class="btn btn-primary center-block">Get Free Access</button>
+    						<button type="submit" class="btn btn-primary center-block">Get Free Access</button>
     					</form>
     				</div>
     			</div>
@@ -239,5 +240,5 @@
 			</div>
 		</div>
 	</div>
-	
+
 {{> footer}}

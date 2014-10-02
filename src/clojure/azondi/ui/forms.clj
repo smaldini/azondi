@@ -31,16 +31,24 @@
     (infof "Model is %s" (postwalk stringify-map-values model))
     (render-resource "templates/boilerplate.html.mustache"
                      {:content (render-resource "templates/login.html.mustache"
-                                                (postwalk stringify-map-values model))}))
+                                                (postwalk stringify-map-values model))})
+    )
 
   SignupFormRenderer
   (render-signup-form [this req model]
-    ;; TODO
-    (render-resource "templates/login.html.mustache" {}))
+    (infof "Model is %s" (postwalk stringify-map-values model))
+    (render-resource "templates/boilerplate.html.mustache"
+                     {:content (render-resource "templates/welcome.html.mustache"
+                                                (postwalk stringify-map-values model))})
+    )
   WelcomeRenderer
   (render-welcome [this req model]
     ;; TODO
-    (render-resource "templates/login.html.mustache" {}))
+    (infof "Model is %s" (postwalk stringify-map-values model))
+    (render-resource "templates/boilerplate.html.mustache"
+                     {:content (render-resource "templates/welcome.html.mustache"
+                                                (postwalk stringify-map-values model))})
+)
   )
 
 
