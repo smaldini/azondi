@@ -18,10 +18,9 @@
    [modular.http-kit :refer (new-webserver) :rename {new-webserver new-http-listener}]
    [modular.bidi :refer (new-router new-web-service)]
 
-   [modular.bootstrap.cylon.user-forms :refer (new-bootstrap-user-form-renderer)]
-
+  
    [azondi.emails :refer (new-emailer)]
-
+   [azondi.ui.forms :refer (new-osio-user-form-renderer)]
    [cylon.authentication.login :refer (new-login)]
    [cylon.authentication :refer (new-dispatching-request-authenticator)]
    [cylon.oauth.server.server :refer (new-authorization-server)]
@@ -194,7 +193,7 @@
     ;; password...) we will use Bootstrap, provided by modular. We can
     ;; choose to provide our own at any point, but the modular one
     ;; should do for standard formatted forms.
-    :user-form-renderer (-> (new-bootstrap-user-form-renderer :totp-appname "OpenSensorsIO")
+    :user-form-renderer (-> (new-osio-user-form-renderer :totp-appname "OpenSensorsIO")
                             (using {:boilerplate :user-form-boilerplate}))
 
     ;; We now specify the password hashing algorithm
