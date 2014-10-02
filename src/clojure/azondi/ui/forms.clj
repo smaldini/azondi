@@ -11,10 +11,9 @@
 
 
 (defn new-osio-user-form-renderer [& {:as opts}]
-  (component/using
-   (->> opts
-        (merge {:login-prompt "Please sign in&#8230"
-                :signup-prompt "Please sign up&#8230"
-                :reset-password-request-prompt "Reset your password&#8230"
-                :totp-appname "cylon"})
-        map->OsioUserFormRenderer)))
+  (->> opts
+       (merge {:login-prompt "Please sign in&#8230"
+               :signup-prompt "Please sign up&#8230"
+               :reset-password-request-prompt "Reset your password&#8230"
+               :totp-appname "cylon"})
+       map->OsioUserFormRenderer))
