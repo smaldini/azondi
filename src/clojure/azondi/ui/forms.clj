@@ -6,7 +6,8 @@
    [cylon.signup.protocols :refer (SignupFormRenderer WelcomeRenderer)]
    [clojure.walk :refer (postwalk)]
    [clostache.parser :refer (render-resource)]
-   [clojure.tools.logging :refer :all]))
+   [clojure.tools.logging :refer :all]
+   [plumbing.core :refer (<-)]))
 
 (defprotocol TemplateDataValue
   (as-template-data-value [_]
@@ -25,14 +26,30 @@
     [(first a) (as-template-data-value (second a))]
     a))
 
+(defn- model->template-model
+  "Some pre-processing on the model provided by Cylon"
+  [model]
+  (cond-> model
+          true ((partial postwalk stringify-map-values))
+          true (update-in [:form :fields]
+                          (fn [fields]
+                            (map (fn [field]
+                                   (assoc field :type (if (= (:name field) "password") "password" "text"))) fields)))
+          (-> model :form :post-login-redirect)
+          (update-in [:form :fields]
+                     conj {:name "post_login_redirect"
+                           :type "hidden"
+                           :value (-> model :form :post-login-redirect)})))
+
 (defrecord OsioUserFormRenderer []
   LoginFormRenderer
   (render-login-form [this req model]
-    (infof "Model is %s" (postwalk stringify-map-values model))
-    (render-resource "templates/boilerplate.html.mustache"
-                     {:content (render-resource "templates/login.html.mustache"
-                                                (postwalk stringify-map-values model))})
-    )
+    (let [template-model (model->template-model model)]
+      (infof "Template model is %s" template-model)
+      (render-resource "templates/boilerplate.html.mustache"
+                       {:content (render-resource "templates/login.html.mustache"
+                                                  template-model)})))
+
 
   SignupFormRenderer
   (render-signup-form [this req model]
