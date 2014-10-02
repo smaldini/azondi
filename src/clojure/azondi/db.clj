@@ -190,5 +190,7 @@
    secret :- s/Str]
   (t/set-totp-secret component identity secret))
 
-(s/defn get-totp-encrypted-secret [component identity]
+(s/defn get-totp-encrypted-secret
+  [component :- (s/protocol t/OneTimePasswordStore)
+   identity :- s/Str]
   (t/get-totp-secret component identity))
