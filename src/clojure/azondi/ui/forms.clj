@@ -17,5 +17,4 @@
                 :signup-prompt "Please sign up&#8230"
                 :reset-password-request-prompt "Reset your password&#8230"
                 :totp-appname "cylon"})
-        (s/validate new-bootstrap-user-form-renderer-schema)
-        map->BootstrapUserFormRenderer)))
+        map->OsioUserFormRenderer)))
