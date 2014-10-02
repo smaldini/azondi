@@ -10,7 +10,8 @@
 (defrecord OsioUserFormRenderer []
   LoginFormRenderer
   (render-login-form [this req model]
-    (render-resource "templates/login.html.mustache" {}))
+    (render-resource "templates/boilerplate.html.mustache"
+                     {:content (render-resource "templates/login.html.mustache" {})}))
   SignupFormRenderer
   (render-signup-form [this req model]
     ;; TODO
@@ -22,6 +23,7 @@
   )
 
 
+;; TODO MS: I don't like the name 'osio' in code. Can we give our house style a name? Like Google's Material: http://www.google.co.uk/design/spec/material-design/introduction.html
 (defn new-osio-user-form-renderer [& {:as opts}]
 
   (->> opts
