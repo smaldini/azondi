@@ -54,8 +54,8 @@
     (fn [req]
      {:status 200
       :body (base-page
-             (authenticate authenticator req)
-             [:div#contact-us-div contact-us-form])})
+             (get-subject-identifier oauth-client req)
+             contact-us-form)})
 
    :help
    (fn [req]

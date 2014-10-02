@@ -11,19 +11,8 @@
    [bidi.bidi :as bidi :refer (path-for ->Redirect)]
 
    [camel-snake-kebab :refer (->kebab-case-keyword ->camelCaseString)]
-<<<<<<< HEAD
-   [cheshire.core :refer (decode decode-stream encode)]
-=======
-   [azondi.db :refer :all]
-   [azondi.messages-db :refer (messages-by-owner messages-by-topic messages-by-topic-and-date messages-by-owner-and-date messages-by-device messages-by-device-and-date)]
    [azondi.emails :refer (beta-signup-email contact-form-email)]
-   [hiccup.core :refer (html)]
-   [clojure.walk :refer (postwalk)]
-   liberator.representation
-   [modular.bidi :refer (WebService)]
-   [cylon.authentication :refer (Authenticator authenticate)]
-   [cylon.authorization :refer (Authorizer authorized?)]
->>>>>>> 019e2bdf24c8f5840a5ca8d48a98658cee691aee
+   [cheshire.core :refer (decode decode-stream encode)]
    [clj-time.core :as t :refer (now date-time) ]
    [clj-time.format :as tf]
    [clojure.edn :as edn]
