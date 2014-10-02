@@ -1,5 +1,6 @@
 (ns azondi.emails
   (:require
+   [postal.core :refer (send-message)]
    [com.stuartsierra.component :as component]
    [cylon.signup.protocols :refer (Emailer)]
    [org.httpkit.client :refer (request) :rename {request http-request}]
@@ -43,6 +44,18 @@
                                 :api_user s/Str
                                 :api_key s/Str}})
         map->SendgridEmailer)[]))
+
+(def settings  {:host "smtp.sendgrid.net"
+                :user "yods"
+                :pass "y0digady"})
+
+(defn beta-signup-email [name email]
+  (send-message settings
+                {:from "hello@opensensors.IO"
+                 :to "hello@opensensors.IO"
+                 :subject "Please give me access to beta"
+                 :body (str "Please give me access.  Name: " name " Email: " email)
+                    }))
 
 (defn contact-form-email [{:keys [name email comments & company phone]}]
   (send-message settings
