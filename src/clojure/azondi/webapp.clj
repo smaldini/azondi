@@ -43,7 +43,7 @@
    :index
    (fn [req]
      {:status 200
-      :body (render-resource "templates/index.html.mustache")})
+      :body (render-resource "templates/index.html.mustache" {})})
 
    :help
    (fn [req]
