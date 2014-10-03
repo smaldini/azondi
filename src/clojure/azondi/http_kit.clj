@@ -4,8 +4,7 @@
    [com.stuartsierra.component :as component]
    [clojure.tools.logging :refer :all]
    [modular.ring :refer (request-handler WebRequestHandler)]
-   [org.httpkit.server :refer (run-server)]
-   [ring.middleware.cors :refer (wrap-cors)]))
+   [org.httpkit.server :refer (run-server)]))
 
 (defn cors-headers [origin]
   {"Access-Control-Allow-Origin" origin
