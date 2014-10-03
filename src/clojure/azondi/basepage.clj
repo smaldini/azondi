@@ -75,7 +75,7 @@
                        [:textarea {:cols 20 :rows 2 :class "form-control" :id "beta-comments" :name "beta-comments" :placeholder "Any comments"}]
                        [:button {:id "contact-form-btn" :type "submit" :class "btn btn-primary btn-lg"
                                  :disabled true} "Submit"]]])
-
+(declare sign-up-form)
 (def logo-area
   [:div#header
    [:div.jumbotron

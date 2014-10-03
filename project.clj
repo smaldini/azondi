@@ -147,7 +147,8 @@
                                   :seed     :c*-seed}]
                           :prod []}}
   :profiles {:dev {:dependencies [[org.clojure/tools.namespace "0.2.4"]
-                                  [clojurewerkz/machine_head "1.0.0-beta9"]]
+                                  [clojurewerkz/machine_head "1.0.0-beta9"]
+                                  [clj-webdriver "0.6.0"]]
                    :source-paths ["dev/src/clojure" "src/cljs"]
                    :resource-paths ["test/resources" "dev/src/sql" "dev/src/cql"]}
 
