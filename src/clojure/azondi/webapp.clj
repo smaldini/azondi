@@ -23,16 +23,16 @@
   [r]
   (md/md-to-html-string (slurp r)))
 
-(defn unrestricted-pages [oauth-client page]
-   (fn [req]
-    (let [user (authenticate oauth-client req)]
-      {:status 200 :body (page user)})))
-
 (defn render-page [page]
   (render-resource (str "templates/" page)
                    {}
                    {:header (slurp (resource "templates/header.html.mustache"))
                     :footer (slurp (resource "templates/footer.html.mustache"))}))
+
+(defn ^:deprecated unrestricted-pages [oauth-client page]
+   (fn [req]
+    (let [user (authenticate oauth-client req)]
+      (response (page user)))))
 
 (defn handlers [oauth-client]
   {
