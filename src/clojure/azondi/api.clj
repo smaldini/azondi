@@ -409,14 +409,16 @@
 
 (defn devices-resource [db authenticator]
   {:available-media-types #{"application/json"}
-   :allowed-methods #{:get :post}
+   :allowed-methods #{:get :post :options}
    :authorized? (same-user-as-route? authenticator)
+
    :handle-ok (fn [{{{user :user} :route-params :as req} :request}]
                 (encode {:user user
                          :devices (->>
                                    (devices-by-owner db user)
                                    (map #(select-keys % [:client-id :description :name]))
                                    (map #(reduce-kv (fn [acc k v] (assoc acc (->camelCaseString k) v)) {} %)))}))
+
 
       ;; Liberator introduced processable? in 0.9.0 - See
    ;; http://stackoverflow.com/questions/4781187/http-400-bad-request-for-logical-error-not-malformed-request-syntax
