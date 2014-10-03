@@ -41,7 +41,7 @@
         (cql/insert conn t {:device_id "4" :topic "/users/michaelklishin/topic1" :owner "michaelklishin"
                             :payload (bytes "message") :content_type "text"
                             :created_at (.toDate now) :date_and_hour (tf/unparse date-and-hour-formatter now)}))
-      (let [now (tc/date-time 2014 9 18 0)]
+      (let [now (tc/date-time 2014 9 18 1)]
         (cql/insert conn t {:device_id "4" :topic "/users/michaelklishin/topic1" :owner "michaelklishin"
                             :payload (bytes "message") :content_type "text"
                             :created_at (.toDate now) :date_and_hour (tf/unparse date-and-hour-formatter now)})))))
