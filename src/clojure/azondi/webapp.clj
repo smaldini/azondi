@@ -111,7 +111,7 @@
        (render-page "devices.html.mustache"
                     {:scripts (concat ["/js/react.js"]
                                       (get-javascript-paths cljs))}
-                    {:script (format "azondi.main.devices_pages(\"%s\", \"%s\");\n"
+                    {:script (format "azondi.main.devices_page(\"%s\", \"%s\");\n"
                                      (:cylon/subject-identifier req)
                                      (:cylon/access-token req))
                      })))
