@@ -263,8 +263,9 @@
                               ["SELECT * FROM tokens WHERE id = ?" id]))]
     (when token
       (merge (read-string (:content token))
-             {:cylon/token-id (:id token)
-              :cylon/expiry (java.util.Date. (.getTime (:expiry token)))}))))
+             {:cylon/token-id (:id token)}
+             (when-let [exp (:expiry token)]
+               {:cylon/expiry (java.util.Date. (.getTime exp))})))))
 
 (defrecord SqlBackedTokenStore [ttl-in-secs tokens token-type database]
   TokenStore
