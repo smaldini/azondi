@@ -73,7 +73,7 @@
 
                  ;; Security
 
-                 [cylon "0.5.0-SNAPSHOT"]
+                 [cylon "0.5.0-20141003.151450-2"]
 
                  ;; Logging
 
