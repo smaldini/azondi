@@ -47,75 +47,74 @@
 
    :index
    (fn [req]
-     {:status 200
-      :body (render-page "index.html.mustache")})
+     (response (render-page "index.html.mustache")))
 
    :contact-us
-    (fn [req]
-     {:status 200
-      :body (base-page
-             (get-subject-identifier oauth-client req)
-             contact-us-form)})
-
+   (fn [req]
+     (response (base-page
+                (get-subject-identifier oauth-client req)
+                contact-us-form)))
    :help
    (fn [req]
-     {:status 200
-      :body (base-page req
-                       (get-subject-identifier oauth-client req)
-                       (md->html (io/resource "markdown/getting-started.md")))})
+     (response
+      (base-page req
+                 (get-subject-identifier oauth-client req)
+                 (md->html (io/resource "markdown/getting-started.md")))))
 
    :about
    (fn [req]
-     {:status 200
-      :body (base-page req
-                       (get-subject-identifier oauth-client req)
-                       (md->html (io/resource "markdown/about-us.md")))})
+     (response
+      (base-page req
+                 (get-subject-identifier oauth-client req)
+                 (md->html (io/resource "markdown/about-us.md")))))
    :terms
    (fn [req]
-     {:status 200
-      :body (base-page req
-                       (get-subject-identifier oauth-client req)
-                       (md->html (io/resource "markdown/terms.md")))})
+     (response
+      (base-page req
+                 (get-subject-identifier oauth-client req)
+                 (md->html (io/resource "markdown/terms.md")))))
 
    :services
    (fn [req]
-     {:status 200
-      :body (base-page req
-                       (get-subject-identifier oauth-client req)
-             (md->html (io/resource "markdown/services.md")))})
+     (response
+      (base-page req
+                 (get-subject-identifier oauth-client req)
+                 (md->html (io/resource "markdown/services.md")))))
    :careers
    (fn [req]
-     {:status 200
-      :body (base-page req
-                       (get-subject-identifier oauth-client req)
-                       (md->html (io/resource "markdown/careers.md")))})
+     (response
+      (base-page req
+                 (get-subject-identifier oauth-client req)
+                 (md->html (io/resource "markdown/careers.md")))))
 
    :clojure-cup
-    (fn [req]
-     {:status 200
-      :body (base-page req
-                       (get-subject-identifier oauth-client req)
-                       (md->html (io/resource "markdown/clojure-cup.md")))})
+   (fn [req]
+     (response
+      (base-page req
+                 (get-subject-identifier oauth-client req)
+                 (md->html (io/resource "markdown/clojure-cup.md")))))
 
-   :devices (->
-             (fn [req]
-               (response (devices-page req
-                                       (:cylon/subject-identifier req)
-                                       (:cylon/access-token req))))
-             (wrap-require-authorization oauth-client :user))
+   :devices
+   (->
+    (fn [req]
+      (response (devices-page req
+                              (:cylon/subject-identifier req)
+                              (:cylon/access-token req))))
+    (wrap-require-authorization oauth-client :user))
 
    #_:topics #_(restrict-to-valid-user authorizer topics-page)
 
    #_:api-docs-page #_(restrict-to-valid-user authorizer api-page)
 
-   :topic-browser (->
-             (fn [req]
-               (response (topic-browser req
-                                       (:cylon/subject-identifier req)
-                                       (:cylon/access-token req))))
-             (wrap-require-authorization oauth-client :user))
+   :topic-browser
+   (->
+    (fn [req]
+      (response (topic-browser req
+                               (:cylon/subject-identifier req)
+                               (:cylon/access-token req))))
+    (wrap-require-authorization oauth-client :user))
 
-;   (restrict-to-valid-user oauth-client topic-browser)
+                                        ;   (restrict-to-valid-user oauth-client topic-browser)
    :topics-list (unrestricted-pages oauth-client public-topics-list)
 
    :topic-show (unrestricted-pages oauth-client public-topic-page)
