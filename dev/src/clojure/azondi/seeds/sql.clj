@@ -93,4 +93,10 @@
       (j/insert! db t
                  {:token "075cb213-0726-46c7-8bd3-210919fa6b9a" :user_id "yods"}
                  {:token "e162b69f-2095-409c-940b-8914c22e97ef" :user_id "malcolmsparks"}
-                 {:token "41a27093-a564-4012-b796-058ebd94c6c0" :user_id "michaelklishin"}))))
+                 {:token "41a27093-a564-4012-b796-058ebd94c6c0" :user_id "michaelklishin"}))
+    (let [t "tokens"]
+      (j/execute! db [(format "TRUNCATE %s CASCADE" t)])
+      (j/insert! db t
+                 {:id      "letmedoit"
+                  :content "{:cylon/scopes #{:superuser/read-users}}"
+                  :type    "API-KEYS"}))))
