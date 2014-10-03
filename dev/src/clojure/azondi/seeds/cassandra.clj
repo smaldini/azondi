@@ -7,6 +7,10 @@
             [byte-streams :refer [convert]]
             [azondi.cassandra :refer [date-and-hour-formatter]]))
 
+(defn bytes
+  [^String s]
+  (.getBytes s "UTF-8"))
+
 ;;
 ;; API
 ;;
@@ -18,18 +22,18 @@
     (let [t "messages"
           o "juan"]
       (let [now (tc/date-time 2014 1 15 0)]
-        (cql/insert conn t {:device-id "1001" :topic "/users/juan/test-public" :owner o
-                            :payload (convert "message-1" java.nio.ByteBuffer) :content-type "text"
+        (cql/insert conn t {:device_id "1001" :topic "/users/juan/test-public" :owner o
+                            :payload (bytes "message1") :content-type "text"
                             :created_at (.toDate now) :date_and_hour (tf/unparse date-and-hour-formatter now)}))
       (let [now (tc/date-time 2014 1 16 0)]
-        (cql/insert conn t {:device-id "1001" :topic "/users/juan/test-public" :owner o
-                            :payload (convert "message-2" java.nio.ByteBuffer) :content-type "text"
+        (cql/insert conn t {:device_id "1001" :topic "/users/juan/test-public" :owner o
+                            :payload (bytes "message2") :content-type "text"
                             :created_at (.toDate now) :date_and_hour (tf/unparse date-and-hour-formatter now)}))
       (let [now (tc/date-time 2014 1 17 0)]
-        (cql/insert conn t {:device-id "1002" :topic "/users/juan/test-private" :owner o
-                            :payload (convert "message-3" java.nio.ByteBuffer) :content-type "text"
+        (cql/insert conn t {:device_id "1002" :topic "/users/juan/test-private" :owner o
+                            :payload (bytes "message3") :content-type "text"
                             :created_at (.toDate now) :date_and_hour (tf/unparse date-and-hour-formatter now)}))
       (let [now (tc/date-time 2014 1 18 0)]
-        (cql/insert conn t {:device-id "1002" :topic "/users/juan/test-private" :owner o
-                            :payload (convert "message-4" java.nio.ByteBuffer) :content-type "text"
+        (cql/insert conn t {:device_id "1002" :topic "/users/juan/test-private" :owner o
+                            :payload (bytes "message4") :content-type "text"
                             :created_at (.toDate now) :date_and_hour (tf/unparse date-and-hour-formatter now)})))))
