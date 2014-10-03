@@ -23,11 +23,14 @@
   [r]
   (md/md-to-html-string (slurp r)))
 
-(defn render-page [page]
-  (render-resource (str "templates/" page)
-                   {}
-                   {:header (slurp (resource "templates/header.html.mustache"))
-                    :footer (slurp (resource "templates/footer.html.mustache"))}))
+(defn render-page
+  ([page model]
+     (render-resource (str "templates/" page)
+                      model
+                      {:header (slurp (resource "templates/header.html.mustache"))
+                       :footer (slurp (resource "templates/footer.html.mustache"))}))
+  ([page]
+     (render-page page {})))
 
 (defn ^:deprecated unrestricted-pages [oauth-client page]
    (fn [req]
@@ -97,9 +100,9 @@
    :devices
    (->
     (fn [req]
-      (response (devices-page req
-                              (:cylon/subject-identifier req)
-                              (:cylon/access-token req))))
+      (response
+       (render-page "devices.html.mustache"
+                    (select-keys req [:cylon/subject-identifier :cylon/access-token]))))
     (wrap-require-authorization oauth-client :user))
 
    #_:topics #_(restrict-to-valid-user authorizer topics-page)
