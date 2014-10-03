@@ -64,18 +64,7 @@
       :location :navbar
       :target "/logout"}])
 
-(def sign-up-form [:form {:id "beta-signup" :role "form"}
-                      [:div.form-inline
 
-                       [:input {:type "text" :class "form-control" :id "beta-user-id" :name "beta-user-id" :placeholder "Pick a User ID"} [:i [:p#username_notification {:style "display:none"}]]]
-
-                       [:input {:type "text" :class "form-control" :id "beta-name" :name "beta-name" :placeholder "Your Name"}]
-                       [:input {:type "email" :class "form-control" :id "beta-email" :name "beta-email" :placeholder "Your Email"} [:i [:p#email_notification {:style "display:none"}]]]
-                       [:input {:type "password" :class "form-control" :id "beta-password" :name "beta-password" :placeholder "Your Password"}]
-                       [:button {:id "beta-access-btn" :type "submit" :class "btn btn-primary btn-lg"
-                                 :disabled true} "Get Free Access"]
-                       [:br]
-                       [:p#terms-by-signup "By creating an account, you agree to our " [:a {:href "/terms"} "terms of service"]]]])
 
 (def contact-us-form [:form {:id "contact-us-form" :role "form"}
                       [:div.form-inline
@@ -140,6 +129,7 @@
                      :when (displayed? child user)]
                  [:li [:a {:href (:target child)} (:label child)]])]]]]]
           [:li.side-menu-item [:a {:href (:target menu)} (:label menu)]])))]])
+
 (defn auth-base-page [req user body & scr]
   (html5
    [:head
@@ -330,35 +320,7 @@ a.async=true;a.type=\"text/javascript\";b.parentNode.insertBefore(a,b)}, 1);
 </script>
     "]))
 
-(def index-page
-  [:div
-    logo-area
-   [:div#index
-    [:div#features-index
-     [:h1 [:b "Create realtime IOT applications in minutes"]]
-     [:div.row
-      [:div#left.col-xs-6
-       [:img {:src "imgs/icon_824.svg" :height 100 :width 100} [:b#features-ind " Data Broadcast"]]
-       [:p "Share communal data with the world or publish privately"]]
-      [:div.col-xs-6
-       [:img {:src "imgs/icon_7138.svg" :height 100 :width 100} [:b#features-ind " Hardware Agnostic"]]
-       [:p "Connect any device to our messaging broker easily"]]]
 
-     [:div.row
-      [:div#left.col-xs-6
-       [:img {:src "imgs/icon_1518.svg" :height 100 :width 100} [:b#features-ind "  Device Management"]]
-       [:p "Built-in device security authentication and management"]]
-      [:div.col-xs-6
-       [:img {:src "imgs/icon_5460.svg" :height 100 :width 100} [:b#features-ind " Real Time Firehose"]]
-       [:p "Your own personal data stream for M2M or web applications"]]]
-     [:div.row
-      [:div#left.col-xs-6
-       [:img {:src "imgs/icon_6001.svg" :height 100 :width 100} [:b#features-ind "  Storage"]]
-       [:p "Persistent storage and easy access to your historical data"]]
-      [:div.col-xs-6
-       [:img {:src "imgs/icon_22612.svg" :height 100 :width 100} [:b#features-ind " Enterprise grade"]]
-       [:p "Would you like to run the opensensors.IO IOT network inside your firewall?"]
-       [:a {:href "mailto:hello@opensensors.io?subject=Enterprise%20enquiry"} "Contact Us"]]]]]])
 
 (defn devices-page [req user-id access-token]
   (base-page req
