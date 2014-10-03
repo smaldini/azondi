@@ -85,7 +85,7 @@
 
   )
 
-(deftest new-login-ok
+#_(deftest new-login-ok
   (browser-up)
   (go-to-login-page)
   (login-page-submit-user-details "juan" "juan")
