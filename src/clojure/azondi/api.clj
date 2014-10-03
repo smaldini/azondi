@@ -79,7 +79,7 @@
 
 ;; Welcome - this is used for testing
 
-(def welcome (str "OpenSensors.IO API version 1.0 " version))
+(def welcome (str "OpenSensors.IO API version " version))
 
 (defn welcome-resource []
   {:available-media-types #{"text/plain" "text/html" "application/json" "application/edn"}
