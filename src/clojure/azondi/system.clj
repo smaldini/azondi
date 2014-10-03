@@ -18,7 +18,7 @@
    [modular.http-kit :refer (new-webserver) :rename {new-webserver new-http-listener}]
    [modular.bidi :refer (new-router new-web-service)]
 
-  
+
    [azondi.emails :refer (new-emailer)]
    [azondi.ui.forms :refer (new-osio-user-form-renderer)]
    [cylon.authentication.login :refer (new-login)]
@@ -471,7 +471,8 @@
     ;; determine the user's identity and authorization.
     :webapp
     (-> (new-webapp)
-        (using {:oauth-client :webapp-oauth-client}))
+        (using {:oauth-client :webapp-oauth-client
+                :cljs :main-cljs-builder}))
 
     ;; We combine these resources into a bidi-compatible router.
     :webapp-router

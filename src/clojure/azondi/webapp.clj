@@ -16,7 +16,8 @@
    [ring.util.response :refer (response)]
    [clostache.parser :refer (render-resource)]
    [clojure.java.io :refer (resource)]
-   [plumbing.core :refer (<-)]))
+   [plumbing.core :refer (<-)]
+   [modular.cljs :refer (get-javascript-paths)]))
 
 (defn md->html
   "Reads a markdown file/resource and returns an HTML string"
@@ -24,11 +25,15 @@
   (md/md-to-html-string (slurp r)))
 
 (defn render-page
-  ([page model]
-     (render-resource (str "templates/" page)
-                      model
-                      {:header (slurp (resource "templates/header.html.mustache"))
-                       :footer (slurp (resource "templates/footer.html.mustache"))}))
+  ([page data partials]
+     (render-resource
+      (str "templates/" page)
+      data
+      (merge {:header (slurp (resource "templates/header.html.mustache"))
+              :footer (slurp (resource "templates/footer.html.mustache"))}
+             partials)))
+  ([page data]
+     (render-page page data {}))
   ([page]
      (render-page page {})))
 
@@ -37,7 +42,7 @@
     (let [user (authenticate oauth-client req)]
       (response (page user)))))
 
-(defn handlers [oauth-client]
+(defn handlers [oauth-client cljs]
   {
    :users
    (->
@@ -50,7 +55,9 @@
 
    :index
    (fn [req]
-     (response (render-page "index.html.mustache")))
+     (response (render-page "index.html.mustache"
+                            {:scripts ["/js/open-sensors-one.js"]}
+                            )))
 
    :contact-us
    (fn [req]
@@ -102,7 +109,11 @@
     (fn [req]
       (response
        (render-page "devices.html.mustache"
-                    (select-keys req [:cylon/subject-identifier :cylon/access-token]))))
+                    {:cylon/subject-identifier (:cylon/subject-identifier req)
+                     :cylon/access-token (:cylon/access-token req)
+                     :scripts (concat ["/js/react.js"]
+                                      (get-javascript-paths cljs))}
+                    {:script "azondi.main.devices_pages();\n"})))
     (wrap-require-authorization oauth-client :user))
 
    #_:topics #_(restrict-to-valid-user authorizer topics-page)
@@ -146,9 +157,9 @@
         ["clojure-cup" :clojure-cup]
         ["topic-browser" :topic-browser]]])
 
-(defrecord WebApp [oauth-client]
+(defrecord WebApp [oauth-client cljs]
   WebService
-  (request-handlers [this] (handlers oauth-client))
+  (request-handlers [this] (handlers oauth-client cljs))
   (routes [_] routes)
   (uri-context [_] ""))
 
@@ -156,4 +167,4 @@
   (->> opts
        (merge {})
        map->WebApp
-       (<- (using [:oauth-client]))))
+       (<- (using [:oauth-client :cljs]))))
