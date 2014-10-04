@@ -1,4 +1,4 @@
-<div id="wrap">
+
   <nav class="navbar navbar-default" role="navigation">
     <div class="container">
       <div class="navbar-header">
@@ -11,9 +11,10 @@
 	<a class="navbar-brand" href="/"
 	   id="home-logo">opensensors.io</a></div>
       <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
-	  {{>navbar-menu}}
+	
 	<ul class="nav navbar-nav navbar-right">
-
+	  {{>navbar-menu}}
+	  </ul>
 	
 	  
       </div>
@@ -21,8 +22,9 @@
   </nav>
 
   
-    <div class="col-sm-2"><div class="sidebar-nav">
-	<div class="navbar-default navbar sbar" role="navigation">
+  <div class="col-sm-2" id="side-menu-div">
+    <div class="sidebar-nav">
+	<div class="sbar" role="navigation">
 	  <div class="navbar-header sbar">
 	    <button class="navbar-toggle"
 		    data-target==".sidebar-navbar-collapse"
@@ -34,7 +36,7 @@
 	    </button>
 	    <span class="visible-xs
 		  navbar-brand">Menu</span></div>
-	  <ul>
+	  <ul class="nav" id="side-menu">
 	    
 	    {{> side-menu}}
 	    
@@ -43,5 +45,6 @@
 	  </ul>
 	</div>
       </div>
-    </div>
+  </div>
+  
   

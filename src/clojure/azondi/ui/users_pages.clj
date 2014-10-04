@@ -62,7 +62,7 @@
       :location :navbar
       :target "/logout"}])
 
-<<<<<<< HEAD
+
 ;;To do
 ;; render navbar
 ;; create devices, topics & api pages
@@ -73,26 +73,13 @@
     :none (nil? user)
     true))
 
-=======
-(defn render-users-page [req user]
-  (render-resource "templates/users-page.html.mustache" {}
-                   {:header (slurp (io/resource "templates/header.html.mustache"))
-                    :navbar (slurp (io/resource "templates/navbar.html.mustache"))
-                    :scripts (slurp (io/resource "templates/scripts.html.mustache"))
-                    :footer (slurp (io/resource "templates/footer.html.mustache"))
-                    :body "test"})
-  )
->>>>>>> 4e14a64a9d4ae1fb74c602b506196971df201f92
-
-
 
 (defn display-navs [req user]
   (render-resource "templates/navbar.html.mustache" {}
                    {:navbar-menu (html (for [menu (menus req)
                                              :when (and (displayed? menu user)
                                                         (= :navbar (:location menu)))]
-                                         [:a {:href (:target menu)} (:label menu)]
-                                         #_(if (:children menu)
+                                         (if (:children menu)
                                            [:li.dropdown [:a.dropdown-toggle
                                                           {:href "#" :data-toggle "dropdown"} (:label menu) [:b.caret]]
                                             [:ul.dropdown-menu
@@ -107,7 +94,9 @@
                                        (if (:children menu)
                                          [:div.accordion-group
                                           [:div.accordion-heading
-                                           [:li.side-menu-item [:a.accordion-toggle {:data-toggle "collapse" :data-parent "#leftMenu" :href (str "#" (:label menu))} (:label menu)]]
+                                           [:li.side-menu-item
+                                            [:a.accordion-toggle
+                                             {:data-toggle "collapse" :data-parent "#leftMenu" :href (str "#" (:label menu))} (:label menu)]]
                                            [:div {:id (:label menu) :class "accordion-body collapse" }
                                             [:div.accordion-inner
                                              [:ul
