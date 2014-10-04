@@ -15,18 +15,23 @@
       (j/insert! db t
                  ;; password: yods-pwd
                  {:id "yods" :name "Yodit S" :email "yodit@opensensors.io"
+                  :password_salt "rwKv3vQbdhAgy91N1O0+FByjVvCNcm/I4g/buZlrnLw="
                   :password_hash "$s0$e0801$dfKRFZiEStuBQm+DKQr5NQ==$9qd8nBxPSsCqcSFxMPGaqofJfeQwgMkiQAIhO7gzm34=" :role "user"}
                  ;; password: malcolmsparks-pwd
-                 {:id "malcolmsparks" :name "Malcolm Sparks" :email "malcolm@opensensors.io",
+                 {:id "malcolmsparks" :name "Malcolm Sparks" :email "malcolm@opensensors.io"
+                  :password_salt "kSlmP19ZuiAPa0PNgNZVCkvuIdD+BanXyBvZGmD6uSs="
                   :password_hash "$s0$e0801$/eFWoMrBH8qvbOV6Sha5oA==$1XCf1mQvBdIWqY0rtcZax426itISxCq/J/LMMqUuHqM=" :role "user"}
                  ;; password: michael-pwd
-                 {:id "michaelklishin" :name "Michael Klishin" :email "michael@opensensors.io",
+                 {:id "michaelklishin" :name "Michael Klishin" :email "michael@opensensors.io"
+                  :password_salt "7JbWjUd1DbQcQ9NuJwzxtrXxUgpoFsJiFUTc38dYizY="
                   :password_hash "$s0$e0801$1/DTkx1MtXX511KH9TRjqg==$Skpfo5t6IyBY465bKXaTcOdMCL/jJEUF/kqM/swzGwc=" :role "user"}
                  ;; password: juan-pwd
-                 {:id "juan" :name "Juan Antonio Ruz" :email "juan@opensensors.io",
+                 {:id "juan" :name "Juan Antonio Ruz" :email "juan@opensensors.io"
+                  :password_salt "VUIMpF7Y/Xkyc8439Mqy5bXsr9jF7kLdLn9iL/vZPco="
                   :password_hash "$s0$e0801$qoEgrYNdem4lbyclYlogYg==$OHuRJ6yT9YmuJhHtJMvS5x3SE9ztTX/D2fuM7iP2lP0=" :role "user"}
                  ;; password: andrey-pwd
-                 {:id "andrey" :name "Andrey Barkanov" :email "andrey@opensensors.io",
+                 {:id "andrey" :name "Andrey Barkanov" :email "andrey@opensensors.io"
+                  :password_salt "zTSqELGb7ovn7AC5FRVtKtUBuXBZBWwcNmQTflnvPC4="
                   :password_hash "$s0$e0801$0ATDyEeSCb9Ur/pTq08nYw==$f7cktstlonSxwe6U+f2EZpRMXJgio3bq8+j3bauSe0w=" :role "user"}))
     (let [t "devices"]
       (j/execute! db [(format "TRUNCATE %s CASCADE" t)])
@@ -93,4 +98,10 @@
       (j/insert! db t
                  {:token "075cb213-0726-46c7-8bd3-210919fa6b9a" :user_id "yods"}
                  {:token "e162b69f-2095-409c-940b-8914c22e97ef" :user_id "malcolmsparks"}
-                 {:token "41a27093-a564-4012-b796-058ebd94c6c0" :user_id "michaelklishin"}))))
+                 {:token "41a27093-a564-4012-b796-058ebd94c6c0" :user_id "michaelklishin"}))
+    (let [t "tokens"]
+      (j/execute! db [(format "TRUNCATE %s CASCADE" t)])
+      (j/insert! db t
+                 {:id      "letmedoit"
+                  :content "{:cylon/scopes #{:superuser/read-users}}"
+                  :type    "API-KEYS"}))))

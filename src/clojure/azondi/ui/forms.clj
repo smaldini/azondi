@@ -1,12 +1,13 @@
 (ns azondi.ui.forms
   (:require
-   [com.stuartsierra.component :as component]
+   [com.stuartsierra.component :as component :refer (Lifecycle)]
    [schema.core :as s]
    [cylon.authentication.login :refer (LoginFormRenderer)]
    [cylon.signup.protocols :refer (SignupFormRenderer WelcomeRenderer)]
    [clojure.walk :refer (postwalk)]
    [clostache.parser :refer (render-resource)]
    [clojure.tools.logging :refer :all]
+   [clojure.java.io :refer (resource)]
    [plumbing.core :refer (<-)]))
 
 
@@ -54,32 +55,35 @@
                            :value (-> model :form :post-login-redirect)})))
 
 (defrecord OsioUserFormRenderer []
+  Lifecycle
+  (start [component]
+    (assoc component
+      :partials {:header (slurp (resource "templates/header.html.mustache"))
+                 :footer (slurp (resource "templates/footer.html.mustache"))}))
+  (stop [component] component)
   LoginFormRenderer
-  (render-login-form [this req model]
+  (render-login-form [component req model]
     (let [template-model (model->template-model model)]
       (infof "Template model is %s" template-model)
-      (render-resource "templates/boilerplate.html.mustache"
-                       {:content (render-resource "templates/login.html.mustache"
-                                                  template-model)})))
+      (render-resource "templates/login.html.mustache"
+                       template-model
+                       (:partials component))))
 
 
   SignupFormRenderer
-  (render-signup-form [this req model]
+  (render-signup-form [component req model]
     (infof "Model is %s" (postwalk stringify-map-values model))
-    (render-resource "templates/boilerplate.html.mustache"
-                     {:content (render-resource "templates/welcome.html.mustache"
-                                                (postwalk stringify-map-values model))})
-    )
+    (render-resource "templates/signup.html.mustache"
+                     (postwalk stringify-map-values model)
+                     (:partials component)))
+
   WelcomeRenderer
-  (render-welcome [this req model]
+  (render-welcome [component req model]
     ;; TODO
     (infof "Model is %s" (postwalk stringify-map-values model))
-    (render-resource "templates/boilerplate.html.mustache"
-                     {:content (render-resource "templates/welcome.html.mustache"
-                                                (postwalk stringify-map-values model))})
-)
-  )
-
+    (render-resource "templates/welcome.html.mustache"
+                     (postwalk stringify-map-values model)
+                     (:partials component))))
 
 ;; TODO MS: I don't like the name 'osio' in code. Can we give our house style a name? Like Google's Material: http://www.google.co.uk/design/spec/material-design/introduction.html
 (defn new-osio-user-form-renderer [& {:as opts}]

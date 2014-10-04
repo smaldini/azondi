@@ -17,25 +17,33 @@
    [ring.util.response :refer (response)]
    [clostache.parser :refer (render-resource)]
    [clojure.java.io :refer (resource)]
-   [plumbing.core :refer (<-)]))
+   [plumbing.core :refer (<-)]
+   [modular.cljs :refer (get-javascript-paths)]))
 
 (defn md->html
   "Reads a markdown file/resource and returns an HTML string"
   [r]
   (md/md-to-html-string (slurp r)))
 
-(defn unrestricted-pages [oauth-client page]
+(defn render-page
+  ([page data partials]
+     (render-resource
+      (str "templates/" page)
+      data
+      (merge {:header (slurp (resource "templates/header.html.mustache"))
+              :footer (slurp (resource "templates/footer.html.mustache"))}
+             partials)))
+  ([page data]
+     (render-page page data {}))
+  ([page]
+     (render-page page {})))
+
+(defn ^:deprecated unrestricted-pages [oauth-client page]
    (fn [req]
     (let [user (authenticate oauth-client req)]
-      {:status 200 :body (page user)})))
+      (response (page user)))))
 
-(defn render-page [page]
-  (render-resource (str "templates/" page)
-                   {}
-                   {:header (slurp (resource "templates/header.html.mustache"))
-                    :footer (slurp (resource "templates/footer.html.mustache"))}))
-
-(defn handlers [oauth-client]
+(defn handlers [oauth-client cljs]
   {
    :users
    (->
@@ -48,75 +56,81 @@
 
    :index
    (fn [req]
-     {:status 200
-      :body (render-page "index.html.mustache")})
+     (response (render-page "index.html.mustache"
+                            {:scripts ["/js/open-sensors-one.js"]}
+                            )))
 
    :contact-us
-    (fn [req]
-     {:status 200
-      :body (base-page
-             (get-subject-identifier oauth-client req)
-             contact-us-form)})
-
+   (fn [req]
+     (response (base-page
+                (get-subject-identifier oauth-client req)
+                contact-us-form)))
    :help
    (fn [req]
-     {:status 200
-      :body (base-page req
-                       (get-subject-identifier oauth-client req)
-                       (md->html (io/resource "markdown/getting-started.md")))})
+     (response
+      (base-page req
+                 (get-subject-identifier oauth-client req)
+                 (md->html (io/resource "markdown/getting-started.md")))))
 
    :about
    (fn [req]
-     {:status 200
-      :body (base-page req
-                       (get-subject-identifier oauth-client req)
-                       (md->html (io/resource "markdown/about-us.md")))})
+     (response
+      (base-page req
+                 (get-subject-identifier oauth-client req)
+                 (md->html (io/resource "markdown/about-us.md")))))
    :terms
    (fn [req]
-     {:status 200
-      :body (base-page req
-                       (get-subject-identifier oauth-client req)
-                       (md->html (io/resource "markdown/terms.md")))})
+     (response
+      (base-page req
+                 (get-subject-identifier oauth-client req)
+                 (md->html (io/resource "markdown/terms.md")))))
 
    :services
    (fn [req]
-     {:status 200
-      :body (base-page req
-                       (get-subject-identifier oauth-client req)
-             (md->html (io/resource "markdown/services.md")))})
+     (response
+      (base-page req
+                 (get-subject-identifier oauth-client req)
+                 (md->html (io/resource "markdown/services.md")))))
    :careers
    (fn [req]
-     {:status 200
-      :body (base-page req
-                       (get-subject-identifier oauth-client req)
-                       (md->html (io/resource "markdown/careers.md")))})
+     (response
+      (base-page req
+                 (get-subject-identifier oauth-client req)
+                 (md->html (io/resource "markdown/careers.md")))))
 
    :clojure-cup
-    (fn [req]
-     {:status 200
-      :body (base-page req
-                       (get-subject-identifier oauth-client req)
-                       (md->html (io/resource "markdown/clojure-cup.md")))})
+   (fn [req]
+     (response
+      (base-page req
+                 (get-subject-identifier oauth-client req)
+                 (md->html (io/resource "markdown/clojure-cup.md")))))
 
-   :devices (->
-             (fn [req]
-               (response (devices-page req
-                                       (:cylon/subject-identifier req)
-                                       (:cylon/access-token req))))
-             (wrap-require-authorization oauth-client :user))
+   :devices
+   (->
+    (fn [req]
+      (response
+       (render-page "devices.html.mustache"
+                    {:scripts (concat ["/js/react.js"]
+                                      (get-javascript-paths cljs))}
+                    {:script (format "azondi.main.devices_page(\"%s\", \"%s\");\n"
+                                     (:cylon/subject-identifier req)
+                                     (:cylon/access-token req))
+                     })))
+    (wrap-require-authorization oauth-client :user))
 
    #_:topics #_(restrict-to-valid-user authorizer topics-page)
 
    #_:api-docs-page #_(restrict-to-valid-user authorizer api-page)
 
-   :topic-browser (->
-             (fn [req]
-               (response (topic-browser req
-                                       (:cylon/subject-identifier req)
-                                       (:cylon/access-token req))))
-             (wrap-require-authorization oauth-client :user))
+   :topic-browser
+   (->
+    (fn [req]
+      (response (topic-browser req
+                               (:cylon/subject-identifier req)
+                               (:cylon/access-token req))))
+    (wrap-require-authorization oauth-client :user))
 
-;   (restrict-to-valid-user oauth-client topic-browser)
+                                        ;   (restrict-to-valid-user oauth-client topic-browser)
    :topics-list (unrestricted-pages oauth-client public-topics-list)
 
    :topic-show (unrestricted-pages oauth-client public-topic-page)
@@ -145,9 +159,9 @@
         ["clojure-cup" :clojure-cup]
         ["topic-browser" :topic-browser]]])
 
-(defrecord WebApp [oauth-client]
+(defrecord WebApp [oauth-client cljs]
   WebService
-  (request-handlers [this] (handlers oauth-client))
+  (request-handlers [this] (handlers oauth-client cljs))
   (routes [_] routes)
   (uri-context [_] ""))
 
@@ -155,4 +169,4 @@
   (->> opts
        (merge {})
        map->WebApp
-       (<- (using [:oauth-client]))))
+       (<- (using [:oauth-client :cljs]))))

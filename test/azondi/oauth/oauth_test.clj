@@ -76,16 +76,33 @@
     (input-text (find-element *driver* {:css "input[name=name]"}) "JARV")
     (submit  (input-text (find-element *driver* {:css "input[name=email]"}) "juanantonioruz@gmail.com" ))
     (is (substring? "thank you for signing up" (text "p#welcome_message")))
-    (go-to-login-page)
-    (login-page-submit-user-details "test_new_user" "new-user_password")
-    (click "a[href*='/logout'")
-      (browser-down)
-      )
+;    (go-to-home)
 
+      )
+  (when-let [c (cookie "azondi-authorization-server-session-id")]
+
+    (when-let [{:keys [cylon/token-id cylon/subject-identifier name] :as auth-token-store}
+               (.get-token-by-id (-> dev/system :authorization-server-token-store) (:value c))]
+      (is ((complement nil?) token-id))
+      )
+    )
+
+  (go-to-login-page)
+  (when-let [c (cookie "opensensors-webapp-session-id")]
+    (when-let [{:keys [cylon/scopes] :as access-token}
+              (.get-token-by-id (-> dev/system :oauth-access-token-store) (:value c))]
+     (is (contains? scopes :user))
+     ))
+
+  (map :name (cookies))
+  (login-page-submit-user-details "test_new_user" "new-user_password")
+  (click "a[href*='/logout'")
+
+  (browser-down)
 
   )
 
-(deftest new-login-ok
+#_(deftest new-login-ok
   (browser-up)
   (go-to-login-page)
   (login-page-submit-user-details "juan" "juan")
@@ -94,12 +111,9 @@
   (click "a[href*='/logout'")
   (is (= (current-url *driver*)  (format "%s://%s/" client-schema client-host) ) )
   (browser-down)
+  (cookie "opensensors-webapp-session-id")
+  (cookie "azondi-authorization-server-session-id")
 )
-
-
-
-
-
 
 
 #_(deftest login-fail

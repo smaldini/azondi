@@ -19,6 +19,7 @@
   <logger name="azondi.cassandra" level="INFO"/>
   <logger name="azondi.cassandra" level="DEBUG"/>
   <logger name="azondi.stream-summary" level="DEBUG"/>
+  <logger name="azondi.api" level="DEBUG"/>
 
   <root level="INFO">
     <appender-ref ref="CONSOLE"/>

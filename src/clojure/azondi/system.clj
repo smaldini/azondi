@@ -15,10 +15,11 @@
    [modular.cljs :refer (new-cljs-builder new-cljs-module)]
    [modular.netty :refer (new-netty-server)]
    [modular.netty.mqtt :refer (new-mqtt-decoder new-mqtt-encoder)]
-   [modular.http-kit :refer (new-webserver) :rename {new-webserver new-http-listener}]
+  [modular.http-kit :refer (new-webserver) :rename {new-webserver new-http-listener}]
+  [azondi.http-kit :refer (new-http-listener-cors)]
    [modular.bidi :refer (new-router new-web-service)]
 
-  
+
    [azondi.emails :refer (new-emailer)]
    [azondi.ui.forms :refer (new-osio-user-form-renderer)]
    [cylon.authentication.login :refer (new-login)]
@@ -382,7 +383,7 @@
     ;; Finally, the router is made accessible over HTTP, using an
     ;; http-kit listener. The resource server is now fully defined
     ;; and ready to start.
-    :resource-listener (-> (new-http-listener :port 8030)
+    :resource-listener (-> (new-http-listener-cors :port 8030 :origin-allowed "http://localhost:8010")
                            (using {:request-handler :resource-router}))))
 
 (defn add-webapp-server
@@ -471,7 +472,8 @@
     ;; determine the user's identity and authorization.
     :webapp
     (-> (new-webapp)
-        (using {:oauth-client :webapp-oauth-client}))
+        (using {:oauth-client :webapp-oauth-client
+                :cljs :main-cljs-builder}))
 
     ;; We combine these resources into a bidi-compatible router.
     :webapp-router

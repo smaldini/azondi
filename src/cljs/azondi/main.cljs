@@ -20,7 +20,7 @@
 (def hostname (let [a (.createElement js/document "a")]
                 (set! (.-href a) (.-URL js/document))
                 (.-hostname a)))
-(def uri-init "/api/1.0")
+(def uri-init "http://localhost:8030/api/1.0")
 
 (def app-model
   (atom {:user "nobody"

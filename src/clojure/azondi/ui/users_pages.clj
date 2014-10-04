@@ -1,5 +1,7 @@
 (ns azondi.ui.users-pages
-  (:require [clostache.parser :refer (render-resource)]
+  (:require [com.stuartsierra.component :as component]
+            [clostache.parser :refer (render-resource)]
+            [clojure.java.io :as io]
             [modular.bootstrap :refer (ContentBoilerplate)]
             [cylon.session :refer (session)]
             [cylon.authentication :refer (get-subject-identifier)]
@@ -60,6 +62,7 @@
       :location :navbar
       :target "/logout"}])
 
+<<<<<<< HEAD
 ;;To do
 ;; render navbar
 ;; create devices, topics & api pages
@@ -70,6 +73,16 @@
     :none (nil? user)
     true))
 
+=======
+(defn render-users-page [req user]
+  (render-resource "templates/users-page.html.mustache" {}
+                   {:header (slurp (io/resource "templates/header.html.mustache"))
+                    :navbar (slurp (io/resource "templates/navbar.html.mustache"))
+                    :scripts (slurp (io/resource "templates/scripts.html.mustache"))
+                    :footer (slurp (io/resource "templates/footer.html.mustache"))
+                    :body "test"})
+  )
+>>>>>>> 4e14a64a9d4ae1fb74c602b506196971df201f92
 
 
 

@@ -1,3 +1,5 @@
+{{> header}}
+
 <div class="wrapper wrapper-hero wrapper-hero-login">
 
   <canvas id="demo-canvas"></canvas>
@@ -8,9 +10,11 @@
     	<h1 class="logo-text">OpenSensors.io</h1>
     	<img class="logo-hero" src="imgs/logo-hero.png">
 
-        <p>{{name}}, thank you for signing up. Your user-id is {{cylon/subject-identifier}}. </p>
+        <p id="welcome_message">{{name}}, thank you for signing up. Your user-id is {{cylon/subject-identifier}}. </p>
 
       </div>
     </div>
   </div>
 </div>
+
+{{> footer}}
