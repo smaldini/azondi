@@ -2,7 +2,9 @@
   (:require [clostache.parser :refer (render-resource)]
             [modular.bootstrap :refer (ContentBoilerplate)]
             [cylon.session :refer (session)]
-            [cylon.authentication :refer (get-subject-identifier)]))
+            [cylon.authentication :refer (get-subject-identifier)]
+            [clojure.java.io :refer (resource)]
+            [hiccup.core :refer (html)]))
 
 
 ;; devices page
@@ -58,33 +60,54 @@
       :location :navbar
       :target "/logout"}])
 
-(defn render-users-page [req user]
+;;To do
+;; render navbar
+;; create devices, topics & api pages
+(defn displayed? [menu user]
+  (case (:security menu)
+    :user user
+    :all true
+    :none (nil? user)
+    true))
+
+
+
+
+(defn display-navs [req user]
+  (render-resource "templates/navbar.html.mustache" {}
+                   {:navbar-menu (html (for [menu (menus req)
+                                             :when (and (displayed? menu user)
+                                                        (= :navbar (:location menu)))]
+                                         [:a {:href (:target menu)} (:label menu)]
+                                         #_(if (:children menu)
+                                           [:li.dropdown [:a.dropdown-toggle
+                                                          {:href "#" :data-toggle "dropdown"} (:label menu) [:b.caret]]
+                                            [:ul.dropdown-menu
+                                             (for [child (:children menu)
+                                                   :when (displayed? child user)]
+                                               [:li [:a {:href (:target child)} (:label child)]])]]
+                                           [:li [:a {:href (:target menu)} (:label menu)]])))
+
+                    :side-menu (html (for [menu (menus req)
+                                             :when (and (displayed? menu user)
+                                                        (= :sidebar (:location menu)))]
+                                       (if (:children menu)
+                                         [:div.accordion-group
+                                          [:div.accordion-heading
+                                           [:li.side-menu-item [:a.accordion-toggle {:data-toggle "collapse" :data-parent "#leftMenu" :href (str "#" (:label menu))} (:label menu)]]
+                                           [:div {:id (:label menu) :class "accordion-body collapse" }
+                                            [:div.accordion-inner
+                                             [:ul
+                                              (for [child (:children menu)
+                                                    :when (displayed? child user)]
+                                                [:li [:a {:href (:target child)} (:label child)]])]]]]]                                            [:li.side-menu-item [:a {:href (:target menu)} (:label menu)]])))}))
+
+(defn render-users-page [req user token]
   (render-resource "templates/users-page.html.mustache" {}
                    {:header (slurp (resource "templates/header.html.mustache"))
-                    :navbar (slurp (resource "templates/navbar.html.mustache"))
+                    :navbar (display-navs req user)
                     :scripts (slurp (resource "templates/scripts.html.mustache")) 
                     :footer (slurp (resource "templates/footer.html.mustache"))
-                    :body "test"})
-  )
+                    :body (html [:h1 "test"])
+                   }))
 
-;; (defrecord BasePageContentBoilerplate [authenticator]
-;;   ContentBoilerplate
-;;   (wrap-content-in-boilerplate [this req content]
-;;     (base-page req (get-subject-identifier authenticator req) content)))
-
-;; (defn new-basepage-content-boilerplate []
-;;   (component/using (map->BasePageContentBoilerplate {}) [:authenticator]))
-
-(defrecord AuthBasePageContentBoilerplate [authenticator]
-  ContentBoilerplate
-  (wrap-content-in-boilerplate [this req content]
-    (render-users-page
-     req
-     (get-subject-identifier authenticator req)
-    ;; content
-     )))
-
-
-
-(defn new-auth-basepage-content-boilerplate []
-  (component/using (map->AuthBasePageContentBoilerplate {}) [:authenticator]))

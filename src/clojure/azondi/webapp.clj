@@ -8,6 +8,7 @@
    [markdown.core :as md]
    [hiccup.core :refer (html h)]
    [azondi.basepage :refer :all]
+   [azondi.ui.users-pages :refer (render-users-page)]
    [org.httpkit.server :refer (run-server)]
    [cylon.authentication :refer (authenticate get-subject-identifier)]
    [cylon.oauth.client :refer (solicit-access-token
@@ -40,7 +41,7 @@
    (->
     (fn [req]
       (response
-       (users-page req
+       (render-users-page req
                    (:cylon/subject-identifier req)
                    (:cylon/access-token req))))
     (wrap-require-authorization oauth-client :superuser/read-users))
