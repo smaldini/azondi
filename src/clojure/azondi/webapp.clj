@@ -51,14 +51,14 @@
       (response
        (render-users-page req
                    (:cylon/subject-identifier req)
-                   (:cylon/access-token req))))
+                   (:cylon/access-token req)
+                   "test")))
     (wrap-require-authorization oauth-client :superuser/read-users))
 
    :index
    (fn [req]
      (response (render-page "index.html.mustache"
-                            {:scripts ["/js/open-sensors-one.js"]}
-                            )))
+                            {:scripts ["/js/open-sensors-one.js"]})))
 
    :contact-us
    (fn [req]
@@ -109,7 +109,8 @@
    (->
     (fn [req]
       (response
-       (render-page "devices.html.mustache"
+       (render-users-page req "templates/devices.html.mustache")
+       #_(render-page "devices.html.mustache"
                     {:scripts (concat ["/js/react.js"]
                                       (get-javascript-paths cljs))}
                     {:script (format "azondi.main.devices_page(\"%s\", \"%s\");\n"
