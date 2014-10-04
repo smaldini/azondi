@@ -5,8 +5,7 @@
 
 (defn up
   [db]
-  (let [ks   (:keyspace db)
-        conn (jc/get-connection (:hosts db) ks)]
+  (let [conn (jc/get-connection (:hosts db) (:keyspace db))]
     (cql/create-table conn "messages"
                       (if-not-exists)
                       (column-definitions {:device_id     :text
