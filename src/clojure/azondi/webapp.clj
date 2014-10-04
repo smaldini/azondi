@@ -8,7 +8,7 @@
    [markdown.core :as md]
    [hiccup.core :refer (html h)]
    [azondi.basepage :refer :all]
-   [azondi.ui.users-pages :refer (render-users-page)]
+   [azondi.ui.users-pages :refer (render-users-page render-api-page)]
    [org.httpkit.server :refer (run-server)]
    [cylon.authentication :refer (authenticate get-subject-identifier)]
    [cylon.oauth.client :refer (solicit-access-token
@@ -124,7 +124,13 @@
                                           (:cylon/access-token req)))))
     (wrap-require-authorization oauth-client :user))
 
-   #_:api-docs-page #_(restrict-to-valid-user authorizer api-page)
+   :api-docs-page (->
+            (fn [req]
+              (response
+               (render-api-page req)))
+    (wrap-require-authorization oauth-client :user))
+
+   #_(restrict-to-valid-user authorizer api-page)
 
    :topic-browser
    (->

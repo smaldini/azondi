@@ -159,8 +159,9 @@ $('#contact-form-btn').click(function (e) {
     }
 });
 
-function populate_api_page () {
-    var user =  $.session.get ('user');
+function populate_api_page (user) {
+    //this is a bit hacky
+    window.user = user;
     $.ajax({
      	url: "api/1.0/users/" + user + "/api-key",
     	type: "GET",
@@ -172,23 +173,20 @@ function populate_api_page () {
 	    $ ('#uuid-api-view').empty ().append ("<span#uuid-api-view>?user=" + data.user + "&API=" + data.api + "</span>");},
     	failure: function(errMsg) {alert(errMsg);}});
     $('span#api-host-name').replaceWith("<span#api-host-name>" + window.location.protocol+"//" + window.location.host + "</host-name>");
-
-}
+  }
 
 $ ('#api-info-api-key-link').on ('click', function () {
-    var user =  $.session.get ('user');
     $.ajax ({
 	url: "api/1.0/users/" + user + "/api-key",
 	type: "POST",
 	contentType: "application/json; charset=utf-8",
     	dataType: "json",
-	success: function(data) {populate_api_page ();},
+	success: function(data) {populate_api_page (user);},
 	failure: function(errMsg) {
             alert(errMsg);}});
 });
 
 function populate_ws_page () {
-    var user = $.session.get ('user');
     $.ajax ({
 	url: "api/1.0/users/" + user + "/ws-token",
 	type: "GET",
@@ -202,13 +200,12 @@ function populate_ws_page () {
     }
 
 $ ('#ws-info-ws-session-token-link').on ('click', function () {
-    var user =  $.session.get ('user');
     $.ajax ({
 	url: "api/1.0/users/" + user + "/ws-token",
 	type: "POST",
 	contentType: "application/json; charset=utf-8",
     	dataType: "json",
-	success: function(data) {populate_ws_page ();},
+	success: function(data) {populate_ws_page (user);},
 	failure: function(errMsg) {
             alert(errMsg);}});
 });
