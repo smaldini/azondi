@@ -10,9 +10,9 @@
             [com.stuartsierra.component  :as component]
             [azondi.db.protocol :refer (MessageStore TopicSummaryStore)]))
 
-(def ^:const table "messages")
+(def ^:const table "messages_by_device")
 (def ^:const summary-table "topic_summary")
-(def date-and-hour-formatter (tf/formatter "yyyy-MM-dd HH"))
+(def date-and-hour-formatter (tf/formatter "yyyy-MM-dd"))
 
 
 (defn- filter-date [start-date end-date]
