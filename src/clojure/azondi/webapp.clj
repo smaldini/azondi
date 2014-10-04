@@ -7,8 +7,7 @@
    [modular.bidi :refer (WebService)]
    [markdown.core :as md]
    [hiccup.core :refer (html h)]
-   [azondi.basepage :refer :all]
-   [azondi.ui.users-pages :refer (render-users-page render-api-page)]
+   [azondi.ui.users-pages :refer (render-users-page render-api-page reset-password-page)]
    [org.httpkit.server :refer (run-server)]
    [cylon.authentication :refer (authenticate get-subject-identifier)]
    [cylon.oauth.client :refer (solicit-access-token
@@ -60,50 +59,12 @@
      (response (render-page "index.html.mustache"
                             {:scripts ["/js/open-sensors-one.js"]})))
 
-   :contact-us
-   (fn [req]
+   #_:contact-us
+   #_(fn [req]
      (response (base-page
                 (get-subject-identifier oauth-client req)
                 contact-us-form)))
-   :help
-   (fn [req]
-     (response
-      (base-page req
-                 (get-subject-identifier oauth-client req)
-                 (md->html (io/resource "markdown/getting-started.md")))))
-
-   :about
-   (fn [req]
-     (response
-      (base-page req
-                 (get-subject-identifier oauth-client req)
-                 (md->html (io/resource "markdown/about-us.md")))))
-   :terms
-   (fn [req]
-     (response
-      (base-page req
-                 (get-subject-identifier oauth-client req)
-                 (md->html (io/resource "markdown/terms.md")))))
-
-   :services
-   (fn [req]
-     (response
-      (base-page req
-                 (get-subject-identifier oauth-client req)
-                 (md->html (io/resource "markdown/services.md")))))
-   :careers
-   (fn [req]
-     (response
-      (base-page req
-                 (get-subject-identifier oauth-client req)
-                 (md->html (io/resource "markdown/careers.md")))))
-
-   :clojure-cup
-   (fn [req]
-     (response
-      (base-page req
-                 (get-subject-identifier oauth-client req)
-                 (md->html (io/resource "markdown/clojure-cup.md")))))
+  
 
    :devices
    (->
@@ -130,20 +91,13 @@
                (render-api-page req)))
     (wrap-require-authorization oauth-client :user))
 
-   #_(restrict-to-valid-user authorizer api-page)
+   :reset-password (->
+                    (fn [req]
+                      (response
+                       (reset-password-page req)))
+                    (wrap-require-authorization oauth-client :user))
 
-   :topic-browser
-   (->
-    (fn [req]
-      (response (topic-browser req
-                               (:cylon/subject-identifier req)
-                               (:cylon/access-token req))))
-    (wrap-require-authorization oauth-client :user))
-
-                                        ;   (restrict-to-valid-user oauth-client topic-browser)
-   :topics-list (unrestricted-pages oauth-client public-topics-list)
-
-   :topic-show (unrestricted-pages oauth-client public-topic-page)
+    
    })
 
 

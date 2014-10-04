@@ -110,8 +110,28 @@
                     :navbar (display-navs req (:cylon/subject-identifier req))
                     :scripts (slurp (resource "templates/scripts.html.mustache")) 
                     :footer (slurp (resource "templates/footer.html.mustache"))
-                    :script script}))
+                    :script script
+                    :body (html [:p "Loading...."])}))
 
+(defn reset-password-page [req]
+  (render-resource "templates/users-page.html.mustache" {}
+   {:header (slurp (resource "templates/header.html.mustache"))
+                    :navbar (display-navs req (:cylon/subject-identifier req))
+                    :scripts (slurp (resource "templates/scripts.html.mustache")) 
+                    :footer (slurp (resource "templates/footer.html.mustache"))
+    :script (format "populate_api_page ('%s')" (:cylon/subject-identifier req)) 
+    :body (html [:div#pword-reset
+                 [:h2 "Password Reset"]
+                 [:p "Change your password"]
+                 [:form {:id "reset-password-form" :role "form" }
+                  [:div.form-group
+                   [:input {:type "password" :class "form-control" :id "passwordVerif1" :name "passwordVerif1" :placeholder "Enter New Password"}]
+                   [:div#ireset1]]
+                  [:div.form-group
+                   [:input {:type "password" :class "form-control" :id "passwordVerif2" :name "passwordVerif2" :placeholder "Verfiy Password"}]
+                   [:div#ireset2]]
+                  [:button {:id "reset-password-btn" :type "submit" :class "btn" :disabled "true"} "Reset Password"]
+                  ]])}))
 
 (defn render-api-page [req]
   (render-resource "templates/users-page.html.mustache" {}
