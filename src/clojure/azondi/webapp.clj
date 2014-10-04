@@ -109,17 +109,20 @@
    (->
     (fn [req]
       (response
-       (render-users-page req "templates/devices.html.mustache")
-       #_(render-page "devices.html.mustache"
-                    {:scripts (concat ["/js/react.js"]
-                                      (get-javascript-paths cljs))}
-                    {:script (format "azondi.main.devices_page(\"%s\", \"%s\");\n"
-                                     (:cylon/subject-identifier req)
-                                     (:cylon/access-token req))
-                     })))
+       (render-users-page req
+                          (format "azondi.main.devices_page(\"%s\", \"%s\");\n"
+                                    (:cylon/subject-identifier req)
+                                     (:cylon/access-token req)))))
     (wrap-require-authorization oauth-client :user))
 
-   #_:topics #_(restrict-to-valid-user authorizer topics-page)
+   :topics (->
+            (fn [req]
+              (response
+               (render-users-page req
+                                  (format "azondi.main.topics_page(\"%s\", \"%s\");\n"
+                                          (:cylon/subject-identifier req)
+                                          (:cylon/access-token req)))))
+    (wrap-require-authorization oauth-client :user))
 
    #_:api-docs-page #_(restrict-to-valid-user authorizer api-page)
 

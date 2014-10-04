@@ -104,15 +104,12 @@
                                                     :when (displayed? child user)]
                                                 [:li [:a {:href (:target child)} (:label child)]])]]]]]                                            [:li.side-menu-item [:a {:href (:target menu)} (:label menu)]])))}))
 
-(defn render-users-page [req body]
+(defn render-users-page [req script]
   (render-resource "templates/users-page.html.mustache" {}
                    {:header (slurp (resource "templates/header.html.mustache"))
                     :navbar (display-navs req (:cylon/subject-identifier req))
                     :scripts (slurp (resource "templates/scripts.html.mustache")) 
                     :footer (slurp (resource "templates/footer.html.mustache"))
-                    :body (slurp (resource body))
-                    :script (format "azondi.main.devices_page(\"%s\", \"%s\");\n"
-                                    (:cylon/subject-identifier req)
-                                     (:cylon/access-token req))}))
+                    :script script}))
 
 
