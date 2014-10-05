@@ -29,7 +29,7 @@
                                            :date_and_hour :text
                                            :topic         :text
                                            :topic_summary :text
-                                           :primary-key   [[:topic, :date_and_hour] :created_at]}))))
+                                           :primary-key   [[:topic :date_and_hour] :created_at]}))))
 
 (defn down
   [db]
