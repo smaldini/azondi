@@ -23,30 +23,27 @@
 (defn new-messaging-system
   "Define a minimal system which is just enough for the messaging tests to run"
   []
-  (let [debug-ch (async/chan 64)
-        debug-mult (async/mult debug-ch)]
-    (component/system-using
-     (component/system-map
-      :mqtt-decoder (new-mqtt-decoder)
-      :mqtt-encoder (new-mqtt-encoder)
-      :mqtt-handler (new-netty-mqtt-handler debug-ch)
-      :mqtt-server (new-netty-server {:port 1883})
-      :reactor (new-reactor)
-      :ws (new-websocket-bridge {:port 8083})
-      :topic-injector (new-topic-injector)
-      :metrics (new-metrics {:hostname (.. java.net.InetAddress getLocalHost getHostName)
-                             :prefix "azondi"})
-      :database (new-database {:host "127.0.0.1"
-                               :dbname jh/test-postgresql-db
-                               :user jh/test-postgresql-user
-                               :password "opendata"})
-      :cassandra (cass/new-database
-                  {:keyspace "opensensors_test"
-                   :hosts ["127.0.0.1"]})
-      :message-archiver (new-message-archiver)
-      )
-     {:mqtt-handler {:db :database}
-      :mqtt-server [:mqtt-handler :mqtt-decoder :mqtt-encoder]})))
+  (component/system-using
+   (component/system-map
+    :mqtt-decoder (new-mqtt-decoder)
+    :mqtt-encoder (new-mqtt-encoder)
+    :mqtt-handler (new-netty-mqtt-handler)
+    :mqtt-server (new-netty-server {:port 1883})
+    :reactor (new-reactor)
+    :ws (new-websocket-bridge {:port 8083})
+    :topic-injector (new-topic-injector)
+    :metrics (new-metrics {:hostname (.. java.net.InetAddress getLocalHost getHostName)
+                           :prefix "azondi"})
+    :database (new-database {:host "127.0.0.1"
+                             :dbname jh/test-postgresql-db
+                             :user jh/test-postgresql-user
+                             :password "opendata"})
+    :cassandra (cass/new-database
+                {:keyspace "opensensors_test"
+                 :hosts ["127.0.0.1"]})
+    :message-archiver (new-message-archiver))
+   {:mqtt-handler {:db :database}
+    :mqtt-server [:mqtt-handler :mqtt-decoder :mqtt-encoder]}))
 
 (defmacro with-system
   [system & body]
