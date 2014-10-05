@@ -1,5 +1,5 @@
 (ns azondi.cassandra
-  "Cassandra connectivity and schema management"
+  "Cassandra connectivity and data management"
   (:require [clojurewerkz.cassaforte.client :as cc]
             [clojurewerkz.cassaforte.cql    :as cql]
             [clojurewerkz.cassaforte.query :refer (where allow-filtering)]
@@ -10,12 +10,17 @@
             [com.stuartsierra.component  :as component]
             [azondi.db.protocol :refer (MessageStore TopicSummaryStore)]))
 
-(def ^:const table "messages_by_device")
-(def ^:const summary-table "topic_summary")
-(def date-and-hour-formatter (tf/formatter "yyyy-MM-dd"))
+(def ^:const by-device-table  "messages_by_device")
+(def ^:const by-account-table "messages_by_device")
+
+(def ^:const summary-table    "topic_summary")
+
+(def date-formatter          (tf/formatter "yyyy-MM-dd"))
+(def date-and-hour-formatter (tf/formatter "yyyy-MM-dd HH"))
 
 
-(defn- filter-date [start-date end-date]
+(defn- filter-date
+  [start-date end-date]
   [:created_at [>= (.toDate start-date)]
    :created_at [<= (.toDate end-date)]])
 
@@ -28,40 +33,40 @@
   (stop [this] this)
   MessageStore
   (messages-by-owner [this owner]
-    (cql/select (:session this) table (where {:owner owner})))
+    (cql/select (:session this) by-device-table (where {:owner owner})))
 
   (messages-by-owner-and-date [this owner start-date end-date]
-    (cql/select (:session this) table
+    (cql/select (:session this) by-account-table
                 (apply where (conj (filter-date start-date end-date) :owner owner))
                 (allow-filtering true)))
 
   (messages-by-device [this device-id]
-    (cql/select (:session this) table (where {:device_id device-id})))
+    (cql/select (:session this) by-device-table (where {:device_id device-id})))
 
   (messages-by-device-and-date [this device-id start-date end-date]
-    (cql/select (:session this) table
+    (cql/select (:session this) by-device-table
                 (apply where (conj (filter-date start-date end-date) :device_id device-id))
                 (allow-filtering true)))
 
   (messages-by-topic [this topic]
-    (cql/select (:session this) table (where {:topic topic})))
+    (cql/select (:session this) by-device-table (where {:topic topic})))
 
   (messages-by-topic-and-date [this topic start-date end-date]
-    (cql/select (:session this) table
+    (cql/select (:session this) by-device-table
                 (apply where (conj (filter-date start-date end-date) :topic topic))
                 (allow-filtering true)))
 
   (messages-by-date [this  start-date end-date]
-    (cql/select (:session this) table
+    (cql/select (:session this) by-device-table
                 (apply where (conj (filter-date start-date end-date)))
                 (allow-filtering true)))
 
   (archive-message! [this data]
     (let [now (tc/now)]
-      (cql/insert (:session this) table
+      (cql/insert (:session this) by-device-table
                   (merge data
-                         {:created_at    (.toDate now)
-                          :date_and_hour (tf/unparse date-and-hour-formatter now)}))))
+                         {:created_at (.toDate now)
+                          :date       (tf/unparse date-formatter now)}))))
 
   TopicSummaryStore
   (archive-summary! [this data]
