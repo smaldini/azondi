@@ -26,6 +26,9 @@
                                            :payload       :blob
                                            :content_type  :text
                                            :primary-key   [[:device_id :date] :created_at]}))
+
+    (cql/create-index conn "messages_by_device" "device_id"
+                      (if-not-exists))
     (cql/create-index conn "messages_by_device" "topic"
                       (if-not-exists))
 
@@ -40,6 +43,8 @@
                                            :payload       :blob
                                            :content_type  :text
                                            :primary-key   [[:owner :date] :created_at]}))
+  (cql/create-index conn "messages_by_account" "owner"
+                 (if-not-exists))
   (cql/create-index conn "messages_by_account" "device_id"
                  (if-not-exists))
   (cql/create-index conn "messages_by_account" "topic"
