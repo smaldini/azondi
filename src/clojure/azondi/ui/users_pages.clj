@@ -88,7 +88,8 @@
                                                [:li [:a {:href (:target child)} (:label child)]])]]
                                            [:li [:a {:href (:target menu)} (:label menu)]])))
 
-                    :side-menu (html (for [menu (menus req)
+                    ;; Commenting this out because side-menu will now be created in cljs
+                    #_:side-menu #_(html (for [menu (menus req)
                                              :when (and (displayed? menu user)
                                                         (= :sidebar (:location menu)))]
                                        (if (:children menu)
@@ -108,7 +109,7 @@
   (render-resource "templates/users-page.html.mustache" {}
                    {:header (slurp (resource "templates/header.html.mustache"))
                     :navbar (display-navs req (:cylon/subject-identifier req))
-                    :scripts (slurp (resource "templates/scripts.html.mustache")) 
+                    :scripts (slurp (resource "templates/scripts.html.mustache"))
                     :footer (slurp (resource "templates/footer.html.mustache"))
                     :script script
                     :body (html [:p "Loading...."])}))
@@ -117,9 +118,9 @@
   (render-resource "templates/users-page.html.mustache" {}
    {:header (slurp (resource "templates/header.html.mustache"))
                     :navbar (display-navs req (:cylon/subject-identifier req))
-                    :scripts (slurp (resource "templates/scripts.html.mustache")) 
+                    :scripts (slurp (resource "templates/scripts.html.mustache"))
                     :footer (slurp (resource "templates/footer.html.mustache"))
-    :script (format "populate_api_page ('%s')" (:cylon/subject-identifier req)) 
+    :script (format "populate_api_page ('%s')" (:cylon/subject-identifier req))
     :body (html [:div#pword-reset
                  [:h2 "Password Reset"]
                  [:p "Change your password"]
@@ -137,7 +138,7 @@
   (render-resource "templates/users-page.html.mustache" {}
                    {:header (slurp (resource "templates/header.html.mustache"))
                     :navbar (display-navs req (:cylon/subject-identifier req))
-                    :scripts (slurp (resource "templates/scripts.html.mustache")) 
+                    :scripts (slurp (resource "templates/scripts.html.mustache"))
                     :footer (slurp (resource "templates/footer.html.mustache"))
                     :script (format "populate_api_page ('%s')" (:cylon/subject-identifier req))
                     :body (html [:div

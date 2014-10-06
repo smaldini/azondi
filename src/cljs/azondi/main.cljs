@@ -12,7 +12,6 @@
    [azondi.csk :as csk]
    [azondi.chart :refer (chart-component)]))
 
-
 (enable-console-print!)
 
 ;; This would eventually be opensensors.io, or probably
@@ -21,19 +20,185 @@
                 (set! (.-href a) (.-URL js/document))
                 (.-hostname a)))
 (def uri-init "http://localhost:8030/api/1.0")
+(def filter-color "#aa0")
+
+(defn topic-segment [app-state owner]
+  (reify
+    om/IRender
+    (render [this]
+      (html
+       [:div.flow-segment
+        {:style {:min-height "200px"
+                 :width "300px"
+                 :background "#070"}}
+        [:h1 "Topic"]
+        [:input {:type "text" :value (:topic app-state)}]
+        ]))))
+
+(defn segment [app-state owner]
+  (reify
+    om/IRender
+    (render [this]
+      (html
+       [:div.flow-segment
+        {:style {:min-height "200px"
+                 :width "300px"
+                 :background (:color app-state)}}
+        [:h1 (:label app-state)]
+        ]))))
+
+(defn sink-segment [app-state owner]
+  (reify
+    om/IRender
+    (render [this]
+      (html
+       [:div.flow-segment
+        {:style {:min-height "200px"
+                 :width "300px"
+                 :background "#007"}}
+        [:h1 "Sink"]
+        [:input {:type "text" :value "/user/yods/sink"}]
+        ]))))
+
+(defn flow [app-state owner]
+  (reify
+    om/IRender
+    (render [this]
+      (html
+       [:div
+        (for [seg (-> app-state :segments)]
+          (case (:type seg)
+            :topic (om/build topic-segment seg)
+            (om/build segment seg)))
+        [:div {:style {:min-height "60px"
+                       :width "100px"
+                       :background filter-color
+                       :color "white"}
+               :onClick (fn [ev]
+                          (.preventDefault ev)
+                          (println "Append!")
+                          (om/transact! app-state :segments #(conj % {:label "Filter" :color filter-color}))
+                          )}
+         [:p [:span.fa.fa-plus] "Filter"]]
+        (om/build sink-segment app-state)
+        ]))))
+
+(defn topic [app-state owner]
+  (reify
+    om/IRender
+    (render [this]
+      (html
+       [:p "This form allows you to edit the topic -- hello yodit"]))))
 
 (def app-model
   (atom {:user "nobody"
-         :devices [] ; All the devices
-         :device nil ; The current device detail
+         :devices []                    ; All the devices
+         :device nil                    ; The current device detail
 
-         :topics [] ; All the topics
-         :topic nil ; The current topic detail
+         :topics []                     ; All the topics
+         :topic nil                     ; The current topic detail
 
-         :topic-detail nil ; the current details
-         :new-topic-name nil ; The candidate suffix for a new topic
+         :topic-detail nil        ; the current details
+         :new-topic-name nil      ; The candidate suffix for a new topic
          :new-password nil
-         :test-card {:messages []}}))
+         :test-card {:messages []}
+
+         :side-menu
+         [{:label "Devices"
+           :items [{:label "iPhone"}
+                   {:label "Android"}
+                   {:label "Arduino"}
+                   {:label "Raspberry Pi"}
+                   {:label "Dimmer switch"}
+                   {:label "Temperature sensor"}
+                   {:label "Pollution sensor"}]}
+
+          {:label "Topics"
+           :archetype {:component topic :label "/users/yods/new"}
+           :items [{:component topic :label "/users/yods/temperature"}
+                   {:component topic :label "/users/yods/mixer"}]}
+
+          {:label "Flows"
+           :archetype {:component flow
+                       :label "My new flow"
+                       :segments
+                       [{:type :topic
+                         :topic "/users/yods/*"}]}
+           :items [{:component flow
+                    :label "Alarm if too hot"
+                    :segments
+                    [{:type :topic
+                      :topic "/users/yods/foo"
+                      }
+                     {:label "Filter" :color filter-color}
+                     ]}
+
+                   {:component flow
+                    :label "River overflowing!"
+                    :segments
+                    [{:type :topic :topic "/users/yods/river"}
+                     ]}
+                   ]}
+
+          {:label "API"
+           :items [{:label "Usage"}
+                   {:label "Docs"}]}]
+         }))
+
+(defn content [app-state owner]
+  (reify
+    om/IRender
+    (render [this]
+      (html
+       [:div
+        (let [content (:content app-state)]
+          (if content
+            [:div
+             [:h1 (:label content)]
+             (if-let [component (:component content)]
+               (om/build component content)
+               [:div "(watch this space)"])]
+            [:div "(intentionally left blank)"]
+            ))]))))
+
+(defn drawer [model owner]
+  (reify
+    om/IRender
+    (render [this]
+      (html
+       [:li
+        [:a {:href "#"}
+         [:i.fa.fa-bar-chart-o.fa-fw]
+         (:label model)
+         [:span.fa.arrow]]
+        [:ul.nav.nav-second-level.collapse {:style {"height" "0px"}}
+         (for [item (:items model)]
+           [:li
+            [:a {:onClick (fn [ev]
+                            (.preventDefault ev)
+                            (swap! app-model assoc :content @item)
+                            )}
+             (:label item)]])
+         [:li [:a {:onClick (fn [ev] (.preventDefault ev) (println "Foo!")
+                              (om/transact! model :items #(conj % (:archetype @model))))}
+
+               "New...!"]]]]))))
+
+(defn drawers [app-state owner]
+  (reify
+    om/IRender
+    (render [this]
+      (html
+       [:ul#side-menu.nav
+        [:li.sidebar-search
+          [:div.input-group.custom-search-form
+           [:input.form-control {:type "text" :placeholder "Search..."}]
+           [:span.input-group-btn
+            [:button.btn.btn-default {:type "button"}
+             [:i.fa.fa-search]]]]]
+        (om/build-all drawer (:side-menu app-state))])
+      )))
+
 
 ;; TODO The styling of this table component needs a lot of work
 (defn devices-list-component
@@ -347,6 +512,7 @@
 
             [:input.btn.btn-danger {:name "action" :type "submit" :value "Delete device"}]]]])))))
 
+
 (defn devices-page-component [app-state owner]
   (reify
     om/IRender
@@ -359,9 +525,26 @@
         (om/build devices-list-component app-state)
         ]))))
 
+;; IMPORTANT: (MS) I think devices-page component (below) should be evolved into the
+;; whole 'user' app, such that /devices, /topics, etc. become
+;; 'bookmarks' of the user app. So we'll keep the devices-page name for
+;; now, but eventually we'll rename it to 'user-app' or something along
+;; those lines.
+
+(defn page [app-state owner]
+  (reify
+    om/IRender
+    (render [this]
+      (html
+       [:div
+        (om/build drawers app-state)
+        (om/build devices-page-component app-state)
+        ])))
+  )
+
 (defn ^:export devices-page [identity access-token]
   (swap! app-model assoc :access-token access-token :identity identity)
-  (om/root devices-page-component app-model {:target (. js/document (getElementById "content"))})
+  (om/root page app-model {:target (. js/document (getElementById "content"))})
   )
 
 (defn topics-list-component
@@ -691,48 +874,6 @@
 (defn ^:export users-page [identity access-token]
   (swap! app-model assoc :access-token access-token :identity identity)
   (om/root users-page-component app-model {:target (. js/document (getElementById "content"))}))
-
-;; TEST CARD
-
-(defn test-card-page-component [app-state owner]
-  (reify
-    om/IWillMount
-    (will-mount [this]
-      (let [ajax-send (chan)
-            ajax-recv (ajaj< ajax-send :method :get)]
-        (go-loop []
-          (when-let [data (<! ajax-recv)]
-            (prn data)
-            (om/transact! app-state [:test-card :messages] #(conj % (pr-str data)))
-            (recur)))
-        (om/set-state! owner :channel ajax-send)))
-
-    om/IRender
-    (render [this]
-      (html
-       [:div [:h1 "Test Card"]
-        [:p "Click on the buttons to test the API."]
-        [:p "This demonstrates (and tests) that the JSON messages of the API are rendered as canonical JSON with camelCase keys. Check this by analysing the request/response of each message with the Developer Tools of your browser."]
-        [:p "The use of the " [:code "ajaj<"] " core.async function ensures that the ClojureScript code doesn't have to deal with JSON. Check this by looking at the format of the messages printed below. They should be in canonical EDN format with kebab-case keywords. JSON keys, in contrast, don't work well with many ClojureScript forms, such as map destructuring."]
-        [:p
-         [:button.btn.btn-primary
-          {:onClick #(go (>! (om/get-state owner :channel) {:uri "/api/1.0"}))}
-          "Welcome in JSON"]
-         [:button.btn
-          {:onClick #(om/update! app-state [:test-card :messages] [])}
-          "Clear"]
-         [:button.btn
-          {:onClick (fn [ev]
-                      (println "Connecting")
-                      (go
-                        (let [ws
-                              (<! (ws-ch "ws://localhost:8083/events/stream/users/alice" {:format :json-kw}))]
-                          (println "Websocket ch" ws-ch)
-                          )))}
-          "Connect"]]
-        [:h2 "Messages"]
-        (for [msg (get-in app-state [:test-card :messages])]
-          [:p msg])]))))
 
 (defn ^:export test-card []
   (om/root test-card-page-component app-model {:target (. js/document (getElementById "content"))}))
