@@ -189,14 +189,16 @@
     om/IRender
     (render [this]
       (html
-       [:ul#side-menu.nav
-        [:li.sidebar-search
-          [:div.input-group.custom-search-form
-           [:input.form-control {:type "text" :placeholder "Search..."}]
-           [:span.input-group-btn
-            [:button.btn.btn-default {:type "button"}
-             [:i.fa.fa-search]]]]]
-        (om/build-all drawer (:side-menu app-state))])
+       [:div.navbar-default.sidebar {:role "navigation"}
+        [:div#sidebar-drawers.sidebar-nav.navbar-collapse
+         [:ul#side-menu.nav
+          [:li.sidebar-search
+           [:div.input-group.custom-search-form
+            [:input.form-control {:type "text" :placeholder "Search..."}]
+            [:span.input-group-btn
+             [:button.btn.btn-default {:type "button"}
+              [:i.fa.fa-search]]]]]
+          (om/build-all drawer (:side-menu app-state))]]])
       )))
 
 
